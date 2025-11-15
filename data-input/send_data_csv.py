@@ -25,7 +25,7 @@ def send_message():
     
     topic = 'covid-cases'
     
-    path_dataset = '/home/r2d2/master/TFM/datasets/dataset-casos.csv'
+    path_dataset = './datasets/dataset-casos.csv'
     
     reader_cases_file = pl.read_csv_batched(
         path_dataset, 
@@ -75,7 +75,7 @@ def send_message():
         except Exception as e:
             print(f"✗ Error enviando batch {batch_num}: {e}")
         
-        if batch_num >= 5:
+        if batch_num >= 1:
             break
         
     producer.flush()

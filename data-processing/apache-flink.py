@@ -91,7 +91,7 @@ def parse_and_filter(json_str):
         
         for row in registers:
             if isinstance(row, dict):
-                result = row.get("resultado")
+                result = row.get("RESULTADO")
                 
                 if result == "POSITIVO":
                     # Crear documento para MongoDB con los campos que necesites
@@ -121,7 +121,7 @@ def parse_and_filter(json_str):
         total_positive = len(positive_cases_list)
         total_registers = len(registers)
         
-        print(f"✅ Batch #{batch_num}: {total_positive} casos POSITIVOS de {total_registers} registros")
+        print(f"Batch #{batch_num}: {total_positive} casos POSITIVOS de {total_registers} registros")
         
         # print(f"first element of registers: {registers[0]["RESULTADO"]}")
         
@@ -141,32 +141,48 @@ def parse_and_filter(json_str):
 
 # save to mongo
 def save_to_mongo(list_cases):
-    print(f'type: {type(list_cases)}')
-    # if not list_cases:
-    #     return f"Don't have any cases to save."
+    """
+    Guarda una lista de casos en MongoDB
+    """
+    # Debug: mostrar tipo y cantidad
+    print(f"save_to_mongo recibe: tipo={type(list_cases)}, cantidad={len(list_cases) if isinstance(list_cases, list) else 'N/A'}")
+    
+    if not list_cases:
+        print("No hay casos para guardar (None o vacío)")
+        return "No hay casos para guardar"
+    
+    if not isinstance(list_cases, list):
+        print(f"list_cases no es una lista: {type(list_cases)}")
+        return f"Error: tipo incorrecto {type(list_cases)}"
+    
+    if len(list_cases) == 0:
+        print("Lista vacía, no hay casos para guardar")
+        return "Lista vacía"
     
     try:
-        # connect to MongoDB
+        # Conectar a MongoDB
         client_mongo = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
         db = client_mongo[MONGO_DB]
         collection = db[MONGO_COLLECTION]
         
-        # insert documents
+        # Insertar documentos
         if len(list_cases) == 1:
             result = collection.insert_one(list_cases[0])
-            print(f'Save: {result.inserted_id}')
-            
-            return f"Save: {list_cases[0]['UUID']}"
+            msg = f"Guardado 1 caso: {list_cases[0].get('uuid', 'N/A')}"
+            print(msg)
+            return msg
         else:
             result = collection.insert_many(list_cases)
-            print(f'Save {len(result.inserted_ids)} cases in MongoDB')
-            
-            return f"Save: {result.inserted_ids}"
+            msg = f"Guardados {len(result.inserted_ids)} casos en MongoDB"
+            print(msg)
+            return msg
         
     except Exception as e:
-        print(f'Error saving in MongoDB: {e}')
-        
-        return f'Error: {e}'
+        error_msg = f"Error guardando en MongoDB: {e}"
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        return error_msg
     finally:
         if 'client_mongo' in locals():
             client_mongo.close()

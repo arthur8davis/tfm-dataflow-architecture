@@ -1,14 +1,15 @@
+from datetime import datetime
+from pathlib import Path
+from pymongo import MongoClient
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.common import Types, WatermarkStrategy
 from pyflink.datastream.connectors.kafka import KafkaSource, KafkaOffsetsInitializer
 from pyflink.common.serialization import SimpleStringSchema
 
-from pymongo import MongoClient
-
-from datetime import datetime
-
 import os
 import sys
+
+script_dir = Path(__file__).parent
 
 # Configuration connection to MongoDB
 MONGO_USERNAME = "admin"
@@ -29,7 +30,7 @@ def get_mongo_client():
 env = StreamExecutionEnvironment.get_execution_environment()
 
 # Add JAR connector of Kafka to the Flink environment
-jar_path = os.path.expanduser("~/flink-jars/flink-sql-connector-kafka-4.0.0-2.0.jar")
+jar_path = os.path.expanduser(script_dir/"../external-tools/flink-sql-connector-kafka-4.0.0-2.0.jar")
 
 # Load JAR connector of Kafka into the Flink environment
 env.add_jars(f"file://{jar_path}")
@@ -37,7 +38,7 @@ env.add_jars(f"file://{jar_path}")
 # Define the Kafka source with configuration
 kafka_source = KafkaSource.builder() \
     .set_bootstrap_servers("localhost:9092") \
-        .set_topics("covid-cases") \
+        .set_topics("cases") \
         .set_group_id("group_cases_covid") \
         .set_starting_offsets(KafkaOffsetsInitializer.earliest()) \
         .set_value_only_deserializer(SimpleStringSchema()) \
@@ -68,60 +69,52 @@ def parse_and_filter(json_str):
             print(f"Tipo inesperado: {type(json_str)}")
             return None
         
-        # Debug: mostrar estructura del batch
-        batch_num = data.get("number_batch", 0)
-        rows_batch = data.get("rows_batch", 0)
-        print(f'Batch #{batch_num} con {rows_batch} filas')
+        # # Obtener columnas y registros
+        # # columns = data.get("columns", [])
+        # registers_str = data.get("registers", [])
         
-        # Obtener columnas y registros
-        # columns = data.get("columns", [])
-        registers_str = data.get("registers", [])
+        # if isinstance(registers_str, str):
+        #     registers = json.loads(registers_str)
+        # else:
+        #     registers = registers_str
         
-        if isinstance(registers_str, str):
-            registers = json.loads(registers_str)
-        else:
-            registers = registers_str
-        
-        print(f"registros:\n {type(registers)}")
-        print(f'hora de ejecucion: {datetime.now()}')
-  
+        # print(f"registros:\n {type(registers)}")
         
         # Procesar cada registro del batch
         positive_cases_list = []
         
-        for row in registers:
-            if isinstance(row, dict):
-                result = row.get("RESULTADO")
-                
-                if result == "POSITIVO":
-                    # Crear documento para MongoDB con los campos que necesites
-                    case = {
-                        "uuid": row.get("UUID"),
-                        "resultado": result,
-                        "fecha_muestra": row.get("FECHA_MUESTRA"),
-                        "ubigeo_paciente": row.get("UBIGEO_PACIENTE"),
-                        "edad": row.get("EDAD", None),
-                        "sexo": row.get("SEXO"),
-                        "institucion": row.get("INSTITUCION"),
-                        "departamento_paciente": row.get("DEPARTAMENTO_PACIENTE"),
-                        "provincia_paciente": row.get("PROVINCIA_PACIENTE"),
-                        "distrito_paciente": row.get("DISTRITO_PACIENTE"),
-                        "departamento_muestra": row.get("DEPARTAMENTO_MUESTRA"),
-                        "provincia_muestra": row.get("PROVINCIA_MUESTRA"),
-                        "distrito_muestra": row.get("DISTRITO_MUESTRA"),
-                        "fecha_resultado": row.get("FECHA_RESULTADO"),
-                        "tipo_muestra": row.get("TIPO_MUESTRA"),
-                        "batch_number": batch_num,
-                        "fecha_procesamiento": datetime.now().isoformat()
-                    }
-                    positive_cases_list.append(case)
-            else:
-                print(f"Registro no es dict: {type(row)}")
+        # for row in data:
+        if isinstance(data, dict):
+            result = data.get("resultado")
+            
+            if result == "POSITIVO":
+                # Crear documento para MongoDB con los campos que necesites
+                case = {
+                    "uuid": data.get("uuid"),
+                    "resultado": result,
+                    "fecha_muestra": data.get("fecha_muestra"),
+                    "ubigeo_paciente": data.get("ubigeo_paciente"),
+                    "edad": data.get("edad", None),
+                    "sexo": data.get("sexo"),
+                    "institucion": data.get("institucion"),
+                    "departamento_paciente": data.get("departamento_paciente"),
+                    "provincia_paciente": data.get("provincia_paciente"),
+                    "distrito_paciente": data.get("distrito_paciente"),
+                    "departamento_muestra": data.get("departamento_muestra"),
+                    "provincia_muestra": data.get("provincia_muestra"),
+                    "distrito_muestra": data.get("distrito_muestra"),
+                    "fecha_resultado": data.get("fecha_resultado"),
+                    "tipo_muestra": data.get("tipo_muestra"),
+                    "fecha_procesamiento": datetime.now().isoformat()
+                }
+                positive_cases_list.append(case)
+        else:
+            print(f"Registro no es dict: {type(data)}")
         
-        total_positive = len(positive_cases_list)
-        total_registers = len(registers)
+        # total_positive = len(positive_cases_list)
+        # total_registers = len(registers)
         
-        print(f"Batch #{batch_num}: {total_positive} casos POSITIVOS de {total_registers} registros")
+        # print(f"Batch #{batch_num}: {total_positive} casos POSITIVOS de {total_registers} registros")
         
         # print(f"first element of registers: {registers[0]["RESULTADO"]}")
         
@@ -148,15 +141,15 @@ def save_to_mongo(list_cases):
     print(f"save_to_mongo recibe: tipo={type(list_cases)}, cantidad={len(list_cases) if isinstance(list_cases, list) else 'N/A'}")
     
     if not list_cases:
-        print("No hay casos para guardar (None o vacío)")
+        # print("No hay casos para guardar (None o vacío)")
         return "No hay casos para guardar"
     
     if not isinstance(list_cases, list):
-        print(f"list_cases no es una lista: {type(list_cases)}")
+        # print(f"list_cases no es una lista: {type(list_cases)}")
         return f"Error: tipo incorrecto {type(list_cases)}"
     
     if len(list_cases) == 0:
-        print("Lista vacía, no hay casos para guardar")
+        # print("Lista vacía, no hay casos para guardar")
         return "Lista vacía"
     
     try:
@@ -190,7 +183,6 @@ def save_to_mongo(list_cases):
 
 # process batches and filter positive cases
 stream_cases = ds.map(parse_and_filter)
-
 
 
 # save list positive cases in MongoDB

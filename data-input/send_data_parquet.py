@@ -4,8 +4,14 @@ import polars as pl
 import time
 
 from confluent_kafka import Producer
+from confluent_kafka.serialization import SerializationContext, StringSerializer
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, List, Dict, Any
+
+script_dir = Path(__file__).parent
+
+stringSerializer = StringSerializer('utf_8')
 
 class KafkaParquetProcessor:
     """Procesador optimizado de Parquet a Kafka"""
@@ -49,11 +55,7 @@ class KafkaParquetProcessor:
         self.send_oks = 0
         self.send_errors = 0
         self.detail_errors = []
-        
-        # print("Configuración del Producer:")
-        # for key, value in self.config.items():
-        #     print(f"  {key}: {value}")
-        
+                
     def _callback(self, err, msg):
         """Callback para procesar confirmaciones"""
         if err:
@@ -66,10 +68,6 @@ class KafkaParquetProcessor:
             print(f'Error to send message: {err}')
         else:
             self.send_oks += 1
-            # log cada 1000 mensajes
-            # if self.send_oks % 1000 == 0:
-            #     print(f'Confirmed: {self.send_oks:,}')
-
 
     def process(
         self,
@@ -78,7 +76,7 @@ class KafkaParquetProcessor:
         batch_size: int = 5000,
         filters: Optional[List] = None,
         columns: Optional[List[str]] = None,
-        key_column: Optional[str] = 'id'
+        key_column: Optional[str] = 'uuid'
     ) -> Dict[str, Any]:
         """Procesa archivo Parquet y envia a Kafka
 
@@ -129,7 +127,7 @@ class KafkaParquetProcessor:
             
             # Processing for batches
             for offset in range(0, total, batch_size):
-                # start_batch = time.time()
+                start_batch = time.time()
                 
                 try:
                     # read batch
@@ -143,7 +141,9 @@ class KafkaParquetProcessor:
                             row=row,
                             key_column=key_column
                         )
-                        
+                    
+                    if offset >= 1:
+                        break
                     # Poll for process callbacks (don't block)
                     self.producer.poll(0)
                     
@@ -184,9 +184,6 @@ class KafkaParquetProcessor:
         finally:
             if self.producer:
                 self.producer.flush(timeout=10)
-                # try:
-                # except Exception as e:
-                #     print(f'Error final flush: {e}')
     
     
     def _send_message(self, topic: str, row: Dict, key_column: Optional[str]):
@@ -246,9 +243,6 @@ class KafkaParquetProcessor:
             print(f'\nHave {len(self.detail_errors)} errors')
             for i, error in enumerate(self.detail_errors[:5], 1):
                 print(f"    {i}. {error['error']}")
-                
-            # if len(self.detail_errors) > 5:
-            #     print(f"    ... and {len(self.detail_errors) - 5} errors more")
 
         return {
             'total': total,
@@ -257,7 +251,6 @@ class KafkaParquetProcessor:
             'success_rate': success_rate,
             'duration': duration,
             'throughput': throughput,
-            # 'detail_errors': self.detail_errors
         }
 
 
@@ -269,11 +262,11 @@ if __name__ == '__main__':
     )
     
     result = processor.process(
-        filename_parquet='../datasets/covid_cases.parquet',
+        filename_parquet=script_dir/'../datasets/covid_cases.parquet',
         kafka_topic='cases',
         batch_size=10000,
         filters=None,
-        key_column='id'
+        key_column='uuid'
     )
     
     print(f'\nResult: {result}')

@@ -1,0 +1,61 @@
+services:
+  # crear una carpeta llamada 
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: kafka-kraft
+    ports:
+      - "9092:9092"   # Para clientes externos
+      - "9093:9093"   # Controller (ya existía)
+      - "19092:19092" # Para clientes internos (Docker)
+    environment:
+      KAFKA_KRAFT_MODE: "true"
+      # Configuration Kraft
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # DOS LISTENERS: uno interno, uno externo
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:19092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka-kraft:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # Cluster Configuration
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+      # Log Directory
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+
+      # Cluster Auto-create ID
+      CLUSTER_ID: KFJAOISD29nliqFO
+
+    networks:
+      - kafka-network
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+      # - ./kafka-data:/var/lib/kafka/data # se tiene que crear una carpeta local si quieres usar esta opcion
+
+  kafka-ui:
+    image: ghcr.io/kafbat/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+      KAFKA_CLUSTERS_0_NAME: local-kraft
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-kraft:19092
+    networks:
+      - kafka-network
+    
+networks:
+  kafka-network:
+    driver: bridge
+
+volumes:
+  kafka-data:

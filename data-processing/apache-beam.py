@@ -283,11 +283,12 @@ def run_pipeline():
     
     # Pipeline Configuration 
     options = PipelineOptions([
-        '--runner=DirectRunner',
-        '--streaming',
-        # MEJORA 8: Opciones adicionales útiles
-        # '--num_workers=4',  # Para DataflowRunner
-        # '--max_num_workers=10',
+        # "--runner=FlinkRunner",
+        # "--flink_master=localhost:8081",
+        # "--environment_type=DOCKER",
+        # "--environment_config=apache/beam_python3.11_sdk:2.60.0"
+        "--runner=DirectRunner",
+        "--streaming"
     ])
     
     # Kafka Configuration
@@ -538,8 +539,8 @@ def run_batch_pipeline():
             | 'Write to MongoDB' >> beam.ParDo(
                 WriteToMongoDBCases(
                     mongo_uri='mongodb://localhost:27017/',
-                    database='covid_db_test',
-                    collection='muestras_test',
+                    database='covid_db',
+                    collection='muestras',
                     batch_size=10
                 )
             )

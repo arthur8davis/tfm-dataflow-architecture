@@ -5,7 +5,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 
 # Importar configuración y builder del pipeline
 from config import dev, prod
-from etl.pipeline import build_pipeline
+from dataflowModel.pipeline import build_pipeline_cases
 
 def run(env='dev'):
     logging.getLogger().setLevel(logging.INFO)
@@ -22,7 +22,7 @@ def run(env='dev'):
     options = PipelineOptions(pipeline_args)
 
     with beam.Pipeline(options=options) as p:
-        build_pipeline(p, config)
+        build_pipeline_cases(p, config)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

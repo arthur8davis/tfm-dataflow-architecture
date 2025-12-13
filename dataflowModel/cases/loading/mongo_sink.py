@@ -33,7 +33,7 @@ class MongoWriteFn(beam.DoFn):
             return
         try:
             res = self.collection.insert_many(self.buffer)
-            # logging.info(f"Insertados {len(res.inserted_ids)} documentos en Mongo.")
+            logging.info(f"Insertados {len(res.inserted_ids)} documentos en Mongo.")
             
         except Exception as e:
             logging.error(f"Error escribiendo batch a Mongo: {e}")

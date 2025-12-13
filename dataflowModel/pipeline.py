@@ -1,8 +1,8 @@
 import logging
 import apache_beam as beam
-from etl.cases.extraction.kafka_source import ReadFromKafkaConfluent
-from etl.cases.loading.mongo_sink import MongoWriteFn
-from etl.cases.transformation.parsers import parse_json
+from dataflowModel.cases.extraction.kafka_source import ReadFromKafkaConfluent
+from dataflowModel.cases.loading.mongo_sink import MongoWriteFn
+from dataflowModel.cases.transformation.parsers import parse_json
 
 def build_pipeline_cases(pipeline, config):
     """
@@ -21,7 +21,7 @@ def build_pipeline_cases(pipeline, config):
         ))
         | "ParseJSON" >> beam.Map(parse_json)
         | "FilterNone" >> beam.Filter(lambda x: x is not None)
-        | "Log" >> beam.Map(lambda x: logging.info(f"Procesado: {x}") or x)
+        # | "Log" >> beam.Map(lambda x: logging.info(f"Procesado: {x}") or x)
         | "WriteToMongo" >> beam.ParDo(MongoWriteFn(
             uri=config.MONGO_URI, 
             db=config.MONGO_DB, 

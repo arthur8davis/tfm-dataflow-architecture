@@ -5,7 +5,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 
 # Importar configuración y builder del pipeline
 from config import dev, prod
-from dataflowModel.pipeline import build_pipeline_cases
+from dataflow_model.pipeline import build_pipeline_cases
 
 def run(env='dev'):
     logging.getLogger().setLevel(logging.INFO)

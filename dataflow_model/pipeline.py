@@ -1,8 +1,8 @@
 import logging
 import apache_beam as beam
-from dataflowModel.cases.extraction.kafka_source import ReadFromKafkaConfluent
-from dataflowModel.cases.loading.mongo_sink import MongoWriteFn
-from dataflowModel.cases.transformation.parsers import parse_json
+from dataflow_model.cases.extraction.kafka_source import ReadFromKafkaConfluent
+from dataflow_model.cases.loading.mongo_sink import MongoWriteFn
+from dataflow_model.cases.transformation.parsers import parse_json
 
 def build_pipeline_cases(pipeline, config):
     """

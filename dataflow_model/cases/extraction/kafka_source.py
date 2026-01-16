@@ -27,9 +27,13 @@ class ReadFromKafkaConfluent(beam.DoFn):
             self.running = True
 
     def process(self, element):
+        # logging.info(f"Iniciando micro-batch ({element}). Topic: {self.topic}, Group: {self.group_id}")
+        msg_count = 0
+        start_time = time.time()
         try:
-            while True:
-                msg = self.consumer.poll(timeout=1.0)
+            # Leer por 1 segundo por cada elemento del driver
+            while time.time() - start_time < 0.5:
+                msg = self.consumer.poll(timeout=0.1)
                 if msg is None:
                     continue
                 if msg.error():
@@ -39,8 +43,12 @@ class ReadFromKafkaConfluent(beam.DoFn):
                         logging.error(f"Kafka Error: {msg.error()}")
                         continue
                 
+                msg_count += 1
+                # if msg_count % 100 == 0:
+                #      logging.info(f"Leídos {msg_count} mensajes...")
                 yield msg.value().decode('utf-8')
         finally:
+            logging.info("Cerrando consumidor Kafka")
             pass
 
     def teardown(self):

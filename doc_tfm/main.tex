@@ -1,0 +1,1436 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[man,es,floatsintext]{apa7}
+\usepackage[spanish]{babel}
+\usepackage{varioref}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage{xcolor}
+\usepackage[style=apa,backend=biber]{biblatex}
+\addbibresource{references.bib}
+\usepackage{float}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+% \usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{3} % enable section numbering (0=chapter, 1=section, 2=subsection, 3=subsubsection)
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={Arthur Huayaconza, Gary Choque}}
+
+% APA 7 headers are managed by the document class.
+
+
+
+
+\title{Procesamiento de datos en tiempo real y lotes mediante una arquitectura basada en el modelo Dataflow y flujos de eventos}
+\shorttitle{Procesamiento de datos en tiempo real y en lotes}
+\author{Choque Borda, Gary Gianpier \& Huayaconza Condori, Arthur Davis}
+\authorsaffiliations{Universidad Internacional de La Rioja}
+\leftheader{Choque Borda \& Huayaconza Condori}
+\abstract{En la actualidad se procesan grandes volúmenes de datos a cada segundo, por lo cual se requiere métodos y técnicas que soporten esta magnitud de volumetría. La metodología se basa en la aplicación del modelo llamado DataFlow, el cual unifica el procesamiento batch y streaming en un mismo marco conceptual, equilibrando exactitud, latencia y costo.}
+\keywords{Big Data, Streaming, Dataflow, Kafka, Spark, Flink}
+
+\definecolor{unirblue}{RGB}{86, 155, 213}
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \includegraphics[width=0.4\textwidth]{images/logo-unir.png} \par
+    {\Large \textbf{Universidad Internacional de La Rioja} \par}
+    {\Large Escuela Superior de Ingeniería y Tecnología \par}
+    \vspace{1cm}
+    {\Large Máster Universitario en Análisis y Visualización de Datos Masivos/ Visual Analytics and Big Data \par}
+    {\Huge \textcolor{unirblue}{\textbf{Procesamiento de datos en streaming y bach con arquitecturas basadas en flujos de eventos}} }
+    \vspace{1cm}
+    \begin{flushleft}
+    \begin{tabular}{|l|l|}
+    \hline
+    \textbf{Trabajo fin de estudio presentado por:} & Choque Borda, Gary Gianpier \\
+                                                    & Huayaconza Condori, Arthur Davis \\ \hline
+    \textbf{Tipo de trabajo:} & Desarrollo Software \\ \hline
+    \textbf{Director/a:} & Margalida Salom Ramis \\ \hline
+    \textbf{Fecha:} & \\ \hline
+    \end{tabular}
+    \end{flushleft}
+    \vfill
+\end{titlepage}
+\setcounter{page}{2}
+
+
+\textbf{Resumen}
+
+En la actualidad, se procesan grandes volúmenes de datos a cada segundo, por lo cual se requieren métodos y técnicas que soporten esta magnitud de volumen.
+
+La metodología se basa en la aplicación del modelo llamado DataFlow, el cual unifica el procesamiento batch y streaming en un mismo marco conceptual, equilibrando exactitud, latencia y costo.
+
+Este modelo se implementa mediante un conjunto de tecnologías distribuidas y escalables: Apache Kafka para la ingesta de datos en flujo continuo, Spark Structured Streaming para el procesamiento unificado de datos tanto en tiempo real (\emph{streaming}) como en modo histórico (\emph{batch}), siguiendo los principios del modelo Dataflow,
+Elasticsearch para el almacenamiento de resultados y Grafana para la visualización dinámica.
+
+Sobre esta base, se construyó una infraestructura modular capaz de emular el funcionamiento de un sistema de vigilancia epidemiológica incorporando además herramientas de visualización y generación de alertas en tiempo real.
+
+Para la implementación de esta arquitectura, se tomó como caso de estudio la pandemia de 2020, que afectó a nivel mundial, en la que se requirió plataformas que puedan procesar grandes volúmenes de datos y en tiempo real. Por lo cual su relevancia en estos escenarios es de vital importancia, y este es nuestro principal objetivo, el poder construir una plataforma que se encargue de la ingesta de datos diarios, procesamiento, limpieza de datos, aplicar modelos predictivos simples en tiempo real, visualización de métricas y predicciones en dashboards interactivos.
+
+Los resultados demuestran que la arquitectura propuesta es viable, escalable y de baja latencia, logrando procesar grandes volúmenes de eventos en streaming con tiempos de respuesta adecuados. Si bien se trabajó con datos simulados, el sistema puede integrarse fácilmente con fuentes reales y extenderse a otros contextos, como el monitoreo de enfermedades endémicas o la gestión de emergencias sanitarias.
+
+En conclusión, el trabajo confirma que el uso de tecnologías de Big Data en tiempo real constituye una herramienta valiosa para el análisis y gestión de crisis epidemiológicas, y abre la puerta a futuras investigaciones en predicción con machine learning y despliegues en entornos cloud.
+
+\newpage
+
+\textbf{Abstract}
+
+Currently, large volumes of data are processed every second, requiring methods and techniques that can support this magnitude of volume.
+
+During the 2020 pandemic that affected the entire world, platforms capable of processing large volumes of data in real time were needed. Therefore, their relevance in these scenarios is of vital importance, and this is our main objective: to build a platform that handles daily data intake, processing, data cleaning, applying simple predictive models in real time, and visualizing metrics and predictions in interactive dashboards.
+
+The methodology is based on the application of a model called DataFlow, which unifies batch and streaming processing in the same conceptual framework, balancing accuracy, latency, and cost.
+
+This model is implemented through a set of distributed and scalable technologies: Apache Kafka for continuous data ingestion, Spark Structured Streaming for unified data processing in both real time (streaming) and historical mode (batch), following the principles of the Dataflow model, Elasticsearch for storing results, and Grafana for dynamic visualization.
+
+On this basis, a modular infrastructure was built capable of emulating the operation of an epidemiological surveillance system, also incorporating real-time visualization and alert generation tools.
+
+The results demonstrate that the proposed architecture is viable, scalable, and low-latency, capable of processing large volumes of streaming events with adequate response times. Although simulated data was used, the system can be easily integrated with real sources and extended to other contexts, such as the monitoring of endemic diseases or the management of health emergencies.
+
+In conclusion, the work confirms that the use of real-time Big Data technologies is a valuable tool for the analysis and management of epidemiological crises, and opens the door to future research in prediction with machine learning and deployments in cloud environments.
+
+\newpage
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+
+
+% Introduction section removed per APA 7
+\section{Introducción}\label{introducciuxf3n}
+
+La gestión eficiente de grandes volúmenes de datos en tiempo real se ha convertido en un pilar fundamental para la toma de decisiones en entornos complejos y cambiantes. La pandemia del COVID-19 evidenció, a nivel global, la importancia de contar con infraestructuras tecnológicas capaces de integrar, procesar y analizar información proveniente de múltiples fuentes de manera oportuna. Más allá del contexto sanitario, esta situación puso de manifiesto las limitaciones de los sistemas tradicionales de información y la necesidad de evolucionar hacia arquitecturas más flexibles, escalables y resilientes.
+
+En el caso del Perú, la heterogeneidad geográfica, la desigual distribución de recursos tecnológicos y la carencia de plataformas de integración de datos dificultaron la respuesta oportuna ante la emergencia. Esto evidenció la necesidad de contar con infraestructuras de procesamiento de datos que permitan manejar flujos continuos de información, integrando componentes de ingesta, almacenamiento, procesamiento y visualización en un entorno unificado.
+
+En este escenario, el Big Data y las arquitecturas basadas en flujos de datos ofrecen un marco idóneo para abordar este tipo de desafíos. Tecnologías como Apache Kafka, Apache Spark o Flink permiten la implementación de arquitecturas orientadas al procesamiento streaming y batch, posibilitando la captura y el análisis simultáneo de datos en movimiento y datos históricos. Entre los modelos más relevantes se encuentra el modelo Dataflow, que unifica ambos enfoques y facilita la construcción de sistemas de procesamiento distribuido de alto rendimiento.
+
+El presente Trabajo de Fin de Máster tiene como objetivo diseñar e implementar una arquitectura de procesamiento basada en los principios del modelo Dataflow, orientada a la gestión de flujos de datos en tiempo real y por lotes. Para ello, se propone la simulación de un entorno de datos inspirado en la pandemia de COVID-19 en Perú, que permitirá validar el comportamiento de la infraestructura propuesta. Más que centrarse en el fenómeno epidemiológico, el trabajo busca demostrar la viabilidad técnica y el potencial analítico de una infraestructura Big Data distribuida, capaz de procesar, integrar y analizar grandes volúmenes de información en escenarios dinámicos y de alta demanda computacional.
+
+\subsection{Motivación}\label{motivaciuxf3n}
+
+La motivación de este Trabajo de Fin de Máster surge de la necesidad de contar con arquitecturas de procesamiento de datos modernas y escalables, capaces de gestionar flujos continuos de información en tiempo real. En la actualidad, el volumen, la velocidad y la variedad de los datos han superado las capacidades de los sistemas tradicionales de procesamiento batch, lo que ha generado la necesidad de adoptar modelos más dinámicos y flexibles.
+
+En este contexto, el modelo Dataflow se presenta como una solución integral que permite procesar datos tanto en modo streaming como por lotes bajo un mismo marco operativo. Su capacidad para definir y ejecutar flujos de datos de forma paralela, distribuida y resiliente, lo convierte en un enfoque idóneo para escenarios donde la inmediatez y la precisión son esenciales para la toma de decisiones informadas.
+
+Como caso de estudio, se seleccionó la pandemia del COVID-19 en el Perú, un contexto que evidenció las limitaciones de las infraestructuras tradicionales para procesar grandes volúmenes de datos en tiempo real. A través de la implementación de una arquitectura basada en el modelo Dataflow, se busca simular la evolución de indicadores epidemiológicos y evaluar el rendimiento de un sistema de análisis continuo frente a entornos con información cambiante y de alta incertidumbre.
+
+De esta manera, la motivación principal de este trabajo radica en demostrar la viabilidad técnica y el potencial del modelo Dataflow para construir sistemas de procesamiento y análisis que integren múltiples fuentes de datos, garanticen consistencia en los resultados y brinden una visión actualizada del fenómeno estudiado. Además, este enfoque no solo busca validar un modelo tecnológico aplicable al ámbito sanitario, sino también establecer una base sólida para el desarrollo de soluciones escalables en diversos sectores que demandan análisis en tiempo real.
+
+\subsection{Planteamiento del trabajo}\label{planteamiento-del-trabajo}
+
+En la actualidad, la gestión y el análisis de grandes volúmenes de datos en tiempo real representan un desafío clave para las organizaciones e instituciones que requieren información precisa y oportuna. La pandemia de la COVID-19 evidenció de manera contundente esta necesidad, al mostrar las limitaciones de los sistemas tradicionales para procesar y analizar datos de forma continua y con baja latencia. Este contexto puso de manifiesto la importancia de contar con arquitecturas de datos modernas, flexibles y escalables que permitan integrar fuentes heterogéneas y ofrecer resultados actualizados en todo momento.
+
+En este sentido, el presente trabajo propone el diseño e implementación de una arquitectura basada en el modelo Dataflow, orientada al procesamiento tanto en tiempo real como en lotes, con el objetivo de simular y analizar la evolución de los indicadores asociados a la pandemia en el Perú. Para ello, se utilizarán datos históricos que reflejan patrones reales de contagio, ubicación geográfica, fecha de muestreo, institución sanitaria, edad, sexo, tipo de muestra y resultado. Dichos datos serán procesados mediante un pipeline de datos capaz de gestionar el flujo continuo de información, aplicar transformaciones y generar resultados de manera eficiente y en tiempo real.
+
+El modelo Dataflow permitirá estructurar un sistema unificado de ingesta, procesamiento y visualización de datos, en el cual los resultados serán presentados en tableros interactivos que faciliten la comprensión inmediata de las tendencias y comportamientos de las variables analizadas. Este enfoque demuestra la capacidad de la arquitectura para adaptarse a escenarios dinámicos y de alta variabilidad, donde la rapidez y precisión del procesamiento resultan determinantes.
+
+Más allá del caso específico, el trabajo busca evidenciar el potencial del modelo Dataflow como base arquitectónica para sistemas de análisis continuo, aplicables no solo en el ámbito sanitario, sino también en sectores donde el valor del dato en tiempo real es crítico para la toma de decisiones. Así, la propuesta integra la tecnología de procesamiento distribuido con la necesidad de disponer de información confiable, actualizada y útil, mostrando cómo la analítica moderna puede contribuir de forma directa a la gestión eficiente de datos en entornos complejos.
+
+\subsection{Estructura del trabajo}\label{estructura-del-trabajo}
+
+En el presente estudio, dentro del contexto y el estado del arte, se abordarán las siguientes temáticas principales:
+
+\begin{itemize}
+\tightlist
+    \item
+      Procesamiento de datos
+    \item
+      Arquitecturas Big Data (Lambda, Kappa y Dataflow)
+    \item
+      Ingesta y transformación de flujos de datos
+    \item
+      Tecnologías de streaming: Apache Kafka, Spark y Flink
+    \item
+      Procesamiento batch y almacenamiento distribuido
+    \item
+      Visualización de datos en entornos analíticos
+    \item
+      Casos de uso en sistemas de monitoreo sanitario
+\end{itemize}
+
+Estos ejes temáticos permitirán contextualizar la propuesta técnica y proporcionar una base conceptual sólida para el diseño e implementación de la arquitectura desarrollada.
+
+En el Capítulo 1 se presenta la introducción al estudio, el planteamiento del problema, los objetivos, la justificación y el alcance del trabajo.
+
+El Capítulo 2 desarrolla el marco teórico y el estado del arte, donde se analizan las arquitecturas de procesamiento de datos y las tecnologías utilizadas actualmente para el análisis en tiempo real.
+
+En el Capítulo 3 se describe la metodología empleada para el diseño e implementación de la arquitectura, así como los criterios técnicos que guían la propuesta.
+
+El Capítulo 4 detalla el desarrollo de la solución, incluyendo la configuración de los componentes, la integración de los módulos de ingesta, procesamiento y visualización, y la simulación de los datos de la pandemia.
+
+En el Capítulo 5 se presentan los resultados del estudio, el análisis de rendimiento y la evaluación de la arquitectura propuesta. Finalmente, se exponen las conclusiones, las limitaciones encontradas y las posibles líneas de trabajo futuro.
+
+\section{Contexto y estado del arte}\label{contexto-y-estado-del-arte}
+
+\subsection{Contexto del problema}\label{contexto-del-problema}
+
+En el caso del Perú, la gestión de los datos sobre los casos de COVID-19 presentó muchas dificultades. Entre ellas se pueden mencionar los registros incompletos, la falta de conexión entre los distintos sistemas de información, la ausencia de formatos estandarizados y los retrasos en la actualización de los reportes. Estas limitaciones hicieron más difícil generar indicadores confiables y tomar decisiones rápidas basadas en datos reales, tanto en el sector salud como en las instituciones del Estado.
+
+Frente a este panorama, las tecnologías de Big Data y el procesamiento de datos en tiempo real aparecen como soluciones clave para analizar grandes volúmenes de información sanitaria. Su principal ventaja es la posibilidad de integrar datos de diferentes fuentes como registros hospitalarios, resultados de laboratorio, movilidad ciudadana o disponibilidad de camas UCI y transformarlos en indicadores y paneles interactivos que ayuden a entender mejor la situación sanitaria.
+
+Por esta razón, este Trabajo de Fin de Máster propone el desarrollo de una arquitectura de procesamiento en tiempo real basada en los principios del modelo Dataflow, con el fin de simular el flujo de contagios y analizar la evolución de la pandemia en el Perú. La propuesta combina diferentes etapas del proceso de datos como la ingesta, limpieza, procesamiento y visualización dentro de un entorno Big Data distribuido, buscando demostrar cómo una infraestructura moderna puede mejorar la eficiencia, la escalabilidad y la rapidez en el análisis de información para la toma de decisiones.
+
+\subsection{Estado del arte}\label{estado-del-arte}
+
+\subsubsection{Procesamiento de datos}
+
+\textbf{Procesamiento por lotes (Batch Processing):}
+
+El procesamiento por lotes es el método que utilizan las computadoras para completar periódicamente trabajos de datos repetitivos y de gran volumen. Ciertas tareas de procesamiento de datos, como las copias de seguridad, el filtrado y la clasificación, pueden requerir un esfuerzo de computación intensivo y ser ineficientes para ejecutarse en transacciones de datos individuales. En cambio, los sistemas de datos procesan estas tareas en lotes, a menudo en horas de menor actividad, cuando los recursos de computación están disponibles con mayor frecuencia, como al final del día o de la noche a la mañana. Por ejemplo, imagine un sistema de comercio electrónico que reciba pedidos a lo largo del día. En lugar de procesar todos los pedidos a medida que se producen, el sistema podría recopilar todos los pedidos al final de cada día y compartirlos en un lote con el equipo de cumplimiento de pedidos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{images/batch-processing.png}
+\caption{Procesamiento por lotes (Batch Processing)}
+\label{fig:batch-processing}
+\end{figure}
+
+\textbf{Procesamiento en tiempo real (Streaming Processing):}
+
+El procesamiento de flujo, también conocido como procesamiento en tiempo real, procesa continuamente los datos a medida que se reciben o generan. A diferencia del procesamiento por lotes, no existe el concepto de almacenar datos antes de procesarlos, lo que hace que esta técnica sea ideal para obtener resultados en tiempo real o procesar flujos de datos urgentes.
+
+Su baja latencia y funcionamiento continuo caracterizan el procesamiento de flujo. Se usa comúnmente en aplicaciones que requieren que los datos se procesen en tiempo real para un análisis inmediato, como las plataformas de comercio financiero.
+
+El procesamiento en tiempo real también es necesario para aplicaciones que deben evaluar y responder a eventos a medida que ocurren, como sistemas de detección de fraude, monitoreo de seguridad de red o dispositivos y dispositivos de Internet de las cosas (IoT).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{images/stream-processing.png}
+\caption{Procesamiento en tiempo real (Stream Processing)}
+\label{fig:stream-processing}
+\end{figure}
+
+La comparativa se muestra en la \vref{fig:batch-vs-stream}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{images/batch-vs-stream.png}
+\caption{Comparativa entre procesamiento por lotes y en tiempo real}
+\label{fig:batch-vs-stream}
+\end{figure}
+
+\subsubsection{Arquitecturas Big Data (Lambda, Kappa y Dataflow)}
+
+\textbf{Arquitectura Lambda}
+
+La arquitectura Lambda fue propuesta por Nathan Marz como un modelo para manejar grandes volúmenes de datos combinando el procesamiento por lotes (batch) y el procesamiento en tiempo real (streaming) en un sistema único \parencite{marz2015bigdata}. Esta arquitectura busca equilibrar precisión, latencia y tolerancia a fallos mediante tres capas principales: la capa batch que procesa todos los datos históricos, la capa speed que maneja los datos recientes en tiempo real, y la capa serving que combina ambos resultados para proporcionar consultas actualizadas \parencite{wikipedia2024lambda}.
+
+La principal ventaja de Lambda es que permite reprocesar datos históricos y actualizar resultados de forma continua. Sin embargo, presenta una complejidad considerable al mantener dos caminos de procesamiento distintos, lo que puede duplicar el código y aumentar el costo de mantenimiento \parencite{marz2015bigdata}.
+
+\textbf{Arquitectura Kappa}
+
+La arquitectura Kappa fue propuesta por \textcite{kreps2014lambda}, cofundador de Apache Kafka, como una alternativa más simple a Lambda. Kappa elimina la capa de procesamiento por lotes y trata todos los datos como flujos de eventos. En lugar de mantener rutas separadas, los sistemas basados en Kappa procesan tanto los datos en tiempo real como los históricos desde un único flujo continuo \parencite{kreps2014lambda}.
+
+Este enfoque reduce la complejidad operativa y permite re-procesar datos históricos volviendo a leer el log de eventos desde sistemas como Apache Kafka \parencite{hazelcast2025kappa}. Su simplicidad facilita la implementación de arquitecturas escalables para análisis y aprendizaje automático en tiempo real, aunque puede no ser tan eficiente como Lambda en tareas que requieren procesamiento intensivo sobre grandes volúmenes históricos \parencite{chaosgenius2025kappa}.
+
+\textbf{Modelo Dataflow}
+
+El modelo Dataflow, introducido por Google y formalizado por \textcite{akidau2015dataflow}, propone una unificación de los paradigmas batch y streaming bajo una misma abstracción de procesamiento. En este modelo, los datos se representan como colecciones (denominadas PCollections), sobre las cuales se aplican transformaciones que pueden ejecutarse tanto de manera continua como puntual \parencite{akidau2015dataflow}.
+
+Dataflow incorpora conceptos avanzados como ventanas de tiempo (windows), triggers, procesamiento con estado (stateful processing) y semánticas de tiempo de evento (event time), lo que permite manejar tanto datos históricos como flujos en tiempo real \parencite{beam2024guide}. Su principal ventaja es que el mismo pipeline puede ser ejecutado sobre diferentes motores de ejecución (runners), como Apache Flink, Spark o Google Cloud Dataflow, favoreciendo la portabilidad y la flexibilidad.
+
+Comparado con Lambda y Kappa, Dataflow puede considerarse una evolución conceptual: mantiene la capacidad de procesar datos históricos y en streaming, pero sin duplicar código ni requerir arquitecturas paralelas, lo que simplifica notablemente el mantenimiento de los sistemas de análisis.
+
+\subsubsection{Procesamiento de datos}
+
+\textbf{Apache Kafka (Google Pub/Sub)}
+
+Apache Kafka es una plataforma distribuida de mensajería orientada a flujos de eventos (event streaming platform) desarrollada inicialmente por LinkedIn y actualmente mantenida por la Apache Software Foundation (2024a).
+
+Permite la publicación, suscripción, almacenamiento y procesamiento de flujos de datos en tiempo real mediante un sistema basado en topics y brokers.
+
+Su arquitectura distribuida garantiza alta disponibilidad, tolerancia a fallos y escalabilidad horizontal, lo que la convierte en un componente esencial para arquitecturas basadas en eventos.
+
+\textbf{Kafka Connect}
+
+Kafka Connect es un framework complementario a Apache Kafka diseñado para la integración de sistemas externos mediante conectores preconstruidos (connectors) (Apache Software Foundation, 2024b).
+
+Permite mover datos de forma continua entre Kafka y otros sistemas ---como bases de datos, APIs o sistemas de archivos--- sin necesidad de programar procesos ETL complejos.
+
+\textbf{Apache Beam (Google Dataflow)}
+
+Apache Beam es un modelo de programación unificado para el procesamiento de datos en modo batch y streaming, inspirado en el modelo Dataflow propuesto por Google (Akidau et al., 2015; Apache Software Foundation, 2024c).
+
+Beam abstrae las transformaciones y operaciones de los datos a través de un conjunto de primitivas comunes (PCollections, ParDo, GroupByKey, Windowing), lo que permite definir un pipeline único que puede ejecutarse en distintos motores distribuidos (runners), como Flink, Spark o Google Cloud Dataflow.
+
+Su principal contribución al estado del arte radica en ofrecer una abstracción de alto nivel que combina el paradigma de streaming continuo con el de procesamiento por lotes, garantizando consistencia y portabilidad.
+
+\textbf{Apache Flink (Google Dataflow)}
+
+Apache Flink es un motor de procesamiento distribuido diseñado específicamente para análisis de flujos de datos en tiempo real (Apache Software Foundation, 2024d).
+
+Flink implementa un modelo de ejecución streaming-first, con soporte nativo para stateful processing, event time, windowing y exactly-once semantics.
+
+Su arquitectura permite ejecutar flujos de datos continuos con baja latencia y alta tolerancia a fallos, utilizando puntos de control (checkpoints) y estados consistentes
+
+\subsubsection{Almacenamiento distribuido y Series Temporales}
+
+\textbf{MongoDB (BigQuery)}
+
+MongoDB es una base de datos NoSQL orientada a documentos, desarrollada para almacenar información semiestructurada en formato JSON o BSON \parencite{mongodb2024manual}.
+
+A diferencia de las bases de datos relacionales tradicionales, MongoDB proporciona flexibilidad en el esquema, escalabilidad horizontal y una alta velocidad de lectura y escritura.
+
+\textbf{Prometheus (Google Data Studio)}
+
+Prometheus es una herramienta de monitorización y recopilación de métricas en tiempo real desarrollada originalmente por SoundCloud \parencite{prometheus2024doc}.
+
+Su arquitectura se basa en un modelo pull, donde Prometheus recolecta periódicamente métricas de los sistemas instrumentados, almacenándolas en una base de datos de series temporales.
+
+Permite definir alertas y reglas basadas en consultas expresadas en su propio lenguaje, PromQL.
+
+\subsubsection{Visualización y alertas de datos en entornos analíticos}
+
+\textbf{Grafana}
+
+Grafana es una plataforma de visualización y análisis de métricas de código abierto que se integra con múltiples fuentes de datos, entre ellas Prometheus y MongoDB \parencite{grafana2024doc}.
+
+Permite construir dashboards interactivos que facilitan la interpretación del comportamiento de los sistemas en tiempo real y la generación de alertas visuales.
+
+\textbf{Scikit-learn (BigQuery ML)}
+
+Scikit-learn es una biblioteca de aprendizaje automático (Machine Learning) desarrollada en Python, orientada al análisis estadístico y la construcción de modelos predictivos \parencite{pedregosa2011scikit}.
+
+Proporciona una amplia gama de algoritmos para clasificación, regresión, clustering y reducción de dimensionalidad, además de herramientas para validación de modelos y feature engineering.
+
+\subsubsection{Vacíos identificados}\label{vacuxedos-identificados}
+
+Procesamiento en tiempo real o streaming con baja latencia: La mayoría de los estudios peruanos mencionados usan procesamiento batch o predicciones basadas en datos históricos. Tu pipeline Dataflow permitiría análisis continuo.
+
+Uso del modelo Dataflow / Apache Beam: No encontré estudios que usen explícitamente Dataflow o Beam en Perú para monitoreo en salud pública.
+
+Integración de múltiples flujos de datos: Muchos trabajos usan un tipo de dato (casos COVID, vacunación, etc.). Incorporar movilidad, capacidad hospitalaria, defunciones, etc., simultáneamente sería valioso.
+
+Generación de alertas dinámicas basadas en umbrales configurables:
+Estudios descriptivos o de predicción no siempre incluyen mecanismos de alerta automática en tiempo real.
+
+Validación con latencia, tolerancia a fallos, ventana de tiempo avanzada (Windows / Triggers): No se evidencian trabajos que midan explícitamente latencia, manejo de eventos tardíos, watermarks, etc. 
+
+No obstante, ambas presentan desafíos: Lambda requiere mantener dos sistemas paralelos, lo que aumenta la complejidad del mantenimiento, mientras que Kappa puede tener dificultades para manejar procesamientos históricos.
+
+\subsection{Trabajos Relevantes en Salud Pública y Big Data}
+
+\begin{enumerate}
+
+\tightlist
+    \item
+      \emph{Modelo de una arquitectura big data para mejorar el análisis de datos abiertos del MINSA de casos COVID-19 en el Perú} --- \textcite{gomez2023modelo}.\\
+      La tesis propone un modelo de arquitectura Big Data para optimizar el análisis de los datos abiertos del Ministerio de Salud (MINSA). Se evalúan eficiencia, calidad de registros, agilidad en generación de informes. Sin embargo, no queda claro que incluya procesamiento en streaming real ni ventanas de tiempo dinámicas, ni uso de modelos como Dataflow
+    \item
+      \emph{Solución de big data para el análisis de los datos abiertos de MINSA y CENARES para el monitoreo y control de la emergencia sanitaria COVID-19 bajo el ecosistema de Apache Hadoop y Microsoft Azure} --- \textcite{viteri2023solucion}.\\
+      Esta tesis diseña una solución usando Hadoop + servicios en la nube Azure, para monitoreo y control de emergencia. Se orienta hacia análisis de datos abiertos, dashboards, etc. Pero nuevamente, se centra más en procesamiento por lotes, o en análisis no necesariamente en streaming con baja latencia.
+    \item
+      \emph{Implementación de una plataforma Big Data para el estudio de casos de anemia en América Latina} --- \textcite{bustamante2019implementacion}, Universidad Nacional del Altiplano.\\
+      Plataforma que recolecta datos, los almacena (Hadoop, HDFS, etc.), usa herramientas de Big Data para consultas, minería de datos y visualización. Tiene algunos componentes de ingestión continua (por ejemplo, Flume para streaming desde API externas), pero no está específicamente orientada al modelo Dataflow ni al análisis epidemiológico en tiempo real
+    \item
+      \emph{Big data y toma de decisiones en el sector público peruano} --- \textcite{guillen2025big}.\\
+      Este artículo analiza los beneficios y barreras del uso de Big Data en la administración pública del Perú. No se enfoca específicamente en salud ni en procesamiento en streaming, pero aporta contexto institucional, desafíos técnicos (infraestructura, talento humano) y normativos. Esto es útil para entender el entorno en el que tu TFM se desarrollará
+    \item
+      \emph{Transformación digital: Perú valida interoperabilidad de historias clínicas electrónicas} --- \textcite{ops2025interoperabilidad}.\\ Se trata de una iniciativa reciente que busca interoperabilidad en los registros clínicos electrónicos. Esto aporta al contexto tecnológico, interoperabilidad y digitalización de datos en salud en Perú, lo cual será relevante para integraciones de datos en tu pipeline.
+    \item
+      La arquitectura Lambda, propuesta por Nathan Marz, combina dos vías de procesamiento complementarias: una vía por lotes (batch layer) para procesar datos históricos completos y otra vía de velocidad (speed layer) para procesar datos recientes en tiempo real, junto con una capa de consulta (serving layer) que unifica ambas salidas
+\end{enumerate}
+
+\subsection{Propuesta}\label{propuesta}
+
+La propuesta que está enfocada a usar el modelo Dataflow, puede aportar
+lo siguiente:
+
+\begin{itemize}
+\tightlist
+    \item
+      Arquitectura unificada que soporte tanto streaming como batch, lo que permite mayor flexibilidad y adaptabilidad.
+    \item
+      Cálculo de métricas epidemiológicas casi en tiempo real, apoyando decisiones sanitarias ágiles.
+    \item
+      Manejo de ventanas de tiempo, triggers, watermarks, para tratar datos con retrasos, lo que mejora la robustez del análisis.
+    \item
+      Generación de alertas y dashboards que reflejen dinámicamente la situación de una pandemia simulada en Perú, lo que puede servir como piloto para entornos reales.
+    \item
+      Comparación con trabajos previos peruanos para demostrar mejoras en latencia, integración de flujos, precisión, etc.
+\end{itemize}
+
+\subsection{Conclusiones}\label{conclusiones-estado-arte}
+
+El análisis del estado del arte permite identificar que el procesamiento en tiempo real se ha consolidado como una de las tendencias más importantes dentro del ámbito del Big Data. Tecnologías como Apache Kafka, Apache Beam, Google Cloud Dataflow y Apache Flink ofrecen soluciones maduras para manejar grandes volúmenes de información con baja latencia y alta disponibilidad.
+
+Los modelos de procesamiento ---en particular el modelo Dataflow--- proporcionan un marco conceptual robusto para integrar tanto procesamiento por lotes (\emph{batch}) como en flujo (\emph{streaming}), logrando sistemas híbridos capaces de adaptarse a distintos tipos de datos y escenarios. Asimismo, las arquitecturas Lambda y Kappa representan enfoques complementarios que han evolucionado para atender diferentes necesidades: la primera prioriza la precisión mediante la coexistencia de capas batch y speed, mientras que la segunda busca simplicidad y unificación total bajo el paradigma de flujo continuo.
+
+Por otra parte, las herramientas de almacenamiento (BigQuery, Elasticsearch, Cassandra), visualización (Grafana, Kibana, Tableau) y alertas o predicción (Prometheus, TensorFlow, Scikit-learn) han permitido que los sistemas de análisis de datos sean más interactivos y accesibles para la toma de decisiones. Estas tecnologías habilitan un ecosistema integral que va desde la captura hasta la interpretación de datos, consolidando el ciclo completo de inteligencia operativa.
+
+En el contexto peruano, se observa que, aunque existen avances en la gestión y publicación de datos epidemiológicos (por ejemplo, las plataformas del MINSA y del Instituto Nacional de Salud), la mayoría de las soluciones implementadas se basan en procesamiento por lotes, lo que limita su capacidad para generar alertas o proyecciones en tiempo real. Esta brecha tecnológica representa una oportunidad para explorar soluciones basadas en arquitecturas de streaming que optimicen la velocidad de análisis y respuesta.
+
+Por tanto, se concluye que el desarrollo de un pipeline de procesamiento en tiempo real basado en el modelo Dataflow, y apoyado en herramientas de Big Data, visualización y predicción, constituye una contribución innovadora y necesaria para el tratamiento de datos epidemiológicos en el Perú.\\
+Este enfoque permitirá simular y analizar la evolución de la pandemia COVID-19 con mayor precisión temporal, escalabilidad y capacidad de adaptación, contribuyendo a mejorar la gestión de información crítica en contextos de emergencia sanitaria.
+
+\section{Objetivos concretos y metodología de trabajo}\label{objetivos-concretos-y-metodologuxeda-de-trabajo}
+
+\subsection{Objetivo general}\label{objetivo-general}
+
+Desarrollar e implementar una arquitectura analítica avanzada para la simulación, predicción y comprensión de tendencias epidemiológicas relacionadas con la COVID-19 en Perú, utilizando procesamiento de datos en tiempo real y por lotes basado en el modelo Dataflow, técnicas de machine learning y herramientas de visualización interactiva, con el fin de ofrecer una solución robusta, segura y orientada a la toma de decisiones fundamentadas en datos.
+
+\subsection{Objetivos específicos}\label{objetivos-especuxedficos}
+
+\begin{itemize}
+\tightlist
+    \item
+      Analizar los requisitos funcionales, técnicos y epidemiológicos necesarios para construir una arquitectura de procesamiento de datos en tiempo real y en lotes basada en flujos de evento
+    \item
+      Diseñar un flujo de procesamiento utilizando el modelos Dataflow que permita integrar, transformar, almacenar y gestionar datos epidemiológicos en tiempo real y por lotes de manera eficiente y escalable.
+    \item
+      Implementar el procesamiento de datos en streaming y batch utilizando Apache Beam y el modelo Dataflow, aplicando transformaciones, ventanas temporales, agregaciones y cálculos analíticos relevantes.
+    \item
+      Implementar modelos analíticos y predictivos que permitan identificar tendencias, comportamientos inusuales y posibles escenarios futuros en los datos epidemiológicos.
+    \item
+      Diseñar e implementar dashboards de visualización interactiva que permitan interpretar indicadores epidemiológicos en tiempo real, facilitando la exploración y seguimiento de los datos.
+    \item
+      Evaluar el desempeño del modelo analítico mediante métricas cuantitativas que permitan verificar la precisión, latencia y utilidad práctica del sistema desarrollado
+\end{itemize}
+
+\subsection{Metodología del trabajo}\label{metodologuxeda-del-trabajo}
+
+En este Trabajo Fin de Máster se adopta una metodología híbrida compuesta por:
+
+\begin{itemize}
+\tightlist
+    \item
+      \textbf{CRISP-DM (Cross Industry Standard Process for Data Mining)}, que proporciona la estructura principal para el análisis, preparación de datos, diseño del sistema y evaluación del funcionamiento.
+    \item
+      \textbf{Kanban ligero}, que permite gestionar de manera flexible y visual las tareas del proyecto, manteniendo un flujo constante
+\end{itemize}
+
+Este enfoque híbrido garantiza:
+
+\begin{itemize}
+\tightlist
+    \item
+      Rigor analítico y claridad metodológica (CRISP-DM).
+    \item
+      Organización eficiente del desarrollo, priorización y control del avance (Kanban).
+    \item
+      Adaptabilidad para iterar, corregir y mejorar durante todo el proceso.
+\end{itemize}
+
+\subsubsection{Aplicación del modelo CRISP-DM}
+
+\textbf{Comprensión del negocio}
+
+En esta primera fase se define el problema principal que aborda el TFM: la necesidad de diseñar una arquitectura capaz de procesar datos tanto en tiempo real como en modo batch mediante flujos de eventos. Se estudia el contexto donde esta necesidad cobra relevancia y se establecen los requisitos funcionales y no funcionales que la solución debe cumplir, incluyendo aspectos de latencia, consistencia y tolerancia a fallos.
+
+como:
+
+\begin{itemize}
+\tightlist
+    \item
+      Análisis de casos de uso similares en entornos de salud pública, IoT y analítica en streaming.
+    \item
+      Definición de los objetivos generales y específicos del TFM.
+    \item
+      Identificación de requisitos funcionales (procesamiento continuo, almacenamiento en sinks, visualización en dashboards) y no funcionales (latencia mínima, throughput, resiliencia).
+    \item
+      Establecimiento de los criterios de éxito: correcta operación del pipeline, rendimiento aceptable, consistencia entre batch y streaming y reproducibilidad de la solución.
+\end{itemize}
+
+\subsubsection{\texorpdfstring{Comprensión de los datos}{Comprensión de los datos}}\label{comprensiuxf3n-de-los-datos}
+
+A continuación, se analiza la naturaleza de los datos que alimentan el sistema, simulados como provenientes de fuentes reales. Se examinan sus características estructurales, su comportamiento temporal, su calidad y las limitaciones asociadas a su uso. Este análisis permite identificar los ajustes necesarios antes de integrarlos en los flujos de procesamiento.
+
+\begin{itemize}
+\tightlist
+    \item
+      Identificación del flujo de datos simulado o real.
+    \item
+      Análisis de la estructura de los mensajes y campos relevantes.
+    \item
+      Estudio de la tasa de llegada de eventos (event time vs. processing time).
+    \item
+      Evaluación de la calidad de los datos: registros incompletos, duplicados, anomalías temporales.
+    \item
+      Identificación de limitaciones derivadas de formatos y disponibilidad.
+\end{itemize}
+
+\subsubsection{\texorpdfstring{Preparación de los datos}{Preparación de los datos}}\label{preparaciuxf3n-de-los-datos}
+
+En esta fase se lleva a cabo la limpieza, estandarización y normalización de los datos. Se definen los esquemas de ingestión y se estructuran los mensajes que serán enviados a los flujos de procesamiento. Asimismo, se preparan los timestamps, se ajustan los formatos y se generan las estructuras de datos necesarias tanto para la ingesta en streaming como para la ejecución en modo batch.
+
+\begin{itemize}
+\tightlist
+    \item
+      Limpieza y estandarización de valores.
+    \item
+      Transformaciones iniciales y normalización.
+    \item
+      Definición de esquemas para la ingestión en Kafka.
+    \item
+      Diseño de los tópicos, particiones y claves de mensajes.
+    \item
+      Configuración de criterios temporales: timestamps, ventanas de tiempo y manejo del retraso en la llegada de eventos.
+    \item
+      Preparación de la estructura del dataset para el modo batch.
+\end{itemize}
+
+\subsubsection{\texorpdfstring{Modelado}{Modelado}}\label{modelado}
+
+El modelado corresponde al diseño de la arquitectura basada en el modelo Dataflow. Aquí se define el flujo completo del sistema: ingestión, procesamiento y almacenamiento. Se especifican las transformaciones a aplicar sobre los datos, el manejo de ventanas de tiempo, triggers y watermarks, así como la integración con herramientas de almacenamiento y visualización. Esta fase establece la estructura técnica que luego será implementada.
+
+\begin{itemize}
+\tightlist
+    \item
+      Diseño conceptual del pipeline.
+    \item
+      Definición de flujos
+    \item
+      Selección de tecnologías: Apache Kafka, Apache Beam, Apache Flink, MongoDB y Grafana.
+\end{itemize}
+
+\subsubsection{\texorpdfstring{Evaluación}{Evaluación}}\label{evaluaciuxf3n}
+
+Una vez implementado el sistema, se evalúa su funcionamiento mediante pruebas de rendimiento y consistencia. Se analizan métricas como latencia, capacidad de procesamiento, estabilidad bajo diferentes cargas y comportamiento ante fallos o retrasos en la llegada de eventos. Los resultados obtenidos permiten valorar el grado de cumplimiento de los requisitos definidos al inicio del proyecto.
+
+\begin{itemize}
+\tightlist
+    \item
+      Latencia end-to-end del pipeline.
+    \item
+      Throughput bajo diferentes tasas de llegada de datos.
+    \item
+      Tolerancia a fallos del broker y del motor de ejecución.
+    \item
+      Consistencia entre batch y streaming.
+    \item
+      Escalabilidad ante incrementos de carga.
+    \item
+      Las pruebas se diseñan para representar escenarios realistas de operación
+\end{itemize}
+
+\subsubsection{\texorpdfstring{Despliegue}{Despliegue}}\label{despliegue}
+
+Finalmente, se consolida la solución desarrollada, documentando la arquitectura final y configurando un entorno reproducible para futuras ejecuciones o ampliaciones. Esta fase incluye la integración de herramientas de visualización y la generación de evidencias que demuestran el funcionamiento del sistema.
+
+\begin{itemize}
+\tightlist
+    \item
+      Documentación de la arquitectura final.
+    \item
+      Registro de configuraciones empleadas en Kafka, Beam/Flink, almacenamiento y visualización.
+    \item
+      Generación de scripts o contenedores para facilitar la replicación del sistema.
+\end{itemize}
+
+\subsection{Gestión del trabajo mediante Kanban}
+
+El avance del proyecto se organiza mediante un tablero Kanban dividido en las columnas To Do, In Progress, In Review y Done. Este enfoque permite gestionar de manera visual y flexible las tareas del TFM, acomodar iteraciones según los resultados y asegurar un progreso continuo. Kanban proporciona un marco adecuado para un trabajo individual que requiere experimentación y ajustes frecuentes, como es el caso de la construcción de pipelines de datos.
+
+
+\section{Marco normativo}\label{marco-normativo}
+
+El presente Trabajo Fin de Máster se ajusta al marco jurídico vigente en materia de privacidad y protección de datos personales, especialmente en lo relativo al tratamiento de información que pudiera identificar directa o indirectamente a personas físicas. En particular, resultan de referencia el Reglamento (UE) 2016/679, General de Protección de Datos (RGPD), y la Ley Orgánica 3/2018, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD), aplicables en el contexto académico y profesional.
+
+Estas normativas establecen los principios y obligaciones que deben cumplirse cuando se tratan datos personales, como la licitud del tratamiento, la minimización de datos, la integridad y confidencialidad, así como la responsabilidad proactiva del responsable del tratamiento.
+
+En el contexto del presente TFM, los datos empleados para la construcción y evaluación de la arquitectura de procesamiento en tiempo real y por lotes no contienen información personal identificable. El proyecto utiliza datos anonimizados, simulados y datos públicos provistos por el gobierno y fuentes publicas , generados exclusivamente con fines experimentales para alimentar los pipelines de ingestión, transformación y análisis. Dado que la anonimización es irreversible y no existe posibilidad de vincular los datos a individuos concretos, estos no entran en la categoría de datos personales según la definición del artículo 4 del RGPD.
+
+Por tanto, el tratamiento realizado en este trabajo no activa las obligaciones del RGPD ni de la LOPDGDD, al no existir un riesgo para los derechos y libertades de personas físicas. Aun así, se ha procedido a revisar las disposiciones normativas y la Guía sobre privacidad y protección de datos personales (Anexo N.º 1) proporcionada por la institución académica, confirmando que el uso de datos anonimizados elimina la necesidad de aplicar medidas adicionales de protección propias del tratamiento de datos personales.
+
+El proyecto se ha desarrollado en entornos controlados, utilizando sistemas locales y aislados (p. ej., contenedores Docker con Kafka, Apache Beam, Flink y MongoDB), sin exponer información en repositorios públicos ni transmitir datos a terceros. manteniendo siempre los principios de seguridad y minimización de datos recomendados en la normativa.
+
+En conclusión, el desarrollo del TFM se considera plenamente conforme con la normativa vigente en protección de datos, dado que no se tratan datos personales en ninguno de los procesos realizados, y las medidas adoptadas garantizan la inexistencia de riesgos para la privacidad.
+
+La Ley de Protección de Datos Personales en Perú es la Ley N° 29733, que protege el derecho fundamental a la privacidad de los ciudadanos, regulando el tratamiento (recopilación, uso, almacenamiento) de datos personales para asegurar su adecuado manejo por entidades públicas y privadas, garantizando derechos como el acceso.
+
+fuentes de dataset:
+
+\begin{itemize}
+\tightlist
+  \item
+    \url{https://www.datosabiertos.gob.pe/dataset/fallecidos-hospitalizados-y-vacunados-por-covid-19/resource/ad49459e-7ef9-4a6f-bb4d}
+  \item
+    \url{https://www.datosabiertos.gob.pe/dataset/informaci\%C3\%B3n-de-fallecidos-del-sistema-inform\%C3\%A1tico-nacional-de-defunciones-sinadef-ministerio}
+  \item
+    \url{https://www.datosabiertos.gob.pe/dataset/informaci\%C3\%B3n-de-fallecidos-del-sistema-inform\%C3\%A1tico-nacional-de-defunciones-sinadef-ministerio}
+\end{itemize}
+
+Con el propósito de minimizar riesgos, se aplican medidas de protección
+y buenas prácticas tales como:
+
+\begin{itemize}
+  \tightlist
+  \item
+    Uso de los datos en un entorno local o aislado.
+  \item
+    Uso restringido únicamente al autor del TFM.
+  \item
+    Eliminación del campo UUID del dataset pm26Sep2023 tras el procesamiento
+\end{itemize}
+
+\section{Desarrollo específico de la contribución}\label{desarrollo-especuxedfico-de-la-contribuciuxf3n}
+
+\subsection{\texorpdfstring{Visión general de la contribución}{Visión general de la contribución}}\label{visiuxf3n-general-de-la-contribuciuxf3n}
+
+El presente Trabajo Fin de Máster propone el diseño, implementación y evaluación de una arquitectura unificada de procesamiento de datos en streaming y batch basada en flujos de eventos y en el modelo Dataflow, aplicada a la simulación y análisis de datos epidemiológicos relacionados con la pandemia de la COVID-19 en el Perú.
+
+La principal contribución del trabajo radica en demostrar cómo el modelo Dataflow permite abordar de forma integrada el procesamiento de datos en tiempo real y por lotes, evitando la duplicación de lógica y la complejidad operativa característica de arquitecturas tradicionales como Lambda y Kappa. A través de este enfoque, se construye un pipeline analítico capaz de gestionar grandes volúmenes de eventos, aplicar transformaciones temporales avanzadas, generar métricas epidemiológicas relevantes y producir resultados útiles para la toma de decisiones basada en datos.
+
+Desde un punto de vista técnico, la contribución se materializa en la implementación de un pipeline de procesamiento basado en Apache Beam, ejecutable tanto en modo streaming como batch, que integra de manera coherente las siguientes capacidades:
+
+\begin{itemize}
+\tightlist
+  \item
+    Ingesta de datos orientada a eventos.
+  \item
+    Procesamiento distribuido con semántica temporal explícita.
+  \item
+    Cálculo de indicadores epidemiológicos en tiempo real.
+  \item
+    Análisis histórico mediante reprocesamiento por lotes.
+  \item
+    Integración de modelos analíticos y predictivos.
+  \item
+    Visualización interactiva y monitorización continua.
+\end{itemize}
+
+El trabajo no se limita a la construcción de una herramienta tecnológica, sino que se orienta a evaluar el impacto práctico del análisis de datos en escenarios de emergencia sanitaria, utilizando datos simulados que reproducen dinámicas epidemiológicas realistas. De este modo, la propuesta permite explorar cómo una arquitectura de este tipo podría apoyar procesos de vigilancia epidemiológica, detección temprana de patrones anómalos y análisis de escenarios futuros.
+
+Asimismo, el TFM aporta una visión metodológica clara, al combinar el marco CRISP-DM para estructurar el análisis de datos con un enfoque ágil basado en Kanban ligero para la gestión del desarrollo. Esta combinación asegura tanto el rigor analítico como la flexibilidad necesaria para iterar sobre el diseño y la implementación del sistema.
+
+Finalmente, la contribución del trabajo se extiende más allá del caso de estudio epidemiológico, ya que la arquitectura propuesta es generalizable a otros dominios donde el procesamiento de datos en tiempo real y la integración con análisis histórico resultan críticos, como sistemas financieros, IoT, monitorización industrial o análisis de comportamiento de usuarios.
+
+\subsection{\texorpdfstring{Análisis de requisitos del sistema}{Análisis de requisitos del sistema}}\label{anuxe1lisis-de-requisitos-del-sistema}
+
+El presente apartado describe los requisitos que debe cumplir el sistema propuesto, tanto desde una perspectiva funcional como no funcional y epidemiológica. Estos requisitos se han definido a partir del análisis del dominio del problema, las características de los datos epidemiológicos y los objetivos del procesamiento en tiempo real y por lotes, garantizando que la arquitectura diseñada sea adecuada para la monitorización y análisis de la evolución de la enfermedad.
+
+\subsection{\texorpdfstring{Requisitos
+funcionales}{Requisitos funcionales}}\label{requisitos-funcionales}
+
+El sistema debe ser capaz deingerir datos epidemiológicos en tiempo real procedentes de fuentes de mensajería como Apache Kafka, permitiendo la incorporación continua de nuevos eventos conforme se generan. Esta capacidad resulta esencial para reflejar de manera actualizada la evolución de los indicadores epidemiológicos y posibilitar la detección temprana de cambios relevantes.
+
+Asimismo, el sistema debe soportar procesamiento tanto en modalidad en tiempo real como en lotes, de forma que sea posible analizar datos históricos mediante procesos por lotes y, simultáneamente, tratar los eventos entrantes en tiempo real. Esta dualidad permite reutilizar la misma lógica de transformación y validación en ambos contextos, alineándose con el modelo Dataflow.
+
+Otro requisito fundamental es la generación de métricas epidemiológicas, tales como recuentos de casos, tasas de incidencia o indicadores derivados, a partir de los datos procesados. Estas métricas constituyen la base para el análisis posterior y para la toma de decisiones informadas.
+
+El sistema debe permitir también la predicción de tendencias, facilitando el análisis de la evolución temporal de los datos y la identificación de patrones que puedan anticipar incrementos o descensos significativos en la incidencia de la enfermedad.
+
+Finalmente, se requiere la visualización de la información y la generación de alertas, de manera que los resultados del procesamiento puedan ser consultados de forma clara e intuitiva mediante herramientas de visualización, así como la emisión de alertas cuando se superen determinados umbrales predefinidos.
+
+\subsection{\texorpdfstring{Requisitos no funcionales}{Requisitos no funcionales}}\label{requisitos-no-funcionales}
+
+Desde el punto de vista no funcional, el sistema debe garantizar escalabilidad, permitiendo incrementar su capacidad de procesamiento conforme aumente el volumen de datos sin necesidad de rediseñar la arquitectura. Este aspecto es especialmente relevante en escenarios epidemiológicos, donde el número de eventos puede variar de forma significativa.
+
+La arquitectura debe ofrecer baja latencia, de modo que exista un retardo mínimo entre la llegada de un evento y su disponibilidad para el análisis y la visualización. Esto resulta crítico en contextos de monitorización en tiempo real.
+
+Asimismo, el sistema debe ser tolerante a fallos, asegurando la continuidad del procesamiento incluso ante errores en componentes individuales, como caídas temporales de servicios o recepción de datos inválidos.
+
+En términos de seguridad, se requiere implementar mecanismos de control de acceso y protección de la información, garantizando que solo los usuarios y servicios autorizados puedan acceder a los datos y resultados, especialmente considerando la sensibilidad de la información sanitaria.
+
+Por último, el pipeline debe ser reproducible, permitiendo ejecutar nuevamente los procesos sobre los mismos datos y obtener resultados consistentes. Este requisito es clave tanto para la validación académica del trabajo como para la trazabilidad de los análisis realizados.
+
+\subsection{\texorpdfstring{Requisitos epidemiológicos}{Requisitos epidemiológicos}}\label{requisitos-epidemioluxf3gicos}
+
+El sistema debe contemplar distintos tipos de eventos epidemiológicos, tales como casos confirmados, hospitalizaciones y fallecimientos, los cuales presentan características y necesidades de análisis diferenciadas.
+
+Asimismo, es necesario definir ventanas temporales relevantes para el análisis, como ventanas diarias, semanales o móviles, que permitan estudiar la evolución de la enfermedad en distintos horizontes temporales.
+
+Entre los resultados esperados se incluyen indicadores epidemiológicos clave, como el número reproductivo efectivo o la incidencia acumulada, los cuales requieren un tratamiento específico de los datos y un cálculo consistente a lo largo del tiempo.
+
+Finalmente, se debe considerar la frecuencia y granularidad de los datos, garantizando que el sistema pueda manejar información a nivel individual o agregado, según el caso, y adaptarse a diferentes ritmos de actualización sin perder consistencia ni precisión en los resultados.
+
+\subsection{\texorpdfstring{Diseño de la arquitectura basada en el modelo Dataflow}{Diseño de la arquitectura basada en el modelo Dataflow}}\label{diseuxf1o-de-la-arquitectura-basada-en-el-modelo-dataflow}
+
+\subsubsection{Principios del modelo Dataflow aplicados}\label{principios-del-modelo-dataflow-aplicados}
+
+El diseño de la arquitectura propuesta se fundamenta en el modelo Dataflow, el cual plantea un enfoque unificado para el procesamiento de datos en streaming y batch. A diferencia de las arquitecturas tradicionales, el modelo Dataflow permite tratar ambos tipos de procesamiento bajo un mismo paradigma, simplificando la complejidad el sistema y mejorando su mantenibilidad.
+
+\begin{itemize}
+\tightlist
+    \item
+      Eventos como entidad central: cada dato epidemiológico se modela como un evento que contiene información asociada al tiempo de ocurrencia (event time), lo que permite análisis temporales más precisos.
+    \item
+      Procesamiento unificado: el mismo pipeline lógico es utilizado tanto para datos en tiempo real como para datos históricos, diferenciándose únicamente en el modelo de ejecución.
+    \item
+      Separación entre lógica y ejecución: el modelo Dataflow desacopla el motor de ejecución, permitiendo su despliegue en distintos entornos sin modificar la lógica del procesamiento.
+    \item
+      Windows, triggers y watermarks: posibilitan la agregación de datos en intervalos relevantes para el análisis epidemiológico.
+    \item
+      Gestión explícita del tiempo: el uso de event time, processing time y watermarks permite manejar eventos tardíos y desordenados de forma controlada.
+\end{itemize}
+
+\subsubsection{Arquitectura general del sistema}\label{arquitectura-general-del-sistema}
+
+La arquitectura propuesta sigue un enfoque modular y desacoplado, organizado en capas funcionales que interactúan a través de flujos de eventos. Esta organización facilita la usabilidad, la tolerancia a fallos y la evolución del sistema.
+
+\begin{itemize}
+\tightlist
+    \item
+      Diagrama de arquitectura (muy recomendable).
+    \item
+      Componentes:
+      \begin{itemize}
+      \tightlist
+      \item
+        Recolección de datos: datos extraídos de fuentes públicas, generadas y/o simuladas para reproducir patrones temporales y variabilidad realista.
+      \item
+        Sistema de ingesta de eventos: utiliza la plataforma de \emph{event streaming Kafka }para recibir y distribuir los eventos de forma continua y confiable.
+      \item
+        Pipeline de procesamiento: implementa la lógica de transformación, agregación y análisis de los datos, siguiendo el modelo Dataflow.
+      \item
+        Motor de ejecución: ejecuta el pipeline en modo \emph{streaming} o \emph{batch, }garantizando paralelismo, tolerancia a fallos y escalabilidad automática.
+      \item
+        Sistemas de almacenamiento: almacena tanto datos crudos como datos procesados para análisis en tiempo real e histórico.
+      \item
+        Capa de visualización y alertas: permite la exploración interactiva de los resultados y la notificación de eventos críticos.
+      \end{itemize}
+\end{itemize}
+
+\subsubsection{Flujo de datos streaming y batch}\label{flujo-de-datos-streaming-y-batch}
+
+\begin{itemize}
+\tightlist
+\item
+  Flujo de procesamiento en tiempo real (streaming).\\
+  En el modo \emph{streaming}, los eventos epidemiológicos son generados de forma continua y enviados al sistema de ingesta. Estos eventos son procesados en tiempo real por el pipeline Dataflow, donde se aplican transformaciones, ventanas temporales y agregaciones para calcular indicadores clave. Los resultados se almacenan y visualizan con latencias reducidas, permitiendo el monitoreo continuo de la situación epidemiológica.
+\item
+  Flujo de procesamiento por lotes.\\
+  En el modo \emph{batch}, el sistema reprocesa datos históricos almacenados previamente. Este enfoque permite recalcular métricas, validar resultados obtenidos en tiempo real y realizar análisis comparativos. Gracias al modelo Dataflow, el mismo pipeline lógico puede ejecutarse en este modo sin modificaciones sustanciales.
+\item
+  Convergencia de flujos.\\
+  Ambos flujos convergen en los sistemas de almacenamiento y visualización, proporcionando una visión unificada del estado actual y pasado del fenómeno epidemiológico. Esta convergencia elimina la duplicación de lógica y reduce la complejidad operativa del sistema.
+\end{itemize}
+
+\subsection{\texorpdfstring{Implementación del pipeline de procesamiento}{Implementación del pipeline de procesamiento}}\label{implementaciuxf3n-del-pipeline-de-procesamiento}
+
+\subsubsection{Ingesta de datos basada en eventos}\label{ingesta-de-datos-basada-en-eventos}
+
+La implementación del pipeline comienza con la ingesta de datos epidemiológicos modelados como eventos, los cuales representan observaciones discretas asociadas a un instante temporal específico. Para ello, se emplea un sistema de event streaming que actúa como intermediario entre las fuentes de datos y el procesamiento analítico.
+
+Cada evento contiene información estructurada, incluyendo atributos como el identificador del caso, la ubicación geográfica, el tipo de evento (caso confirmado, hospitalización, fallecimiento), y la marca temporal (event time). Estos eventos son publicados en uno o varios tópicos, permitiendo su consumo de manera paralela y escalable.
+
+El uso de una plataforma de mensajería desacoplada garantiza:
+
+\begin{itemize}
+\item
+Alta disponibilidad y tolerancia a fallos.
+\item
+Capacidad de absorción de picos en la tasa de eventos.
+\item
+Reprocesamiento de datos históricos mediante retención de mensajes.
+\end{itemize}
+
+Esta capa constituye la base del enfoque orientado a eventos de la arquitectura.
+
+\subsubsection{Definición del pipeline en Apache Beam}\label{definiciuxf3n-del-pipeline-en-apache-beam}
+
+El pipeline de procesamiento se implementa utilizando Apache Beam, siguiendo el paradigma del modelo Dataflow. Beam permite definir la lógica de procesamiento de manera independiente del entorno de ejecución, lo que facilita la portabilidad entre distintos motores y modos de operación.
+
+El pipeline se estructura en una secuencia de transformaciones aplicadas sobre colecciones de datos (PCollections), entre las que se incluyen:
+
+\begin{itemize}
+\item
+Lectura de eventos desde el sistema de ingesta.
+\item
+Asignación explícita del tiempo del evento.
+\item
+Agrupación y agregación de datos.
+\item
+Generación de métricas epidemiológicas.
+\item
+Escritura de resultados en sistemas de almacenamiento.
+\end{itemize}
+
+Esta definición lógica es común tanto para el procesamiento en streaming como en batch, diferenciándose únicamente en la configuración de la fuente de datos y el modo de ejecución.
+
+\subsubsection{Procesamiento en streaming}\label{procesamiento-en-streaming}
+
+En el procesamiento en \emph{streaming}, el pipeline opera sobre flujos continuos de datos, procesando los eventos a medida que son recibidos. Para ello, se utilizan mecanismos específicos del modelo Dataflow que permiten gestionar la naturaleza temporal de los datos.
+
+\subsubsection{Ventanas temporales}\label{ventanas-temporales}
+
+Las ventanas temporales permiten agrupar eventos en intervalos de tiempo relevantes para el análisis epidemiológico. En este trabajo se emplean ventanas de tipo:
+
+\begin{itemize}
+\tightlist
+    \item
+      \textbf{Tumbling windows} para el cálculo de métricas por intervalos fijos.
+    \item
+      \textbf{Sliding windows} para detectar tendencias y cambios progresivos.
+\end{itemize}
+
+\subsubsection{Triggers y manejo de eventos tardíos}\label{triggers-y-manejo-de-eventos-tarduxedos}
+
+Se utilizan \emph{triggers} para controlar cuándo se emiten resultados parciales o finales, incluso en presencia de eventos tardíos. El uso de \emph{watermarks} permite estimar el progreso del tiempo de los eventos y decidir cuándo cerrar una ventana.
+
+Este enfoque garantiza que el sistema produzca resultados oportunos sin sacrificar la precisión analítica.
+
+\subsubsection{Procesamiento en batch}\label{procesamiento-en-batch}
+
+El procesamiento en \emph{batch} se emplea para el análisis de grandes volúmenes de datos históricos, permitiendo calcular métricas, validar resultados obtenidos en tiempo real y realizar análisis retrospectivos.
+
+En este modo, el pipeline:
+
+\begin{itemize}
+\tightlist
+    \item
+      Lee datos almacenados previamente en sistemas persistentes.
+    \item
+      Aplica las mismas transformaciones y agregaciones definidas para el \emph{streaming}.
+    \item
+      Genera resultados consolidados que pueden compararse con los obtenidos en tiempo real.
+\end{itemize}
+
+Gracias al modelo Dataflow, la lógica del pipeline se mantiene consistente entre ambos modos, evitando duplicación de código y reduciendo la complejidad del sistema.
+
+\subsection{Transformaciones y cálculos analíticos}\label{transformaciones-y-cuxe1lculos-analuxedticos}
+
+Durante el procesamiento, se aplican diversas transformaciones analíticas, entre las que destacan:
+
+\begin{itemize}
+\tightlist
+    \item
+      Limpieza y validación de datos.
+    \item
+      Normalización de atributos.
+    \item
+      Cálculo de métricas descriptivas (conteos, promedios, tasas).
+    \item
+      Agregaciones por dimensiones temporales y geográficas.
+    \item
+      Identificación de patrones relevantes.
+\end{itemize}
+
+Estas transformaciones permiten generar indicadores epidemiológicos que sirven como base para el análisis predictivo y la visualización.
+
+\subsection{Persistencia de resultados}\label{persistencia-de-resultados}
+
+Los resultados del procesamiento son almacenados en sistemas diseñados para soportar consultas analíticas y visualización en tiempo real. Se distingue entre:
+
+\begin{itemize}
+\tightlist
+    \item
+      \textbf{Datos crudos}, conservados para reprocesamiento y auditoría.
+    \item
+      \textbf{Datos procesados}, optimizados para consultas rápidas y dashboards.
+    \item
+      \textbf{Resultados analíticos}, utilizados por modelos predictivos y sistemas de alertas.
+\end{itemize}
+
+La separación de estos niveles de almacenamiento mejora la eficiencia del sistema y facilita su mantenimiento.
+
+\subsection{Consideraciones de escalabilidad y tolerancia a fallos}\label{consideraciones-de-escalabilidad-y-tolerancia-a-fallos}
+
+La implementación del pipeline aprovecha las capacidades de escalado automático y tolerancia a fallos del motor de ejecución. El sistema es capaz de:
+
+\begin{itemize}
+\tightlist
+    \item
+      Ajustar dinámicamente los recursos según la carga.
+    \item
+      Recuperarse ante fallos parciales sin pérdida de datos.
+    \item
+      Mantener la consistencia de los resultados.
+\end{itemize}
+
+Estas características son fundamentales para garantizar la robustez del sistema en escenarios de alta variabilidad en la llegada de eventos.
+
+\section{Modelos analíticos y predictivos}\label{modelos-analuxedticos-y-predictivos}
+
+Este apartado describe los modelos analíticos y predictivos integrados en la arquitectura propuesta, cuyo propósito es extraer conocimiento a partir de los datos epidemiológicos procesados en tiempo real y por lotes. Estos modelos permiten identificar patrones relevantes, detectar comportamientos anómalos y generar escenarios futuros que apoyen la toma de decisiones en contextos de emergencia sanitaria.
+
+\subsection{Análisis exploratorio en tiempo real}\label{anuxe1lisis-exploratorio-en-tiempo-real}
+
+El análisis exploratorio constituye la primera capa de inteligencia del sistema y se realiza directamente sobre los flujos de datos en \emph{streaming}. Su objetivo es proporcionar una visión descriptiva y actualizada de la evolución epidemiológica, así como detectar posibles irregularidades de forma temprana.
+
+\subsubsection{Métricas descriptivas}\label{muxe9tricas-descriptivas}
+
+A partir de los eventos procesados por el pipeline Dataflow, se calculan métricas descriptivas mediante agregaciones en ventanas temporales, tales como:
+
+\begin{itemize}
+\tightlist
+    \item
+      Número de casos confirmados por intervalo de tiempo.
+    \item
+      Tasa de crecimiento diaria y semanal.
+    \item
+      Distribución de casos por región y periodo.
+    \item
+      Porcentajes de letalidad.
+\end{itemize}
+
+Estas métricas se calculan de manera incremental, lo que permite mantener indicadores actualizados casi en tiempo real y coherentes con el análisis histórico.
+
+\subsubsection{Detección de anomalías simples}\label{detecciuxf3n-de-anomaluxedas-simples}
+
+Como mecanismo inicial de detección temprana, se implementan técnicas sencillas de detección de anomalías basadas en reglas y estadísticas descriptivas, tales como:
+
+\begin{itemize}
+\tightlist
+    \item
+      Umbrales dinámicos definidos a partir de medias y desviaciones estándar.
+    \item
+      Comparación con valores históricos en ventanas temporales equivalentes.
+    \item
+      Identificación de picos repentinos en la tasa de contagios.
+\end{itemize}
+
+Estas técnicas permiten señalar comportamientos inusuales sin introducir una alta complejidad computacional, lo que resulta adecuado para su ejecución en tiempo real dentro del pipeline.
+
+\subsection{Modelos predictivos}\label{modelos-predictivos}
+
+Sobre la base del análisis exploratorio, el sistema incorpora modelos predictivos orientados a anticipar la evolución de los indicadores epidemiológicos y analizar posibles escenarios futuros.
+
+\subsubsection{Algoritmos utilizados}\label{algoritmos-utilizados}
+
+Dependiendo del tipo de análisis y del horizonte temporal, se consideran distintos enfoques de modelado, entre los que destacan:
+
+\begin{itemize}
+\tightlist
+    \item
+      \textbf{Modelos de regresión} para la predicción de tendencias a corto plazo.
+    \item
+      \textbf{Modelos ARIMA} para el análisis de series temporales y la identificación de patrones estacionales.
+\end{itemize}
+
+La selección de los modelos se realiza teniendo en cuenta la disponibilidad de datos, la interpretabilidad de los resultados y el coste computacional.
+
+\subsubsection{Variables de entrada}\label{variables-de-entrada}
+
+Los modelos predictivos utilizan como variables de entrada los indicadores generados por el pipeline, entre los que se incluyen:
+
+\begin{itemize}
+\tightlist
+    \item
+      Número de casos diarios y acumulados.
+    \item
+      Tasas de crecimiento y promedios móviles.
+    \item
+      Variables temporales (día, semana, periodo epidemiológico).
+    \item
+      Variables geográficas agregadas por región.
+\end{itemize}
+
+Estas variables se preparan y normalizan durante el procesamiento batch, garantizando la consistencia de los datos utilizados para el entrenamiento y la inferencia.
+
+\subsubsection{Integración con el pipeline}\label{integraciuxf3n-con-el-pipeline}
+
+La integración de los modelos predictivos con la arquitectura Dataflow se realiza de manera desacoplada, permitiendo:
+
+\begin{itemize}
+\tightlist
+    \item
+      Entrenamiento de modelos mediante procesamiento batch sobre datos históricos.
+    \item
+      Aplicación de inferencia en tiempo real sobre los flujos de eventos.
+    \item
+      Reentrenamiento periódico para adaptarse a cambios en el comportamiento de los datos.
+\end{itemize}
+
+Este enfoque facilita la reutilización de la lógica analítica y mantiene la coherencia entre el análisis histórico y el análisis en tiempo real.
+
+\subsection{Generación de escenarios futuros}\label{generaciuxf3n-de-escenarios-futuros}
+
+La combinación de métricas descriptivas y modelos predictivos permite la generación de escenarios futuros que simulan distintas evoluciones posibles de la pandemia.
+
+\subsubsection{Simulación de tendencias}\label{simulaciuxf3n-de-tendencias}
+
+A partir de los modelos entrenados, se simulan escenarios como:
+
+\begin{itemize}
+\tightlist
+    \item
+      Continuidad de la tendencia actual.
+    \item
+      Incrementos o descensos acelerados en la tasa de contagios.
+    \item
+      Cambios abruptos en el comportamiento epidemiológico.
+\end{itemize}
+
+Estas simulaciones permiten evaluar la sensibilidad del sistema ante variaciones en los datos y explorar posibles resultados futuros.
+
+\subsubsection{Uso en la toma de
+decisiones}\label{uso-en-la-toma-de-decisiones}
+
+Los escenarios generados constituyen una herramienta de apoyo para la toma de decisiones basada en datos, ya que permiten:
+
+\begin{itemize}
+\tightlist
+    \item
+      Anticipar situaciones críticas.
+    \item
+      Evaluar el impacto potencial de medidas de control simuladas.
+    \item
+      Apoyar la planificación y asignación de recursos en contextos de emergencia sanitaria.
+\end{itemize}
+
+De este modo, el sistema no solo describe el estado actual de los datos, sino que también proporciona una visión prospectiva que refuerza el valor práctico de la arquitectura propuesta.
+
+\section{Visualización interactiva y monitorización}\label{visualizaciuxf3n-interactiva-y-monitorizaciuxf3n}
+
+Este apartado describe los mecanismos de visualización interactiva y monitorización implementados para explotar los resultados generados por el pipeline de procesamiento de datos. La visualización constituye un elemento clave del sistema, ya que permite transformar los resultados analíticos en información comprensible, accesible y útil para el seguimiento de la evolución epidemiológica en tiempo real.
+
+\subsection{Diseño de dashboards}\label{diseuxf1o-de-dashboards}
+
+Los dashboards se diseñan con el objetivo de ofrecer una visión clara, sintética y dinámica del estado epidemiológico, facilitando tanto el análisis descriptivo como el seguimiento continuo de indicadores relevantes.
+
+\subsubsection{Indicadores clave}\label{indicadores-clave}
+
+Entre los principales indicadores visualizados se incluyen:
+
+\begin{itemize}
+\tightlist
+    \item
+      Número de casos confirmados en tiempo real.
+    \item
+      Evolución temporal de contagios y fallecimientos.
+    \item
+      Tasas de crecimiento diario y semanal.
+    \item
+      Resultados de los modelos predictivos y escenarios simulados.
+    \item
+      Distribución geográfica de los casos por región.
+\end{itemize}
+
+Estos indicadores se seleccionan por su relevancia epidemiológica y su utilidad para el análisis y la toma de decisiones.
+
+\subsubsection{Actualización en tiempo real}\label{actualizaciuxf3n-en-tiempo-real}
+
+Los dashboards se actualizan de forma continua a medida que el pipeline Dataflow procesa nuevos eventos. Gracias al uso de ventanas temporales y agregaciones incrementales, los indicadores reflejan el estado más reciente de los datos con una latencia reducida.
+
+Esta capacidad de actualización en tiempo real resulta especialmente relevante en escenarios de crisis sanitaria, donde la inmediatez de la información es un factor crítico.
+
+\subsubsection{Interacción del usuario}\label{interacciuxf3n-del-usuario}
+
+La visualización incorpora funcionalidades interactivas que permiten:
+
+\begin{itemize}
+\tightlist
+    \item
+      Filtrar datos por periodo temporal y región.
+    \item
+      Comparar indicadores entre distintos intervalos.
+    \item
+      Explorar series temporales de manera detallada.
+    \item
+      Analizar escenarios predictivos de forma dinámica.
+\end{itemize}
+
+Estas capacidades facilitan la exploración de los datos y mejoran la comprensión de los resultados analíticos.
+
+\subsection{Herramientas de visualización}\label{herramientas-de-visualizaciuxf3n}
+
+Para la implementación de los dashboards y la monitorización del sistema, se consideran herramientas de visualización ampliamente utilizadas en entornos Big Data.
+
+\subsubsection{Plataformas de visualización}\label{plataformas-de-visualizaciuxf3n}
+
+La herramienta escogida a utilizar fue \textbf{Grafana}, para la monitorización en tiempo real de métricas agregadas.
+
+\subsubsection{Integración con el almacenamiento}\label{integraciuxf3n-con-el-almacenamiento}
+
+Las herramientas de visualización se integran con los sistemas de almacenamiento analítico generados por el pipeline, permitiendo consultas eficientes sobre datos procesados tanto en \emph{streaming} como en \emph{batch}.
+
+Esta integración asegura que los dashboards reflejen información consistente y actualizada, sin impactar negativamente en el rendimiento del procesamiento de datos.
+
+\subsection{Sistema de alertas}\label{sistema-de-alertas}
+
+Como complemento a la visualización, se implementa un sistema de alertas orientado a la detección temprana de eventos críticos.
+
+\subsubsection{Definición de umbrales}\label{definiciuxf3n-de-umbrales}
+
+Se definen umbrales dinámicos y estáticos sobre los indicadores clave, tales como:
+
+\begin{itemize}
+\tightlist
+    \item
+      Incrementos bruscos en el número de casos.
+    \item
+      Superación de tasas de crecimiento predefinidas.
+    \item
+      Aparición de anomalías detectadas por los modelos analíticos.
+\end{itemize}
+
+Estos umbrales se ajustan en función del comportamiento histórico de los datos.
+
+\subsubsection{Detección de eventos críticos}\label{detecciuxf3n-de-eventos-cruxedticos}
+
+Cuando se superan los umbrales establecidos, el sistema identifica eventos críticos que requieren atención inmediata. Esta detección se realiza en tiempo real, permitiendo una respuesta rápida ante situaciones potencialmente problemáticas.
+
+\subsubsection{Notificaciones}\label{notificaciones}
+
+Las alertas generadas se notifican mediante distintos canales, como:
+
+\begin{itemize}
+\tightlist
+    \item
+      Notificaciones en los dashboards.
+    \item
+      Mensajes automatizados.
+    \item
+      Integración con sistemas externos de notificación.
+\end{itemize}
+
+Este sistema de alertas refuerza la capacidad del sistema para apoyar la vigilancia epidemiológica y la toma de decisiones informadas.
+
+\subsection{Evaluación del sistema y resultados}\label{evaluaciuxf3n-del-sistema-y-resultados}
+
+\subsection{Criterios y métricas de evaluación}\label{criterios-y-muxe9tricas-de-evaluaciuxf3n}
+
+La evaluación del sistema desarrollado se realiza con el objetivo de verificar el cumplimiento de los requisitos definidos y validar la utilidad práctica de la arquitectura propuesta. Para ello, se establecen métricas cuantitativas y cualitativas que permiten analizar el rendimiento del pipeline, la precisión de los modelos analíticos y la eficacia del sistema en un contexto de análisis epidemiológico.
+
+Las métricas consideradas se agrupan en las siguientes categorías:
+
+\subsubsection{Métricas de rendimiento}\label{muxe9tricas-de-rendimiento}
+
+\begin{itemize}
+\tightlist
+    \item
+      \textbf{Latencia end-to-end}: tiempo transcurrido desde la generación del evento hasta su disponibilidad en los sistemas de visualización.
+    \item
+      \textbf{Throughput}: número de eventos procesados por unidad de tiempo.
+    \item
+      \textbf{Uso de recursos}: consumo de CPU, memoria y almacenamiento durante la ejecución del pipeline.
+\end{itemize}
+
+\subsubsection{Métricas de calidad analítica}\label{muxe9tricas-de-calidad-analuxedtica}
+
+\begin{itemize}
+\tightlist
+    \item
+      \textbf{Precisión de los modelos predictivos}: medida mediante indicadores como error medio absoluto (MAE) o raíz del error cuadrático medio (RMSE).
+    \item
+      \textbf{Consistencia de resultados}: comparación entre métricas obtenidas en \emph{streaming} y \emph{batch}.
+\end{itemize}
+
+\subsubsection{Métricas de robustez}\label{muxe9tricas-de-robustez}
+
+\begin{itemize}
+\tightlist
+    \item
+      \textbf{Tolerancia a fallos}: capacidad del sistema para recuperarse ante interrupciones parciales.
+    \item
+      \textbf{Escalabilidad}: comportamiento del sistema frente a incrementos en la tasa de eventos.
+\end{itemize}
+
+\subsubsection{Métricas de utilidad práctica}\label{muxe9tricas-de-utilidad-pruxe1ctica}
+
+\begin{itemize}
+\tightlist
+    \item
+      Actualización en tiempo real de dashboards.
+    \item
+      Capacidad de detección temprana de eventos críticos.
+\end{itemize}
+
+Interpretabilidad de los resultados por parte del usuario final.
+
+\subsection{Escenarios de evaluación}\label{escenarios-de-evaluaciuxf3n}
+
+La evaluación se lleva a cabo mediante diferentes escenarios controlados que permiten observar el comportamiento del sistema bajo distintas condiciones:
+
+\begin{enumerate}
+
+\tightlist
+    \item
+      \textbf{Escenario de carga normal}: flujo constante de eventos simulados.
+    \item
+      \textbf{Escenario de alta carga}: incremento significativo en la tasa de eventos.
+    \item
+      \textbf{Escenario con eventos tardíos}: introducción de retrasos artificiales en el \emph{event time}.
+    \item
+      \textbf{Escenario de reprocesamiento batch}: análisis de datos históricos completos.
+\end{enumerate}
+
+Estos escenarios permiten evaluar tanto el comportamiento dinámico del sistema como su capacidad de análisis retrospectivo.
+
+\subsection{Resultados obtenidos}\label{resultados-obtenidos}
+
+Los resultados muestran que la arquitectura basada en el modelo Dataflow es capaz de procesar datos epidemiológicos en \emph{streaming} y \emph{batch} de manera eficiente y consistente.
+
+En términos de rendimiento, el sistema mantiene latencias reducidas incluso bajo escenarios de alta carga, demostrando una correcta gestión del paralelismo y los recursos disponibles. El throughput se incrementa de forma proporcional al aumento de eventos, evidenciando la escalabilidad del pipeline.
+
+Respecto a la calidad analítica, los modelos predictivos implementados presentan un nivel de precisión adecuado para el análisis de tendencias epidemiológicas, permitiendo identificar patrones relevantes y posibles escenarios futuros. Asimismo, los resultados obtenidos en \emph{streaming} y \emph{batch} muestran una alta coherencia, validando el enfoque unificado del modelo Dataflow.
+
+\subsection{Análisis comparativo}\label{anuxe1lisis-comparativo}
+
+La comparación entre el procesamiento en tiempo real y el reprocesamiento batch evidencia que el enfoque propuesto permite combinar inmediatez y precisión. Mientras que el \emph{streaming} proporciona información actualizada para la toma de decisiones inmediata, el procesamiento batch permite validar, corregir y enriquecer los resultados mediante el análisis histórico.
+
+Este enfoque evita la duplicación de lógica presente en arquitecturas tradicionales y reduce la complejidad operativa del sistema.
+
+\subsection{Discusión de resultados}\label{discusiuxf3n-de-resultados}
+
+Los resultados obtenidos confirman que la arquitectura desarrollada cumple con los objetivos específicos planteados en el TFM. La adopción del modelo Dataflow facilita la construcción de pipelines robustos, flexibles y escalables, capaces de adaptarse a escenarios de alta variabilidad en los datos.
+
+No obstante, se identifican ciertas limitaciones, como la dependencia de la calidad de los datos de entrada y el coste computacional asociado a escenarios de alta carga. Estas limitaciones representan oportunidades para futuras mejoras y optimizaciones.
+
+\subsection{Validación de los objetivos específicos}\label{validaciuxf3n-de-los-objetivos-especuxedficos}
+
+La evaluación realizada permite verificar el cumplimiento de los objetivos específicos del trabajo:
+
+\begin{itemize}
+\tightlist
+    \item
+      Se validó la viabilidad de una arquitectura basada en flujos de eventos.
+    \item
+      Se demostró la eficacia del procesamiento unificado en \emph{streaming} y \emph{batch}.
+    \item
+      Se comprobó la utilidad de los modelos analíticos y predictivos.
+\end{itemize}
+
+Se confirmó la capacidad del sistema para apoyar la toma de decisiones basada en datos.
+
+\subsection{Síntesis del impacto del sistema}\label{suxedntesis-del-impacto-del-sistema}
+
+El sistema desarrollado demuestra que el procesamiento de datos en tiempo real, combinado con análisis histórico, constituye una herramienta valiosa para el análisis epidemiológico. La arquitectura propuesta ofrece un enfoque adaptable que puede extenderse a otros dominios donde el tiempo y la precisión son factores críticos.
+
+
+\section{Aporte y contribución del trabajo}\label{aporte-y-contribuciuxf3n-del-trabajo}
+
+Este capítulo presenta una síntesis del valor aportado por el trabajo, destacando su contribución técnica, el valor añadido frente a soluciones existentes y su aplicabilidad en contextos reales, particularmente en el ámbito peruano.
+
+\subsection{Resumen de la contribución técnica}\label{resumen-de-la-contribuciuxf3n-tuxe9cnica}
+
+Este Trabajo Fin de Máster propone y valida una arquitectura de procesamiento de datos híbrida (lotes y tiempo real) basada en el modelo Dataflow, orientada al tratamiento de datos epidemiológicos a gran escala.
+
+Las principales contribuciones técnicas del trabajo son:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Diseño de una arquitectura unificada} que permite procesar datos históricos en lotes (batch) y datos en tiempo real (streaming) utilizando principios comunes, evitando la duplicación de lógica.
+\item
+  \textbf{Uso de Apache Kafka como capa de ingesta desacoplada}, permitiendo la simulación de flujos en tiempo real a partir de datasets históricos.
+\item
+  \textbf{Aplicación de Apache Beam como capa de abstracción}, facilitando la definición de pipelines independientes del motor de ejecución.
+\item
+  \textbf{Análisis conceptual del rol de Apache Flink} como motor de procesamiento para:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    cálculo de métricas agregadas
+  \item
+    detección de picos
+  \item
+    generación de señales para alertas tempranas.
+  \end{itemize}
+\item
+  \textbf{Modelo de persistencia flexible}, combinando almacenamiento documental (MongoDB) para explotación analítica y visualización.
+\item
+  \textbf{Separación clara de responsabilidades} entre ingesta, procesamiento, almacenamiento y visualización, alineada con buenas prácticas de ingeniería de datos.
+\end{itemize}
+
+En conjunto, el trabajo demuestra cómo construir una solución escalable, extensible y mantenible para el análisis de datos epidemiológicos.
+
+\subsection{Valor añadido frente a soluciones existentes}\label{valor-auxf1adido-frente-a-soluciones-existentes}
+
+Frente a soluciones tradicionales o enfoques comúnmente utilizados, el trabajo aporta los siguientes elementos diferenciales:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Evita la complejidad de la arquitectura Lambda}, eliminando la necesidad de mantener dos pipelines separados (batch y speed layer).
+\item
+  \textbf{Uso de tecnologías open-source ampliamente adoptadas}, reduciendo dependencia de soluciones propietarias y facilitando la replicabilidad..
+\item
+  \textbf{Enfoque didáctico y reproducible}, al construirse sobre un entorno local controlado que puede ser replicado con fines académicos o formativos.
+\item
+  \textbf{Calidad de datos integrada en el pipeline}, permitiendo tener datos limpios normalizados validados y descartar los datos inválidos con un solo proceso.
+\end{itemize}
+
+Además, el trabajo no se limita a una implementación puntual, sino que propone un \textbf{marco conceptual reutilizable} para otros proyectos de análisis de datos en tiempo real.
+
+\subsection{Aplicabilidad en contextos reales (Perú)}\label{aplicabilidad-en-contextos-reales-peruxfa}
+
+La arquitectura propuesta es especialmente aplicable al contexto peruano por las siguientes razones:
+
+\begin{itemize}
+\item
+  \textbf{Adecuación a la realidad de los datos públicos}, caracterizados por:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Heterogeneidad,
+  \item
+    Retrasos en la actualización,
+  \item
+    Necesidad de reprocesamiento histórico.
+  \end{itemize}
+\item
+  \textbf{Capacidad de adaptación a infraestructuras limitadas}, permitiendo despliegues progresivos (local, on-premise o cloud).
+\item
+  \textbf{Soporte para análisis epidemiológico continuo}, facilitando:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Monitoreo de tendencias,
+  \item
+    Detección temprana de picos de contagio,
+  \item
+    Apoyo a la toma de decisiones por parte de entidades públicas.
+  \end{itemize}
+\item
+  \textbf{Potencial reutilización institucional}, tanto en el Ministerio de Salud como en gobiernos regionales o universidades.
+\item
+  \textbf{Escalabilidad futura}, permitiendo integrar nuevas fuentes de datos sin rediseñar completamente la arquitectura.
+\end{itemize}
+
+De este modo, el trabajo no solo tiene valor académico, sino que presenta una propuesta técnicamente viable y contextualizada para la realidad peruana.
+
+\subsection{Cierre del capítulo}\label{cierre-del-capuxedtulo}
+
+En conclusión, este Trabajo Fin de Máster aporta una solución técnica sólida, moderna y adaptable para el procesamiento y análisis de datos epidemiológicos, demostrando la viabilidad del modelo Dataflow en escenarios reales.
+
+La combinación de fundamentos teóricos, diseño arquitectónico y análisis aplicado permite establecer una base sobre la cual pueden desarrollarse futuras extensiones, tanto en el ámbito de la investigación como en el de la gestión pública de datos.
+
+\section{Código fuente y datos analizados}\label{cuxf3digo-fuente-y-datos-analizados}
+
+\subsection{Código fuente}\label{cuxf3digo-fuente}
+
+El código fuente desarrollado durante la realización de este Trabajo Fin de Máster ha sido implementado íntegramente por el autor y se encuentra alojado en un repositorio de control de versiones de acceso público.
+
+El repositorio es de autoría exclusiva de los estudiantes Arthur y Gary, no existiendo contribuciones ni \emph{commits} realizados por terceros, en cumplimiento de los requisitos establecidos para este tipo de trabajos académicos.
+
+En dicho repositorio se incluye el código correspondiente a:
+
+\begin{itemize}
+\tightlist
+\item
+  los procesos de ingesta de datos,
+\item
+  los pipelines de procesamiento batch y streaming,
+\item
+  los scripts de transformación y normalización,
+\item
+  y los elementos necesarios para la persistencia y visualización de los datos.
+\end{itemize}
+
+La URL del repositorio es la siguiente:
+
+\textbf{Repositorio Git:\\
+} \emph{https://github.com/arthur8davis/tfm-dataflow-architecture}
+
+\subsubsection{Datos analizados}\label{datos-analizados}
+
+Los datos utilizados para el desarrollo y validación del trabajo proceden de fuentes públicas, concretamente de datasets relacionados con casos epidemiológicos de COVID-19 en el Perú.
+
+Con el objetivo de garantizar la transparencia, la reproducibilidad y la trazabilidad del análisis, los datos empleados se encuentran también disponibles dentro del mismo repositorio, en formato estructurado, junto con una descripción de su origen y esquema.
+
+Durante todo el proceso:
+
+\begin{itemize}
+\tightlist
+\item
+  los datos han sido tratados de forma anonimizada,
+\item
+  no se ha manejado información que permita la identificación directa o indirecta de personas físicas,
+\item
+  y se ha respetado la normativa vigente en materia de protección de datos.
+\end{itemize}
+
+\subsubsection{Consideraciones sobre confidencialidad}\label{consideraciones-sobre-confidencialidad}
+
+Dado que este Trabajo Fin de Máster se ha desarrollado en un contexto académico y a partir de datos públicos, no existen restricciones de confidencialidad que impidan la publicación del código fuente ni de los datos utilizados.
+
+En consecuencia, tanto el código como los datos quedan disponibles con fines académicos y de investigación, permitiendo su consulta, análisis y reutilización bajo las condiciones indicadas en el repositorio.
+
+\section{Conclusiones}\label{conclusiones}
+
+El presente Trabajo Fin de Máster ha abordado el problema del procesamiento y análisis eficiente de datos epidemiológicos en contextos donde coexisten grandes volúmenes de información histórica y la necesidad de obtener resultados con baja latencia para apoyar la toma de decisiones. Este problema se evidenció de forma clara durante la pandemia de COVID-19, especialmente en países como el Perú, donde los sistemas tradicionales de análisis se basaron mayoritariamente en enfoques \emph{batch}, limitando la capacidad de reacción ante cambios rápidos en la evolución de los contagios.
+
+Para dar respuesta a este problema, el trabajo ha propuesto una arquitectura de procesamiento de datos basada en el modelo Dataflow, capaz de integrar de forma coherente el procesamiento en lotes y en tiempo real. La solución se ha fundamentado en tecnologías open-source ampliamente utilizadas en la ingeniería de datos moderna, como Apache Kafka, Apache Beam y Apache Flink, combinadas con un modelo de almacenamiento flexible orientado a la explotación analítica y la visualización.
+
+La validez de la solución propuesta se sustenta en varios aspectos. En primer lugar, el modelo arquitectónico permite desacoplar la ingesta, el procesamiento y el almacenamiento, favoreciendo la escalabilidad y la mantenibilidad del sistema. En segundo lugar, la utilización de un enfoque orientado a eventos posibilita el reprocesamiento histórico y la extensión futura del sistema sin necesidad de rediseñar completamente la arquitectura. Finalmente, la solución se ha diseñado teniendo en cuenta las limitaciones y características reales de los datos disponibles en el contexto peruano, lo que refuerza su aplicabilidad práctica.
+
+\section{Limitaciones y prospectiva}\label{limitaciones-y-prospectiva}
+
+\subsection{Limitaciones}\label{limitaciones}
+
+Una vez finalizado el trabajo, es necesario realizar una valoración crítica de la solución propuesta, identificando aquellas limitaciones que han condicionado su desarrollo y alcance.
+
+En primer lugar, una de las principales limitaciones del trabajo está relacionada con la calidad y naturaleza de los datos disponibles. Los datasets utilizados, aun siendo de carácter público, presentan heterogeneidad en formatos, retrasos en la actualización y posibles inconsistencias, lo que ha requerido procesos de normalización y validación que pueden afectar a la precisión de ciertos análisis. Asimismo, el estudio se ha centrado en un conjunto limitado de variables, lo que impide evaluar con mayor profundidad otros factores relevantes en la evolución de la pandemia.
+
+En segundo lugar, el trabajo se ha enfocado principalmente en el diseño y validación arquitectónica, más que en la explotación avanzada de técnicas analíticas o predictivas. Aunque se ha analizado conceptualmente la detección de picos y la generación de métricas en tiempo real, no se ha desarrollado un sistema completo de alertas automáticas ni modelos predictivos avanzados, lo que limita el alcance funcional de la solución.
+
+Otra limitación importante es que la arquitectura ha sido validada en un entorno controlado, utilizando simulación de flujos en tiempo real a partir de datos históricos. Si bien este enfoque es adecuado para fines académicos, un despliegue en producción requeriría pruebas adicionales de rendimiento, tolerancia a fallos y escalabilidad bajo cargas reales.
+
+Finalmente, el trabajo no aborda de forma exhaustiva aspectos organizativos y de gobernanza de datos, como la integración con sistemas institucionales existentes, la definición de roles operativos o los procesos formales de mantenimiento y evolución de la plataforma.
+
+\subsection{Trabajo Futuro}\label{trabajo-futuro}
+
+A partir de las limitaciones identificadas, se abren diversas líneas de trabajo futuro que permitirían ampliar y enriquecer la aportación realizada.
+
+En primer lugar, una extensión natural del trabajo consistiría en la incorporación de nuevas fuentes y variables, tales como datos de hospitalización, ocupación de UCI, vacunación o movilidad poblacional, lo que permitiría obtener una visión más completa del fenómeno epidemiológico.
+
+En segundo lugar, se podría avanzar hacia la implementación efectiva de mecanismos de detección de eventos relevantes, como picos de contagio o anomalías, mediante el uso de ventanas temporales, técnicas estadísticas o modelos de aprendizaje automático integrados en motores de procesamiento en tiempo real como Apache Flink.
+
+Otra línea de trabajo relevante sería la evolución hacia un despliegue productivo, incorporando mecanismos de monitorización, tolerancia a fallos, balanceo de carga y escalado automático, así como la evaluación comparativa del rendimiento en distintos entornos (on-premise y cloud).
+
+Asimismo, la arquitectura propuesta podría adaptarse a otros dominios más allá del ámbito epidemiológico, como la gestión de emergencias, el análisis de movilidad urbana o el monitoreo de servicios públicos, demostrando su carácter generalizable.
+
+Por último, futuras investigaciones podrían centrarse en aspectos de gobernanza y calidad del dato, incluyendo políticas de versionado, trazabilidad, auditoría y cumplimiento normativo, especialmente relevantes en sistemas de análisis de datos a gran escala.
+
+\newpage
+\section{Referencias bibliográficas}\label{referencias-bibliograficas}
+
+\printbibliography
+
+\begin{enumerate}
+
+\tightlist
+\item
+  Privacidad y protección de datos
+\end{enumerate}
+
+El presente anexo establece las directrices a seguir por el alumno en la
+elaboración de su memoria, cuando requiera cumplir con la normativa de
+privacidad y protección de datos personales. (\textbf{ver
+instrucciones})
+
+\begin{enumerate}
+
+  
+\tightlist
+\item
+  Ejemplo de nota al pie. \hyperref[footnote-ref-1]{↑}
+\end{enumerate}
+
+\end{document}

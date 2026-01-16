@@ -1,2 +1,14 @@
-datasets/dataset-casos.csv
+datasets/*
 .venv
+
+doc_tfm/*.aux
+doc_tfm/*.bbl
+doc_tfm/*.bcf
+doc_tfm/*.blg
+doc_tfm/*.fdb_latexmk
+doc_tfm/*.fls
+doc_tfm/*.lof
+doc_tfm/*.log
+doc_tfm/*.pdf
+doc_tfm/*.run.xml
+doc_tfm/*.gz

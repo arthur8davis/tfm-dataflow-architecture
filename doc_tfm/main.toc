@@ -1,98 +1,119 @@
 \babel@toc {spanish}{}\relax 
-\contentsline {section}{\numberline {1}Introducción}{10}{section.1}%
-\contentsline {subsection}{\numberline {1.1}Motivación}{11}{subsection.1.1}%
-\contentsline {subsection}{\numberline {1.2}Planteamiento del trabajo}{12}{subsection.1.2}%
-\contentsline {subsection}{\numberline {1.3}Estructura del trabajo}{13}{subsection.1.3}%
-\contentsline {section}{\numberline {2}Contexto y estado del arte}{14}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Contexto del problema}{14}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Estado del arte}{14}{subsection.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.1}Procesamiento de datos}{14}{subsubsection.2.2.1}%
-\contentsline {subsubsection}{\numberline {2.2.2}Arquitecturas Big Data (Lambda, Kappa y Dataflow)}{16}{subsubsection.2.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.3}Procesamiento de datos}{18}{subsubsection.2.2.3}%
-\contentsline {subsubsection}{\numberline {2.2.4}Almacenamiento distribuido y Series Temporales}{19}{subsubsection.2.2.4}%
-\contentsline {subsubsection}{\numberline {2.2.5}Visualización y alertas de datos en entornos analíticos}{20}{subsubsection.2.2.5}%
-\contentsline {subsubsection}{\numberline {2.2.6}Vacíos identificados}{20}{subsubsection.2.2.6}%
-\contentsline {subsection}{\numberline {2.3}Trabajos Relevantes en Salud Pública y Big Data}{21}{subsection.2.3}%
-\contentsline {subsection}{\numberline {2.4}Propuesta}{22}{subsection.2.4}%
-\contentsline {subsection}{\numberline {2.5}Conclusiones}{23}{subsection.2.5}%
-\contentsline {section}{\numberline {3}Objetivos concretos y metodología de trabajo}{24}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Objetivo general}{24}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Objetivos específicos}{24}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Metodología del trabajo}{25}{subsection.3.3}%
-\contentsline {subsubsection}{\numberline {3.3.1}Aplicación del modelo CRISP-DM}{25}{subsubsection.3.3.1}%
-\contentsline {subsubsection}{\numberline {3.3.2}Comprensión de los datos}{26}{subsubsection.3.3.2}%
-\contentsline {subsubsection}{\numberline {3.3.3}Preparación de los datos}{26}{subsubsection.3.3.3}%
-\contentsline {subsubsection}{\numberline {3.3.4}Modelado}{27}{subsubsection.3.3.4}%
-\contentsline {subsubsection}{\numberline {3.3.5}Evaluación}{27}{subsubsection.3.3.5}%
-\contentsline {subsubsection}{\numberline {3.3.6}Despliegue}{28}{subsubsection.3.3.6}%
-\contentsline {subsection}{\numberline {3.4}Gestión del trabajo mediante Kanban}{28}{subsection.3.4}%
-\contentsline {section}{\numberline {4}Marco normativo}{28}{section.4}%
-\contentsline {section}{\numberline {5}Desarrollo específico de la contribución}{30}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Visión general de la contribución}{30}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Análisis de requisitos del sistema}{32}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}Requisitos funcionales}{32}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}Requisitos no funcionales}{33}{subsection.5.4}%
-\contentsline {subsection}{\numberline {5.5}Requisitos epidemiológicos}{33}{subsection.5.5}%
-\contentsline {subsection}{\numberline {5.6}Diseño de la arquitectura basada en el modelo Dataflow}{34}{subsection.5.6}%
-\contentsline {subsubsection}{\numberline {5.6.1}Principios del modelo Dataflow aplicados}{34}{subsubsection.5.6.1}%
-\contentsline {subsubsection}{\numberline {5.6.2}Arquitectura general del sistema}{35}{subsubsection.5.6.2}%
-\contentsline {subsubsection}{\numberline {5.6.3}Flujo de datos streaming y batch}{35}{subsubsection.5.6.3}%
-\contentsline {subsection}{\numberline {5.7}Implementación del pipeline de procesamiento}{36}{subsection.5.7}%
-\contentsline {subsubsection}{\numberline {5.7.1}Ingesta de datos basada en eventos}{36}{subsubsection.5.7.1}%
-\contentsline {subsubsection}{\numberline {5.7.2}Definición del pipeline en Apache Beam}{37}{subsubsection.5.7.2}%
-\contentsline {subsubsection}{\numberline {5.7.3}Procesamiento en streaming}{37}{subsubsection.5.7.3}%
-\contentsline {subsubsection}{\numberline {5.7.4}Ventanas temporales}{37}{subsubsection.5.7.4}%
-\contentsline {subsubsection}{\numberline {5.7.5}Triggers y manejo de eventos tardíos}{38}{subsubsection.5.7.5}%
-\contentsline {subsubsection}{\numberline {5.7.6}Procesamiento en batch}{38}{subsubsection.5.7.6}%
-\contentsline {subsection}{\numberline {5.8}Transformaciones y cálculos analíticos}{38}{subsection.5.8}%
-\contentsline {subsection}{\numberline {5.9}Persistencia de resultados}{39}{subsection.5.9}%
-\contentsline {subsection}{\numberline {5.10}Consideraciones de escalabilidad y tolerancia a fallos}{39}{subsection.5.10}%
-\contentsline {section}{\numberline {6}Modelos analíticos y predictivos}{39}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Análisis exploratorio en tiempo real}{40}{subsection.6.1}%
-\contentsline {subsubsection}{\numberline {6.1.1}Métricas descriptivas}{40}{subsubsection.6.1.1}%
-\contentsline {subsubsection}{\numberline {6.1.2}Detección de anomalías simples}{40}{subsubsection.6.1.2}%
-\contentsline {subsection}{\numberline {6.2}Modelos predictivos}{41}{subsection.6.2}%
-\contentsline {subsubsection}{\numberline {6.2.1}Algoritmos utilizados}{41}{subsubsection.6.2.1}%
-\contentsline {subsubsection}{\numberline {6.2.2}Variables de entrada}{41}{subsubsection.6.2.2}%
-\contentsline {subsubsection}{\numberline {6.2.3}Integración con el pipeline}{41}{subsubsection.6.2.3}%
-\contentsline {subsection}{\numberline {6.3}Generación de escenarios futuros}{42}{subsection.6.3}%
-\contentsline {subsubsection}{\numberline {6.3.1}Simulación de tendencias}{42}{subsubsection.6.3.1}%
-\contentsline {subsubsection}{\numberline {6.3.2}Uso en la toma de decisiones}{42}{subsubsection.6.3.2}%
-\contentsline {section}{\numberline {7}Visualización interactiva y monitorización}{43}{section.7}%
-\contentsline {subsection}{\numberline {7.1}Diseño de dashboards}{43}{subsection.7.1}%
-\contentsline {subsubsection}{\numberline {7.1.1}Indicadores clave}{43}{subsubsection.7.1.1}%
-\contentsline {subsubsection}{\numberline {7.1.2}Actualización en tiempo real}{43}{subsubsection.7.1.2}%
-\contentsline {subsubsection}{\numberline {7.1.3}Interacción del usuario}{44}{subsubsection.7.1.3}%
-\contentsline {subsection}{\numberline {7.2}Herramientas de visualización}{44}{subsection.7.2}%
-\contentsline {subsubsection}{\numberline {7.2.1}Plataformas de visualización}{44}{subsubsection.7.2.1}%
-\contentsline {subsubsection}{\numberline {7.2.2}Integración con el almacenamiento}{44}{subsubsection.7.2.2}%
-\contentsline {subsection}{\numberline {7.3}Sistema de alertas}{44}{subsection.7.3}%
-\contentsline {subsubsection}{\numberline {7.3.1}Definición de umbrales}{44}{subsubsection.7.3.1}%
-\contentsline {subsubsection}{\numberline {7.3.2}Detección de eventos críticos}{45}{subsubsection.7.3.2}%
-\contentsline {subsubsection}{\numberline {7.3.3}Notificaciones}{45}{subsubsection.7.3.3}%
-\contentsline {subsection}{\numberline {7.4}Evaluación del sistema y resultados}{45}{subsection.7.4}%
-\contentsline {subsection}{\numberline {7.5}Criterios y métricas de evaluación}{45}{subsection.7.5}%
-\contentsline {subsubsection}{\numberline {7.5.1}Métricas de rendimiento}{46}{subsubsection.7.5.1}%
-\contentsline {subsubsection}{\numberline {7.5.2}Métricas de calidad analítica}{46}{subsubsection.7.5.2}%
-\contentsline {subsubsection}{\numberline {7.5.3}Métricas de robustez}{46}{subsubsection.7.5.3}%
-\contentsline {subsubsection}{\numberline {7.5.4}Métricas de utilidad práctica}{46}{subsubsection.7.5.4}%
-\contentsline {subsection}{\numberline {7.6}Escenarios de evaluación}{46}{subsection.7.6}%
-\contentsline {subsection}{\numberline {7.7}Resultados obtenidos}{47}{subsection.7.7}%
-\contentsline {subsection}{\numberline {7.8}Análisis comparativo}{47}{subsection.7.8}%
-\contentsline {subsection}{\numberline {7.9}Discusión de resultados}{47}{subsection.7.9}%
-\contentsline {subsection}{\numberline {7.10}Validación de los objetivos específicos}{48}{subsection.7.10}%
-\contentsline {subsection}{\numberline {7.11}Síntesis del impacto del sistema}{48}{subsection.7.11}%
-\contentsline {section}{\numberline {8}Aporte y contribución del trabajo}{48}{section.8}%
-\contentsline {subsection}{\numberline {8.1}Resumen de la contribución técnica}{48}{subsection.8.1}%
-\contentsline {subsection}{\numberline {8.2}Valor añadido frente a soluciones existentes}{49}{subsection.8.2}%
-\contentsline {subsection}{\numberline {8.3}Aplicabilidad en contextos reales (Perú)}{50}{subsection.8.3}%
-\contentsline {subsection}{\numberline {8.4}Cierre del capítulo}{51}{subsection.8.4}%
-\contentsline {section}{\numberline {9}Código fuente y datos analizados}{51}{section.9}%
-\contentsline {subsection}{\numberline {9.1}Código fuente}{51}{subsection.9.1}%
-\contentsline {subsubsection}{\numberline {9.1.1}Datos analizados}{51}{subsubsection.9.1.1}%
-\contentsline {subsubsection}{\numberline {9.1.2}Consideraciones sobre confidencialidad}{52}{subsubsection.9.1.2}%
-\contentsline {section}{\numberline {10}Conclusiones}{52}{section.10}%
-\contentsline {section}{\numberline {11}Limitaciones y prospectiva}{53}{section.11}%
-\contentsline {subsection}{\numberline {11.1}Limitaciones}{53}{subsection.11.1}%
-\contentsline {subsection}{\numberline {11.2}Trabajo Futuro}{54}{subsection.11.2}%
-\contentsline {section}{\numberline {12}Referencias bibliográficas}{55}{section.12}%
+\contentsline {section}{\numberline {1}Introducción}{11}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Motivación}{12}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Planteamiento del trabajo}{13}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Estructura del trabajo}{14}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Contexto y estado del arte}{16}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Contexto del problema}{16}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Estado del arte}{16}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Procesamiento de datos}{16}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Arquitecturas Big Data (Lambda, Kappa y Dataflow)}{18}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Comparativa técnica entre Lambda, Kappa y Dataflow}{21}{subsubsection.2.2.3}%
+\contentsline {subsubsection}{\numberline {2.2.4}Procesamiento de datos}{23}{subsubsection.2.2.4}%
+\contentsline {subsubsection}{\numberline {2.2.5}Almacenamiento distribuido y Series Temporales}{24}{subsubsection.2.2.5}%
+\contentsline {subsubsection}{\numberline {2.2.6}Visualización y alertas de datos en entornos analíticos}{25}{subsubsection.2.2.6}%
+\contentsline {subsubsection}{\numberline {2.2.7}Vacíos identificados}{25}{subsubsection.2.2.7}%
+\contentsline {subsection}{\numberline {2.3}Trabajos Relevantes en Salud Pública y Big Data}{26}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Propuesta}{27}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Conclusiones}{28}{subsection.2.5}%
+\contentsline {section}{\numberline {3}Objetivos concretos y metodología de trabajo}{30}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Objetivo general}{30}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Objetivos específicos}{30}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Metodología del trabajo}{30}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Aplicación del modelo CRISP-DM}{31}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Comprensión de los datos}{32}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Preparación de los datos}{32}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Modelado}{33}{subsubsection.3.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.5}Evaluación}{33}{subsubsection.3.3.5}%
+\contentsline {subsubsection}{\numberline {3.3.6}Despliegue}{33}{subsubsection.3.3.6}%
+\contentsline {subsection}{\numberline {3.4}Gestión del trabajo mediante Kanban}{34}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Marco normativo}{35}{section.4}%
+\contentsline {section}{\numberline {5}Desarrollo específico de la contribución}{37}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Visión general de la contribución}{37}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Análisis de requisitos del sistema}{38}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Requisitos funcionales}{38}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Requisitos no funcionales}{39}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Requisitos epidemiológicos}{40}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Diseño de la arquitectura basada en el modelo Dataflow}{40}{subsection.5.6}%
+\contentsline {subsubsection}{\numberline {5.6.1}Principios del modelo Dataflow aplicados}{40}{subsubsection.5.6.1}%
+\contentsline {subsubsection}{\numberline {5.6.2}Arquitectura general del sistema}{41}{subsubsection.5.6.2}%
+\contentsline {subsubsection}{\numberline {5.6.3}Flujo de datos streaming y batch}{42}{subsubsection.5.6.3}%
+\contentsline {subsection}{\numberline {5.7}Implementación del pipeline de procesamiento}{42}{subsection.5.7}%
+\contentsline {subsubsection}{\numberline {5.7.1}Ingesta de datos basada en eventos}{42}{subsubsection.5.7.1}%
+\contentsline {subsubsection}{\numberline {5.7.2}Definición del pipeline en Apache Beam}{43}{subsubsection.5.7.2}%
+\contentsline {subsubsection}{\numberline {5.7.3}Procesamiento en streaming}{44}{subsubsection.5.7.3}%
+\contentsline {subsubsection}{\numberline {5.7.4}Ventanas temporales}{44}{subsubsection.5.7.4}%
+\contentsline {subsubsection}{\numberline {5.7.5}Triggers y manejo de eventos tardíos}{44}{subsubsection.5.7.5}%
+\contentsline {subsubsection}{\numberline {5.7.6}Procesamiento en batch}{45}{subsubsection.5.7.6}%
+\contentsline {subsection}{\numberline {5.8}Transformaciones y cálculos analíticos}{46}{subsection.5.8}%
+\contentsline {subsection}{\numberline {5.9}Consideraciones de escalabilidad y tolerancia a fallos}{47}{subsection.5.9}%
+\contentsline {subsection}{\numberline {5.10}Modelos analíticos y predictivos}{48}{subsection.5.10}%
+\contentsline {subsubsection}{\numberline {5.10.1}Objetivos de los modelos analíticos y predictivos}{49}{subsubsection.5.10.1}%
+\contentsline {subsubsection}{\numberline {5.10.2}Integración de los modelos en la arquitectura Dataflow}{49}{subsubsection.5.10.2}%
+\contentsline {subsection}{\numberline {5.11}Análisis exploratorio en tiempo real}{50}{subsection.5.11}%
+\contentsline {subsubsection}{\numberline {5.11.1}Métricas descriptivas en tiempo real}{50}{subsubsection.5.11.1}%
+\contentsline {subsubsection}{\numberline {5.11.2}Detección de anomalías simples}{50}{subsubsection.5.11.2}%
+\contentsline {subsubsection}{\numberline {5.11.3}Soporte a la visualización y toma de decisiones}{51}{subsubsection.5.11.3}%
+\contentsline {subsection}{\numberline {5.12}Modelos predictivos}{51}{subsection.5.12}%
+\contentsline {subsubsection}{\numberline {5.12.1}Algoritmos utilizados}{51}{subsubsection.5.12.1}%
+\contentsline {subsubsection}{\numberline {5.12.2}Variables de entrada}{52}{subsubsection.5.12.2}%
+\contentsline {subsubsection}{\numberline {5.12.3}Integración con el pipeline}{52}{subsubsection.5.12.3}%
+\contentsline {subsection}{\numberline {5.13}Generación de escenarios futuros}{52}{subsection.5.13}%
+\contentsline {subsubsection}{\numberline {5.13.1}Simulación de tendencias}{52}{subsubsection.5.13.1}%
+\contentsline {subsubsection}{\numberline {5.13.2}Uso en la toma de decisiones}{53}{subsubsection.5.13.2}%
+\contentsline {subsection}{\numberline {5.14}Visualización interactiva y monitorización}{53}{subsection.5.14}%
+\contentsline {subsection}{\numberline {5.15}Diseño de dashboards}{53}{subsection.5.15}%
+\contentsline {subsubsection}{\numberline {5.15.1}Objetivos del diseño}{54}{subsubsection.5.15.1}%
+\contentsline {subsubsection}{\numberline {5.15.2}Estructura y organización visual}{54}{subsubsection.5.15.2}%
+\contentsline {subsubsection}{\numberline {5.15.3}Actualización y latencia}{55}{subsubsection.5.15.3}%
+\contentsline {subsubsection}{\numberline {5.15.4}Interacción y exploración de datos}{55}{subsubsection.5.15.4}%
+\contentsline {subsubsection}{\numberline {5.15.5}Integración con alertas y monitorización}{56}{subsubsection.5.15.5}%
+\contentsline {subsubsection}{\numberline {5.15.6}Indicadores clave}{56}{subsubsection.5.15.6}%
+\contentsline {subsubsection}{\numberline {5.15.7}Actualización en tiempo real}{56}{subsubsection.5.15.7}%
+\contentsline {subsubsection}{\numberline {5.15.8}Interacción del usuario}{57}{subsubsection.5.15.8}%
+\contentsline {subsection}{\numberline {5.16}Herramientas de visualización}{57}{subsection.5.16}%
+\contentsline {subsubsection}{\numberline {5.16.1}Criterios de selección}{57}{subsubsection.5.16.1}%
+\contentsline {subsubsection}{\numberline {5.16.2}Visualización de métricas en tiempo real}{58}{subsubsection.5.16.2}%
+\contentsline {subsubsection}{\numberline {5.16.3}Soporte para series temporales}{58}{subsubsection.5.16.3}%
+\contentsline {subsubsection}{\numberline {5.16.4}Interactividad y exploración}{59}{subsubsection.5.16.4}%
+\contentsline {subsubsection}{\numberline {5.16.5}Integración con la monitorización y alertas}{59}{subsubsection.5.16.5}%
+\contentsline {subsubsection}{\numberline {5.16.6}Plataformas de visualización}{59}{subsubsection.5.16.6}%
+\contentsline {subsubsection}{\numberline {5.16.7}Integración con el almacenamiento}{60}{subsubsection.5.16.7}%
+\contentsline {subsection}{\numberline {5.17}Sistema de alertas}{61}{subsection.5.17}%
+\contentsline {subsubsection}{\numberline {5.17.1}Objetivos del sistema de alertas}{61}{subsubsection.5.17.1}%
+\contentsline {subsubsection}{\numberline {5.17.2}Definición de umbrales}{61}{subsubsection.5.17.2}%
+\contentsline {paragraph}{Umbrales estáticos}{62}{section*.9}%
+\contentsline {paragraph}{Umbrales dinámicos}{62}{section*.10}%
+\contentsline {paragraph}{Combinación de umbrales}{62}{section*.11}%
+\contentsline {subsubsection}{\numberline {5.17.3}Detección de eventos críticos}{63}{subsubsection.5.17.3}%
+\contentsline {subsubsection}{\numberline {5.17.4}Notificación y visualización de alertas}{63}{subsubsection.5.17.4}%
+\contentsline {subsubsection}{\numberline {5.17.5}Definición de umbrales}{63}{subsubsection.5.17.5}%
+\contentsline {subsubsection}{\numberline {5.17.6}Detección de eventos críticos}{64}{subsubsection.5.17.6}%
+\contentsline {subsubsection}{\numberline {5.17.7}Notificaciones}{64}{subsubsection.5.17.7}%
+\contentsline {subsection}{\numberline {5.18}Evaluación del sistema y resultados}{64}{subsection.5.18}%
+\contentsline {subsection}{\numberline {5.19}Criterios y métricas de evaluación}{64}{subsection.5.19}%
+\contentsline {subsubsection}{\numberline {5.19.1}Métricas de rendimiento}{65}{subsubsection.5.19.1}%
+\contentsline {subsubsection}{\numberline {5.19.2}Métricas de calidad analítica}{65}{subsubsection.5.19.2}%
+\contentsline {subsubsection}{\numberline {5.19.3}Métricas de robustez}{65}{subsubsection.5.19.3}%
+\contentsline {subsubsection}{\numberline {5.19.4}Métricas de utilidad práctica}{65}{subsubsection.5.19.4}%
+\contentsline {subsection}{\numberline {5.20}Escenarios de evaluación}{65}{subsection.5.20}%
+\contentsline {subsection}{\numberline {5.21}Resultados obtenidos}{66}{subsection.5.21}%
+\contentsline {subsection}{\numberline {5.22}Análisis comparativo}{66}{subsection.5.22}%
+\contentsline {subsection}{\numberline {5.23}Discusión de resultados}{66}{subsection.5.23}%
+\contentsline {subsection}{\numberline {5.24}Validación de los objetivos específicos}{67}{subsection.5.24}%
+\contentsline {subsection}{\numberline {5.25}Síntesis del impacto del sistema}{67}{subsection.5.25}%
+\contentsline {subsection}{\numberline {5.26}Aporte y contribución del trabajo}{67}{subsection.5.26}%
+\contentsline {subsection}{\numberline {5.27}Resumen de la contribución técnica}{67}{subsection.5.27}%
+\contentsline {subsection}{\numberline {5.28}Valor añadido frente a soluciones existentes}{68}{subsection.5.28}%
+\contentsline {subsection}{\numberline {5.29}Aplicabilidad en contextos reales (Perú)}{69}{subsection.5.29}%
+\contentsline {subsection}{\numberline {5.30}Cierre del capítulo}{70}{subsection.5.30}%
+\contentsline {section}{\numberline {6}Código fuente y datos analizados}{71}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Código fuente}{71}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Datos analizados}{71}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Consideraciones sobre confidencialidad}{72}{subsubsection.6.1.2}%
+\contentsline {section}{\numberline {7}Conclusiones}{73}{section.7}%
+\contentsline {section}{\numberline {8}Limitaciones y prospectiva}{74}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Limitaciones}{74}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Trabajo Futuro}{74}{subsection.8.2}%
+\contentsline {section}{Referencias bibliograficas}{76}{section*.12}%
+\contentsline {section}{Anexo A. Privacidad y protección de datos}{78}{section*.13}%

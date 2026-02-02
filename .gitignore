@@ -1,5 +1,7 @@
 datasets/*
 .venv
+.claude
+.claude/*
 
 doc_tfm/*.aux
 doc_tfm/*.bbl
@@ -12,3 +14,53 @@ doc_tfm/*.log
 doc_tfm/*.pdf
 doc_tfm/*.run.xml
 doc_tfm/*.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Data files (excepto samples)
+datasets/**/*.csv
+datasets/**/*.parquet
+!datasets/cases/sample_data.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Beam
+.beam/
+temp/

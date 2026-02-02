@@ -1,7 +1,0 @@
-kafka-python==2.2.15
-polars==1.35.1
-confluent-kafka==2.12.2
-apache-flink==2.1.1
-pymongo==4.15.3
-apache-beam[gcp]==2.60.0
-apache-beam[kafka]

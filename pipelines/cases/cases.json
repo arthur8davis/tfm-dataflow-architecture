@@ -1,0 +1,41 @@
+{
+  "schema_name": "cases",
+  "version": "1.0.0",
+  "description": "Schema para casos de COVID-19 - Datos de pacientes individuales",
+  "required_fields": [
+    "fecha_muestra",
+    "edad",
+    "sexo",
+    "resultado"
+  ],
+  "field_types": {
+    "uuid": "integer",
+    "fecha_muestra": "integer",
+    "edad": "integer",
+    "sexo": "string",
+    "institucion": "string",
+    "ubigeo_paciente": "integer",
+    "departamento_paciente": "string",
+    "provincia_paciente": "string",
+    "distrito_paciente": "string",
+    "departamento_muestra": "string",
+    "provincia_muestra": "string",
+    "distrito_muestra": "string",
+    "tipo_muestra": "string",
+    "resultado": "string",
+    "timestamp": "number"
+  },
+  "optional_fields": [
+    "uuid",
+    "institucion",
+    "ubigeo_paciente",
+    "departamento_paciente",
+    "provincia_paciente",
+    "distrito_paciente",
+    "departamento_muestra",
+    "provincia_muestra",
+    "distrito_muestra",
+    "tipo_muestra",
+    "timestamp"
+  ]
+}

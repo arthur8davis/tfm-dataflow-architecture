@@ -1,0 +1,186 @@
+ESTRUCTURA FINAL DEL PROYECTO - MULTI-SCHEMA INDEPENDIENTE
+==========================================================
+
+tfm/
+│
+├── 📂 pipelines/                           # PIPELINES POR SCHEMA (INDEPENDIENTES)
+│   │
+│   ├── 📂 cases/                           # Schema: CASES
+│   │   ├── config.yaml                    # ⚙️  Configuración exclusiva
+│   │   ├── schema.json                    # 📋 Validación de datos
+│   │   ├── pipeline.py                    # 🔄 Pipeline Apache Beam
+│   │   └── ingestion.py                   # 📥 Ingesta a Kafka
+│   │
+│   └── 📂 deaths/                          # Schema: DEATHS  
+│       ├── config.yaml                    # ⚙️  Configuración exclusiva (diferente!)
+│       ├── schema.json                    # 📋 Validación de datos
+│       ├── pipeline.py                    # 🔄 Pipeline Apache Beam
+│       └── ingestion.py                   # 📥 Ingesta a Kafka
+│
+├── 📂 src/
+│   ├── 📂 common/                          # COMPONENTES COMPARTIDOS
+│   │   ├── 📂 sources/                    # Lectura de datos
+│   │   │   ├── kafka_source.py           # Source: Kafka
+│   │   │   └── storage_source.py         # Source: CSV/Parquet
+│   │   │
+│   │   ├── 📂 transforms/                 # Transformaciones
+│   │   │   ├── normalize.py              # Normalización
+│   │   │   ├── validate.py               # Validación
+│   │   │   ├── timestamp.py              # Timestamps
+│   │   │   ├── windowing.py              # Ventanas temporales
+│   │   │   └── metadata.py               # Metadata
+│   │   │
+│   │   ├── 📂 batching/                   # Estrategias de batching
+│   │   │   ├── manual_batch.py           # Batching manual
+│   │   │   └── native_batch.py           # Batching nativo
+│   │   │
+│   │   ├── 📂 sinks/                      # Escritura de datos
+│   │   │   ├── mongo_sink.py             # Sink: MongoDB
+│   │   │   └── dlq_sink.py               # Sink: Dead Letter Queue
+│   │   │
+│   │   └── 📂 utils/                      # Utilidades
+│   │       ├── config_loader.py          # Carga de configuración
+│   │       └── schema_loader.py          # Carga de schemas
+│   │
+│   └── 📂 ingestion/                       # Ingesta común
+│       └── kafka_processor.py             # Procesador Kafka (Polars)
+│
+├── 📂 datasets/                            # DATOS POR SCHEMA
+│   ├── 📂 cases/
+│   │   └── sample_data.csv                # Datos de ejemplo CASES
+│   └── 📂 deaths/
+│       └── sample_data.csv                # Datos de ejemplo DEATHS
+│
+├── 📂 config/                              # Configuraciones globales (legacy)
+│   ├── kafka_config.yaml
+│   ├── mongo_config.yaml
+│   └── beam_config.yaml
+│
+├── 📂 schemas/                             # Schemas centralizados (legacy)
+│   └── cases.json
+│
+├── 🚀 orchestrator.py                      # ORQUESTADOR MULTI-SCHEMA
+├── 🎬 example_run_all.sh                   # Demo completa
+├── ▶️  run_cases.sh                         # Script rápido CASES
+├── ▶️  run_deaths.sh                        # Script rápido DEATHS
+│
+├── 📄 run_ingestion.py                     # Scripts legacy
+├── 📄 run_pipeline.py                      # Scripts legacy
+├── 📄 create_schema.py                     # Utilidad para crear schemas
+│
+├── 📖 README_NEW.md                        # Documentación principal
+├── 🏗️  ARCHITECTURE.md                     # Arquitectura detallada
+├── ⚡ QUICKSTART.md                        # Inicio rápido
+├── 📊 mongo_queries.js                     # Consultas MongoDB
+│
+├── 🐳 docker-compose.yaml                  # Servicios (Kafka, MongoDB, etc)
+├── 📦 requirements.txt                     # Dependencias Python
+└── 🙈 .gitignore
+
+
+FLUJO DE DATOS POR SCHEMA
+=========================
+
+SCHEMA: CASES
+-------------
+datasets/cases/*.csv
+    ↓
+pipelines/cases/ingestion.py
+    ↓
+Kafka Topic: "cases"
+    ↓
+pipelines/cases/pipeline.py
+    ↓  (consumer group: beam-pipeline-cases)
+    ↓  (ventana: 60s, batch: 100 native)
+    ↓
+MongoDB Collection: "cases"
+
+
+SCHEMA: DEATHS (en paralelo)
+-----------------------------
+datasets/deaths/*.csv
+    ↓
+pipelines/deaths/ingestion.py
+    ↓
+Kafka Topic: "deaths"
+    ↓
+pipelines/deaths/pipeline.py
+    ↓  (consumer group: beam-pipeline-deaths)
+    ↓  (ventana: 120s, batch: 50 manual)  ← DIFERENTE!
+    ↓
+MongoDB Collection: "deaths"
+
+
+CARACTERÍSTICAS CLAVE
+=====================
+
+✅ INDEPENDENCIA TOTAL
+   - Cada schema tiene su propia configuración
+   - Cada schema tiene su propio pipeline
+   - Cada schema tiene su propio topic de Kafka
+   - Cada schema tiene su propia colección MongoDB
+
+✅ EJECUCIÓN PARALELA
+   - Múltiples schemas pueden ejecutarse simultáneamente
+   - Sin interferencia entre schemas
+   - Escalamiento horizontal por schema
+
+✅ CONFIGURACIÓN FLEXIBLE
+   - Cada schema puede tener ventanas diferentes
+   - Cada schema puede usar diferentes estrategias de batching
+   - Cada schema puede tener diferentes validaciones
+
+✅ FÁCIL AGREGAR SCHEMAS
+   1. Crear directorio: pipelines/nuevo_schema/
+   2. Copiar archivos desde casos/
+   3. Editar configuración
+   4. ¡Listo! El orquestador lo descubre automáticamente
+
+
+COMANDOS PRINCIPALES
+====================
+
+# Listar schemas disponibles
+python orchestrator.py --list
+
+# Ejecutar schema individual
+python orchestrator.py --pipeline cases
+python orchestrator.py --pipeline deaths
+
+# Ejecutar múltiples schemas en paralelo
+python orchestrator.py --pipeline cases deaths --parallel
+
+# Ingestar datos
+python orchestrator.py --ingest cases
+python orchestrator.py --ingest deaths --parallel
+
+# Scripts rápidos
+./run_cases.sh both
+./run_deaths.sh both
+
+# Demo completa
+./example_run_all.sh
+
+
+SERVICIOS DE MONITOREO
+======================
+
+🌐 Kafka UI:       http://localhost:8080
+🌐 Mongo Express:  http://localhost:8083
+   User: admin
+   Pass: pass
+
+
+PRÓXIMO SCHEMA
+==============
+
+Para agregar "recovered":
+
+mkdir -p pipelines/recovered datasets/recovered
+cp -r pipelines/cases/* pipelines/recovered/
+# Editar archivos (cambiar "cases" → "recovered")
+python orchestrator.py --ingest recovered
+python orchestrator.py --pipeline recovered
+
+¡Ya está! El orquestador lo detecta automáticamente.
+

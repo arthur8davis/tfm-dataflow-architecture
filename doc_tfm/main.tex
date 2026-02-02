@@ -1,108 +1,242 @@
-% Options for packages loaded elsewhere
-\PassOptionsToPackage{unicode}{hyperref}
-\PassOptionsToPackage{hyphens}{url}
-%
-\documentclass[man,es,floatsintext]{apa7}
-\usepackage[spanish]{babel}
-\usepackage{varioref}
-\usepackage{amsmath,amssymb}
-\usepackage{iftex}
-% Use upquote if available, for straight quotes in verbatim environments
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
-\IfFileExists{microtype.sty}{% use microtype if available
-  \usepackage[]{microtype}
-  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
-}{}
+% !TEX program = xelatex
+% !TEX encoding = UTF-8 Unicode
+% ============================================================================
+% TRABAJO FIN DE MÁSTER - UNIR
+% Formato adaptado a las normas de estilo de la universidad
+% Compilar con: XeLaTeX o LuaLaTeX (para soporte de fuentes Calibri)
+% ============================================================================
+
+\documentclass[12pt,a4paper]{article}
+
+% --- Idioma ---
+\usepackage[spanish,es-tabla]{babel}
+% Nota: inputenc no es necesario con XeLaTeX/LuaLaTeX
+
+% --- Geometría de página: márgenes especificados ---
+\usepackage[
+    a4paper,
+    left=3.0cm,
+    right=2.0cm,
+    top=2.5cm,
+    bottom=2.5cm
+]{geometry}
+
+% --- Fuentes: TeX Gyre Heros (alternativa a Calibri/Arial) ---
+% Si tienes Calibri instalado, descomenta las líneas de Calibri y comenta las de TeX Gyre
+\usepackage{fontspec}
+
+% Opción 1: TeX Gyre Heros (disponible en la mayoría de sistemas TeX)
+\setmainfont{TeX Gyre Heros}[
+    BoldFont = TeX Gyre Heros Bold,
+    ItalicFont = TeX Gyre Heros Italic,
+    BoldItalicFont = TeX Gyre Heros Bold Italic
+]
+\newfontfamily\calibrilight{DejaVu Sans}[Scale=0.95]
+
+% Opción 2: Calibri (requiere tener las fuentes instaladas)
+% \setmainfont{Calibri}[
+%     BoldFont = Calibri Bold,
+%     ItalicFont = Calibri Italic,
+%     BoldItalicFont = Calibri Bold Italic
+% ]
+% \newfontfamily\calibrilight{Calibri Light}
+
+% --- Interlineado 1.5 ---
+\usepackage{setspace}
+\onehalfspacing
+
+% --- Espaciado entre párrafos: 6pt anterior y 6pt posterior, sin sangría ---
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% --- Colores ---
 \usepackage{xcolor}
+\definecolor{unirblue}{RGB}{86, 155, 213}
+\definecolor{tituloblue}{RGB}{0, 112, 192}
+
+% --- Configuración de títulos con titlesec ---
+\usepackage{titlesec}
+
+% Título 1 (section): Calibri Light 18, azul, justificado
+\titleformat{\section}
+    {\calibrilight\fontsize{18pt}{21.6pt}\selectfont\color{tituloblue}\bfseries}
+    {\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{6pt}{6pt}
+
+% Título 2 (subsection): Calibri Light 14, azul, justificado
+\titleformat{\subsection}
+    {\calibrilight\fontsize{14pt}{16.8pt}\selectfont\color{tituloblue}\bfseries}
+    {\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{6pt}{6pt}
+
+% Título 3 (subsubsection): Calibri Light 12, negro, justificado
+\titleformat{\subsubsection}
+    {\calibrilight\fontsize{12pt}{14.4pt}\selectfont\bfseries}
+    {\thesubsubsection}{0.5em}{}
+\titlespacing*{\subsubsection}{0pt}{6pt}{6pt}
+
+% Título 4 (paragraph): Calibri Light 12, negro
+\titleformat{\paragraph}[runin]
+    {\calibrilight\fontsize{12pt}{14.4pt}\selectfont\bfseries}
+    {}{0em}{}[.]
+\titlespacing*{\paragraph}{0pt}{6pt}{6pt}
+
+% --- Encabezado y pie de página ---
+\usepackage{fancyhdr}
+\setlength{\headheight}{28pt}
+\addtolength{\topmargin}{-16pt}
+\pagestyle{fancy}
+\fancyhf{} % Limpiar encabezados y pies
+
+% Encabezado: nombre del estudiante y título del TFE (dos líneas a la derecha)
+\fancyhead[R]{\small\begin{tabular}[b]{@{}r@{}}
+Arthur Huayaconza, Gary Choque \\
+Procesamiento de datos en streaming y batch con arquitecturas basadas en flujos de eventos
+\end{tabular}}
+\fancyhead[L]{}
+
+% Pie de página: número de página centrado
+\fancyfoot[C]{\thepage}
+
+% Sin línea en encabezado
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Estilo para páginas de inicio de capítulo
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[C]{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+}
+
+% --- Notas al pie: Calibri 10, justificado, interlineado sencillo ---
+\usepackage[hang,flushmargin]{footmisc}
+\renewcommand{\footnotesize}{\fontsize{10pt}{12pt}\selectfont}
+\setlength{\footnotesep}{0pt}
+
+% --- Bibliografía ---
+\usepackage{csquotes}  % Requerido por biblatex con babel
 \usepackage[style=apa,backend=biber]{biblatex}
 \addbibresource{references.bib}
+
+% --- Paquetes adicionales ---
+\usepackage{amsmath,amssymb}
 \usepackage{float}
 \usepackage{longtable,booktabs,array}
-\usepackage{calc} % for calculating minipage widths
-% Correct order of tables after \paragraph or \subparagraph
+\usepackage{calc}
 \usepackage{etoolbox}
-\makeatletter
-\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
-\makeatother
-% Allow footnotes in longtable head/foot
-\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
-\makesavenoteenv{longtable}
 \usepackage{graphicx}
+\usepackage{varioref}
 
-
+% --- Configuración de imágenes ---
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
 \def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
 \makeatother
-% Scale images if necessary, so that they will not overflow the page
-% margins by default, and it is still possible to overwrite the defaults
-% using explicit options in \includegraphics[width, height, ...]{}
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
-% Set default figure placement to htbp
 \makeatletter
 \def\fps@figure{htbp}
 \makeatother
-\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+% --- Configuración de longtable con footnotes ---
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+
+% --- Configuración de listas ---
+\setlength{\emergencystretch}{3em}
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{3} % enable section numbering (0=chapter, 1=section, 2=subsection, 3=subsubsection)
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
+
+% --- Numeración de secciones ---
+\setcounter{secnumdepth}{3}
+
+% --- Hipervínculos ---
 \usepackage{bookmark}
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\urlstyle{same}
+\usepackage{hyperref}
 \hypersetup{
-  hidelinks,
-  pdfcreator={Arthur Huayaconza, Gary Choque}}
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=tituloblue,
+    hidelinks=false,
+    pdfcreator={Arthur Huayaconza, Gary Choque},
+    pdftitle={Procesamiento de datos en streaming y batch con arquitecturas basadas en flujos de eventos},
+    pdfauthor={Choque Borda, Gary Gianpier; Huayaconza Condori, Arthur Davis}
+}
 
-% APA 7 headers are managed by the document class.
+% --- URLs con saltos de línea ---
+\usepackage{xurl}
+\urlstyle{same}
 
+% --- graph -----------------------------------
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{babel, shapes.geometric, arrows, positioning, fit, backgrounds, calc}
 
-
-\title{Procesamiento de datos en tiempo real y lotes mediante una arquitectura basada en el modelo Dataflow y flujos de eventos}
-\shorttitle{Procesamiento de datos en tiempo real y en lotes}
-\author{Choque Borda, Gary Gianpier \& Huayaconza Condori, Arthur Davis}
-\authorsaffiliations{Universidad Internacional de La Rioja}
-\leftheader{Choque Borda \& Huayaconza Condori}
-\abstract{En la actualidad se procesan grandes volúmenes de datos a cada segundo, por lo cual se requiere métodos y técnicas que soporten esta magnitud de volumetría. La metodología se basa en la aplicación del modelo llamado DataFlow, el cual unifica el procesamiento batch y streaming en un mismo marco conceptual, equilibrando exactitud, latencia y costo.}
-\keywords{Big Data, Streaming, Dataflow, Kafka, Spark, Flink}
-
-\definecolor{unirblue}{RGB}{86, 155, 213}
+% ============================================================================
+% INICIO DEL DOCUMENTO
+% ============================================================================
 \begin{document}
 
+% Página de título sin encabezado ni pie
 \begin{titlepage}
-      \centering
-      \includegraphics[width=0.4\textwidth]{images/logo-unir.png} \par
-      {\Large \textbf{Universidad Internacional de La Rioja} \par}
-      {\Large Escuela Superior de Ingeniería y Tecnología \par}
-      \vspace{1cm}
-      {\Large Máster Universitario en Análisis y Visualización de Datos Masivos/ Visual Analytics and Big Data \par}
-      {\Huge \textcolor{unirblue}{\textbf{Procesamiento de datos en streaming y batch con arquitecturas basadas en flujos de eventos}} }
-      \vspace{1cm}
-      \begin{flushleft}
-            \begin{tabular}{|l|l|}
-                  \hline
-                  \textbf{Trabajo fin de estudio presentado por:} & Choque Borda, Gary Gianpier      \\
-                                                                  & Huayaconza Condori, Arthur Davis \\ \hline
-                  \textbf{Tipo de trabajo:}                       & Desarrollo Software              \\ \hline
-                  \textbf{Director/a:}                            & Margalida Salom Ramis            \\ \hline
-                  \textbf{Fecha:}                                 &                                  \\ \hline
-            \end{tabular}
-      \end{flushleft}
-      \vfill
+\thispagestyle{empty}
+\centering
+
+\includegraphics[width=0.4\textwidth]{images/logo-unir.png}
+
+\vspace{0.5cm}
+
+{\fontsize{14pt}{16.8pt}\selectfont\bfseries Universidad Internacional de La Rioja \par}
+
+\vspace{0.3cm}
+
+{\fontsize{12pt}{14.4pt}\selectfont Escuela Superior de Ingeniería y Tecnología \par}
+
+\vspace{1cm}
+
+{\fontsize{12pt}{14.4pt}\selectfont Máster Universitario en Análisis y Visualización de Datos Masivos / Visual Analytics and Big Data \par}
+
+\vspace{1.5cm}
+
+{\calibrilight\fontsize{24pt}{28.8pt}\selectfont\color{tituloblue}\bfseries 
+Procesamiento de datos en streaming y batch con arquitecturas basadas en flujos de eventos \par}
+
+\vspace{2cm}
+
+\begin{flushleft}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|p{6cm}|p{7cm}|}
+      \hline
+      \textbf{Trabajo Fin de Estudio presentado por:} & Choque Borda, Gary Gianpier \newline Huayaconza Condori, Arthur Davis \\ \hline
+      \textbf{Tipo de trabajo:}                       & Desarrollo Software              \\ \hline
+      \textbf{Director/a:}                            & Margalida Salom Ramis            \\ \hline
+      \textbf{Fecha:}                                 & Enero de 2026                    \\ \hline
+\end{tabular}
+\end{flushleft}
+
+\vfill
+
 \end{titlepage}
 \setcounter{page}{2}
 
 
-\textbf{Resumen}
+% ============================================================================
+% RESUMEN
+% ============================================================================
+\section*{Resumen}
+\addcontentsline{toc}{section}{Resumen}
 
 En la actualidad, se procesan grandes volúmenes de datos a cada segundo, por lo cual se requieren métodos y técnicas que soporten esta magnitud de volumen.
 
 La metodología se basa en la aplicación del modelo llamado DataFlow, el cual unifica el procesamiento batch y streaming en un mismo marco conceptual, equilibrando exactitud, latencia y costo.
 
-Este modelo se implementa mediante un conjunto de tecnologías distribuidas y escalables: Apache Kafka para la ingesta de datos en flujo continuo, Spark Structured Streaming para el procesamiento unificado de datos tanto en tiempo real (\emph{streaming}) como en modo histórico (\emph{batch}), siguiendo los principios del modelo Dataflow,
-Elasticsearch para el almacenamiento de resultados y Grafana para la visualización dinámica.
+Este modelo se implementa mediante un conjunto de tecnologías distribuidas y escalables: Apache Kafka para la ingesta de datos en flujo continuo, Spark Structured Streaming para el procesamiento unificado de datos tanto en tiempo real (\emph{streaming}) como en modo histórico (\emph{batch}), siguiendo los principios del modelo Dataflow, Elasticsearch para el almacenamiento de resultados y Grafana para la visualización dinámica.
 
 Sobre esta base, se construyó una infraestructura modular capaz de emular el funcionamiento de un sistema de vigilancia epidemiológica incorporando además herramientas de visualización y generación de alertas en tiempo real.
 
@@ -112,9 +246,15 @@ Los resultados demuestran que la arquitectura propuesta es viable, escalable y d
 
 En conclusión, el trabajo confirma que el uso de tecnologías de Big Data en tiempo real constituye una herramienta valiosa para el análisis y gestión de crisis epidemiológicas, y abre la puerta a futuras investigaciones en predicción con machine learning y despliegues en entornos cloud.
 
+\textbf{Palabras clave:} Big Data, Streaming, Dataflow, Kafka, Spark, Flink
+
 \newpage
 
-\textbf{Abstract}
+% ============================================================================
+% ABSTRACT
+% ============================================================================
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
 
 Currently, large volumes of data are processed every second, requiring methods and techniques that can support this magnitude of volume.
 
@@ -130,7 +270,13 @@ The results demonstrate that the proposed architecture is viable, scalable, and 
 
 In conclusion, the work confirms that the use of real-time Big Data technologies is a valuable tool for the analysis and management of epidemiological crises, and opens the door to future research in prediction with machine learning and deployments in cloud environments.
 
+\textbf{Keywords:} Big Data, Streaming, Dataflow, Kafka, Spark, Flink
+
 \newpage
+
+% ============================================================================
+% ÍNDICES
+% ============================================================================
 \tableofcontents
 \newpage
 \listoffigures
@@ -659,12 +805,9 @@ fuentes de dataset:
 
 \begin{itemize}
       \tightlist
-      \item
-            \url{https://www.datosabiertos.gob.pe/dataset/fallecidos-hospitalizados-y-vacunados-por-covid-19/resource/ad49459e-7ef9-4a6f-bb4d}
-      \item
-            \url{https://www.datosabiertos.gob.pe/dataset/informaci\%C3\%B3n-de-fallecidos-del-sistema-inform\%C3\%A1tico-nacional-de-defunciones-sinadef-ministerio}
-      \item
-            \url{https://www.datosabiertos.gob.pe/dataset/informaci\%C3\%B3n-de-fallecidos-del-sistema-inform\%C3\%A1tico-nacional-de-defunciones-sinadef-ministerio}
+      \item \url{https://www.datosabiertos.gob.pe/dataset/fallecidos-hospitalizados-y-vacunados-por-covid-19/resource/ad49459e-7ef9-4a6f-bb4d}
+      \item \url{https://www.datosabiertos.gob.pe/dataset/informaci\%C3\%B3n-de-fallecidos-del-sistema-inform\%C3\%A1tico-nacional-de-defunciones-sinadef-ministerio}
+      \item \url{https://www.datosabiertos.gob.pe/dataset/informaci\%C3\%B3n-de-fallecidos-del-sistema-inform\%C3\%A1tico-nacional-de-defunciones-sinadef-ministerio}
 \end{itemize}
 
 Con el propósito de minimizar riesgos, se aplican medidas de protección
@@ -672,12 +815,9 @@ y buenas prácticas tales como:
 
 \begin{itemize}
       \tightlist
-      \item
-            Uso de los datos en un entorno local o aislado.
-      \item
-            Uso restringido únicamente al autor del TFM.
-      \item
-            Eliminación del campo UUID del dataset pm26Sep2023 tras el procesamiento
+      \item Uso de los datos en un entorno local o aislado.
+      \item Uso restringido únicamente al autor del TFM.
+      \item Eliminación del campo UUID del dataset pm26Sep2023 tras el procesamiento
 \end{itemize}
 
 \clearpage
@@ -685,42 +825,65 @@ y buenas prácticas tales como:
 
 \subsection{\texorpdfstring{Visión general de la contribución}{Visión general de la contribución}}\label{visiuxf3n-general-de-la-contribuciuxf3n}
 
-El presente Trabajo Fin de Máster propone el diseño, implementación y evaluación de una arquitectura unificada de procesamiento de datos en streaming y batch basada en flujos de eventos y en el modelo Dataflow, aplicada a la simulación y análisis de datos epidemiológicos relacionados con la pandemia de la COVID-19 en el Perú.
+El presente Trabajo Fin de Máster propone el diseño, implementación y evaluación de una arquitectura unificada de procesamiento de datos en streaming y batch basada en flujos de eventos y en el modelo Dataflow, aplicada a la simulación y análisis de datos epidemiológicos relacionados con la pandemia de la COVID-19 en el Perú. La contribución abarca cuatro ejes principales:
 
-La principal contribución del trabajo radica en demostrar cómo el modelo Dataflow permite abordar de forma integrada el procesamiento de datos en tiempo real y por lotes, evitando la duplicación de lógica y la complejidad operativa característica de arquitecturas tradicionales como Lambda y Kappa. A través de este enfoque, se construye un pipeline analítico capaz de gestionar grandes volúmenes de eventos, aplicar transformaciones temporales avanzadas, generar métricas epidemiológicas relevantes y producir resultados útiles para la toma de decisiones basada en datos.
 
-Desde un punto de vista técnico, la contribución se materializa en la implementación de un pipeline de procesamiento basado en Apache Beam, ejecutable tanto en modo streaming como batch, que integra de manera coherente las siguientes capacidades:
+\begin{enumerate}
+    \item \textbf{Pipeline de procesamiento unificado}: Un pipeline implementado en Apache Beam que procesa tanto datos históricos (batch) como datos en tiempo real (streaming) utilizando el mismo código base, con ingesta a través de Apache Kafka y almacenamiento en colecciones Time-Series de MongoDB.
+    \item \textbf{Capa analítica y predictiva}: Modelos de análisis descriptivo, detección de anomalías y predicción a corto plazo que se integran dentro del pipeline (en línea) y sobre los datos almacenados (fuera de línea), generando métricas epidemiológicas y escenarios futuros.
+    \item \textbf{Visualización interactiva}: Dashboards que presentan métricas en tiempo real, series temporales, distribuciones geográficas y predicciones, permitiendo a los usuarios explorar los datos y tomar decisiones informadas.
+    \item \textbf{Sistema de alertas y monitorización}: Mecanismo automatizado de detección de eventos críticos con notificaciones por múltiples canales, tanto para indicadores epidemiológicos como para el estado operativo de la infraestructura.
+\end{enumerate}
 
-\begin{itemize}
-      \tightlist
-      \item
-            Ingesta de datos orientada a eventos.
-      \item
-            Procesamiento distribuido con semántica temporal explícita.
-      \item
-            Cálculo de indicadores epidemiológicos en tiempo real.
-      \item
-            Análisis histórico mediante reprocesamiento por lotes.
-      \item
-            Integración de modelos analíticos y predictivos.
-      \item
-            Visualización interactiva y monitorización continua.
-\end{itemize}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.5cm,
+    layer/.style={rectangle, draw, rounded corners, minimum width=3cm, minimum height=1.2cm, align=center, fill=#1, font=\small},
+    arrow/.style={->, thick}
+]
+    \node[layer=green!20] (ingest) {Ingesta\\Kafka + CSV};
+    \node[layer=orange!20, right=1.5cm of ingest] (pipeline) {Pipeline Beam\\Transforms + DLQ};
+    \node[layer=blue!15, right=1.5cm of pipeline] (store) {Almacenamiento\\MongoDB Time-Series};
+    \node[layer=yellow!30, right=1.5cm of store] (analytics) {Analítica\\Modelos + Métricas};
+    \node[layer=red!15, below=1.5cm of analytics] (alerts) {Alertas\\Detección + Notificación};
+    \node[layer=purple!15, below=1.5cm of store] (viz) {Visualización\\Dashboards + Reportes};
 
-El trabajo no se limita a la construcción de una herramienta tecnológica, sino que se orienta a evaluar el impacto práctico del análisis de datos en escenarios de emergencia sanitaria, utilizando datos simulados que reproducen dinámicas epidemiológicas realistas. De este modo, la propuesta permite explorar cómo una arquitectura de este tipo podría apoyar procesos de vigilancia epidemiológica, detección temprana de patrones anómalos y análisis de escenarios futuros.
+    \draw[arrow] (ingest) -- (pipeline);
+    \draw[arrow] (pipeline) -- (store);
+    \draw[arrow] (store) -- (analytics);
+    \draw[arrow] (analytics) -- (alerts);
+    \draw[arrow] (store) -- (viz);
+    \draw[arrow] (alerts) -- (viz);
+\end{tikzpicture}
+\caption{Visión general de las capas del sistema}
+\end{figure}
 
-Asimismo, el TFM aporta una visión metodológica clara, al combinar el marco CRISP-DM para estructurar el análisis de datos con un enfoque ágil basado en Kanban ligero para la gestión del desarrollo. Esta combinación asegura tanto el rigor analítico como la flexibilidad necesaria para iterar sobre el diseño y la implementación del sistema.
+El sistema procesa dos tipos de datos epidemiológicos provenientes de fuentes oficiales:
 
-Finalmente, la contribución del trabajo se extiende más allá del caso de estudio epidemiológico, ya que la arquitectura propuesta es generalizable a otros dominios donde el procesamiento de datos en tiempo real y la integración con análisis histórico resultan críticos, como sistemas financieros, IoT, monitorización industrial o análisis de comportamiento de usuarios.
+\begin{table}[H]
+\centering
+\caption{Datasets procesados por el sistema}
+\begin{tabular}{@{}llrl@{}}
+\toprule
+\textbf{Dataset} & \textbf{Schema} & \textbf{Registros} & \textbf{Variables clave} \\
+\midrule
+Casos & \texttt{cases} & 1,048,575 & fecha\_muestra, edad, sexo, resultado, ubicación \\
+Fallecimientos & \texttt{demises} & 220,918 & fecha\_fallecimiento, edad, sexo, clasificación, ubicación \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La arquitectura sigue el patrón Kappa, donde todos los datos fluyen a través de Apache Kafka como bus de eventos central, simplificando el diseño al eliminar la necesidad de mantener dos pipelines separados para batch y streaming.
 
 \subsection{\texorpdfstring{Análisis de requisitos del sistema}{Análisis de requisitos del sistema}}\label{anuxe1lisis-de-requisitos-del-sistema}
 
-El presente apartado describe los requisitos que debe cumplir el sistema propuesto, tanto desde una perspectiva funcional como no funcional y epidemiológica. Estos requisitos se han definido a partir del análisis del dominio del problema, las características de los datos epidemiológicos y los objetivos del procesamiento en tiempo real y por lotes, garantizando que la arquitectura diseñada sea adecuada para la monitorización y análisis de la evolución de la enfermedad.
+El analisis de requisitos que debe cumplir el sistema propuesto, tanto desde una perspectiva funcional como no funcional y epidemiológica. Estos requisitos se han definido a partir del análisis del dominio del problema, las características de los datos epidemiológicos y los objetivos del procesamiento en tiempo real y por lotes, garantizando que la arquitectura diseñada sea adecuada para la monitorización y análisis de la evolución de la enfermedad.
 
 \subsection{\texorpdfstring{Requisitos
             funcionales}{Requisitos funcionales}}\label{requisitos-funcionales}
 
-El sistema debe ser capaz deingerir datos epidemiológicos en tiempo real procedentes de fuentes de mensajería como Apache Kafka, permitiendo la incorporación continua de nuevos eventos conforme se generan. Esta capacidad resulta esencial para reflejar de manera actualizada la evolución de los indicadores epidemiológicos y posibilitar la detección temprana de cambios relevantes.
+El sistema debe ser capaz de ingerir datos epidemiológicos en tiempo real procedentes de fuentes de mensajería como Apache Kafka, permitiendo la incorporación continua de nuevos eventos conforme se generan. Esta capacidad resulta esencial para reflejar de manera actualizada la evolución de los indicadores epidemiológicos y posibilitar la detección temprana de cambios relevantes.
 
 Asimismo, el sistema debe soportar procesamiento tanto en modalidad en tiempo real como en lotes, de forma que sea posible analizar datos históricos mediante procesos por lotes y, simultáneamente, tratar los eventos entrantes en tiempo real. Esta dualidad permite reutilizar la misma lógica de transformación y validación en ambos contextos, alineándose con el modelo Dataflow.
 
@@ -729,6 +892,29 @@ Otro requisito fundamental es la generación de métricas epidemiológicas, tale
 El sistema debe permitir también la predicción de tendencias, facilitando el análisis de la evolución temporal de los datos y la identificación de patrones que puedan anticipar incrementos o descensos significativos en la incidencia de la enfermedad.
 
 Finalmente, se requiere la visualización de la información y la generación de alertas, de manera que los resultados del procesamiento puedan ser consultados de forma clara e intuitiva mediante herramientas de visualización, así como la emisión de alertas cuando se superen determinados umbrales predefinidos.
+Los requisitos funcionales del sistema son:
+
+\begin{table}[H]
+\centering
+\caption{Requisitos Funcionales del Sistema}
+\begin{tabular}{@{}p{3cm}p{10cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Descripción} \\
+\midrule
+RF-01 & El sistema debe ingestar datos desde archivos CSV y enviarlos a Apache Kafka \\
+RF-02 & El sistema debe consumir mensajes de Kafka en tiempo real \\
+RF-03 & El sistema debe normalizar los datos (limpieza de nulos, tipos) \\
+RF-04 & El sistema debe validar los registros contra esquemas JSON definidos \\
+RF-05 & El sistema debe asignar timestamps para procesamiento temporal \\
+RF-06 & El sistema debe aplicar ventanas temporales a los datos \\
+RF-07 & El sistema debe agregar metadata de procesamiento \\
+RF-08 & El sistema debe agrupar registros en batches para escritura eficiente \\
+RF-09 & El sistema debe almacenar los datos en MongoDB \\
+RF-10 & El sistema debe manejar errores mediante Dead Letter Queue \\
+RF-11 & El sistema debe soportar ejecución en modo streaming y batch \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{\texorpdfstring{Requisitos no funcionales}{Requisitos no funcionales}}\label{requisitos-no-funcionales}
 

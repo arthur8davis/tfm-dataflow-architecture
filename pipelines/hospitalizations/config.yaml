@@ -1,0 +1,72 @@
+# Configuración del pipeline para el schema HOSPITALIZATIONS
+schema:
+  name: "hospitalizations"
+  version: "1.0.0"
+  description: "Pipeline para hospitalizaciones de COVID-19 - Datos de pacientes hospitalizados"
+
+# Source configuration
+source:
+  type: "kafka"  # "kafka" o "storage"
+
+  # Configuración de Kafka (usa confluent_kafka nativo)
+  kafka:
+    bootstrap_servers: "localhost:9092"
+    topic: "hospitalizations"
+    consumer_config:
+      group.id: "beam-pipeline-hospitalizations"
+      auto.offset.reset: "earliest"
+      enable.auto.commit: "true"
+
+  # Configuración de Storage (alternativa)
+  storage:
+    file_pattern: "datasets/hospitalizations/*.csv"
+    file_type: "csv"  # "csv" o "parquet"
+
+# Transform configuration
+transforms:
+  normalize:
+    enabled: true
+
+  validate:
+    enabled: true
+    schema_file: "pipelines/hospitalizations/schema.json"
+
+  timestamp:
+    enabled: true
+    field: "fecha_ingreso_hosp"  # Campo del cual extraer timestamp
+
+  windowing:
+    enabled: true
+    window_size_seconds: 60
+    allowed_lateness_seconds: 300
+    trigger: "default"
+
+  metadata:
+    enabled: true
+    pipeline_version: "1.0.0"
+
+# Batching configuration
+batching:
+  strategy: "native"  # "native" o "manual"
+  batch_size: 100
+  batch_timeout_seconds: 30
+
+# Sink configuration
+sink:
+  mongodb:
+    connection_string: "mongodb://admin:admin123@localhost:27017"
+    database: "covid-db"
+    collection:
+      name: "hospitalizations"
+      timeseries:
+        timeField: "timestamp"
+        metaField: "metadata"
+        granularity: "hours"
+
+  dlq:
+    collection: "dead_letter_queue"
+
+# Pipeline options
+pipeline:
+  runner: "DirectRunner"
+  streaming: true

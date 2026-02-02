@@ -1,0 +1,76 @@
+# Configuración del pipeline para el schema DEMISES
+schema:
+  name: "demises"
+  version: "1.0.0"
+  description: "Pipeline para muertes de COVID-19"
+
+# Source configuration
+source:
+  type: "storage"  # "kafka" o "storage"
+
+  # Configuración de Kafka (usa confluent_kafka nativo)
+  kafka:
+    bootstrap_servers: "localhost:9092"
+    topic: "demises"
+    consumer_config:
+      group.id: "beam-pipeline-demises"
+      auto.offset.reset: "earliest"
+      enable.auto.commit: "true"
+      # session.timeout.ms: "45000"  # Opcional: timeout de sesión
+    # Opcional: límites para modo batch desde Kafka
+    # max_messages: 10000  # Máximo de mensajes a leer (null = sin límite)
+    # max_time_seconds: 60  # Tiempo máximo de lectura en segundos (null = streaming infinito)
+
+  # Configuración de Storage (alternativa)
+  storage:
+    file_pattern: "datasets/demises/*.csv"
+    file_type: "csv"  # "csv" o "parquet"
+
+# Transform configuration
+transforms:
+  normalize:
+    enabled: true
+
+  validate:
+    enabled: true
+    schema_file: "pipelines/demises/schema.json"
+
+  timestamp:
+    enabled: true
+    field: "fecha_fallecimiento"
+
+  windowing:
+    enabled: true
+    window_size_seconds: 60 
+    allowed_lateness_seconds: 300
+    trigger: "default"
+
+  metadata:
+    enabled: true
+    pipeline_version: "1.0.0"
+
+# Batching configuration
+batching:
+  strategy: "native"  # "native" o "manual"
+  batch_size: 100      # Batch más pequeño
+  batch_timeout_seconds: 30
+
+# Sink configuration
+sink:
+  mongodb:
+    connection_string: "mongodb://admin:admin123@localhost:27017"
+    database: "covid-db"
+    collection:
+      name: "demises"
+      timeseries:
+        timeField: "timestamp"
+        metaField: "metadata"
+        granularity: "hours"
+
+  dlq:
+    collection: "dead_letter_queue"
+
+# Pipeline options
+pipeline:
+  runner: "DirectRunner"
+  streaming: true

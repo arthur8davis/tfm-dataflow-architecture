@@ -1,0 +1,33 @@
+{
+  "schema_name": "demises",
+  "version": "1.0.0",
+  "description": "Schema para fallecimientos de COVID-19",
+  "required_fields": [
+    "fecha_fallecimiento",
+    "edad_declarada",
+    "sexo",
+    "clasificacion_def"
+  ],
+  "field_types": {
+    "fecha_corte": "string",
+    "uuid": "number",
+    "fecha_fallecimiento": "number",
+    "edad_declarada": "number",
+    "sexo": "string",
+    "clasificacion_def": "string",
+    "ubigeo": "number",
+    "departamento": "string",
+    "provincia": "string",
+    "distrito": "string",
+    "timestamp": "number"
+  },
+  "optional_fields": [
+    "fecha_corte",
+    "uuid",
+    "ubigeo",
+    "departamento",
+    "provincia",
+    "distrito",
+    "timestamp"
+  ]
+}

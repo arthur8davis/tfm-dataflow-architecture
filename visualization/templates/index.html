@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COVID-19 Perú - Dashboard Real-time</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Leaflet.js para mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Heat plugin -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body>
+    <!-- Sidebar Izquierdo - Filtros -->
+    <aside id="dept-sidebar" class="dept-sidebar">
+        <!-- Filtro por Género -->
+        <div class="filter-section">
+            <div class="filter-section-header">
+                <h3>Filtrar por Sexo</h3>
+            </div>
+            <div class="sex-list" id="sex-list">
+                <div class="sex-item active" data-sex="TODOS" onclick="selectSex('TODOS')">
+                    <span class="sex-name">Todos</span>
+                    <span class="sex-count" id="count-sex-todos">-</span>
+                </div>
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Filtro por Departamento -->
+        <div class="filter-section">
+            <div class="filter-section-header">
+                <h3>Filtrar por Departamento</h3>
+            </div>
+            <div class="dept-search">
+                <input type="text" id="dept-search-input" placeholder="Buscar departamento...">
+            </div>
+            <div class="dept-list" id="dept-list">
+                <div class="dept-item active" data-dept="TODOS">
+                    <span class="dept-name">Todos los departamentos</span>
+                    <span class="dept-count" id="count-todos">-</span>
+                </div>
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <div>
+                        <h1>COVID-19 Perú - Dashboard</h1>
+                        <p class="subtitle">Actualizaciones en tiempo real con WebSockets + MongoDB Change Streams</p>
+                        <p class="filter-indicator" id="filter-indicator" style="display: none;">
+                            Filtrando por: <span id="filter-sex-label"></span><strong id="filter-dept-name">-</strong>
+                            <button class="btn-clear-filter" onclick="clearAllFilters()">✕ Limpiar</button>
+                        </p>
+                    </div>
+                    <div class="connection-indicator">
+                        <span id="connection-status" class="status-disconnected" title="Estado de conexión"></span>
+                        <span class="connection-label">Live</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Notificaciones -->
+            <div id="notifications"></div>
+
+            <!-- Cards de resumen -->
+            <section class="summary-cards">
+                <div class="card" id="card-total">
+                    <h3>Total Casos</h3>
+                    <span class="value" id="cases-total">-</span>
+                </div>
+                <div class="card positive" id="card-positive">
+                    <h3>Casos Positivos</h3>
+                    <span class="value" id="cases-positive">-</span>
+                </div>
+                <div class="card danger" id="card-hospitalizations">
+                    <h3>Hospitalizaciones</h3>
+                    <span class="value" id="hospitalizations-total">-</span>
+                </div>
+                <div class="card danger" id="card-demises">
+                    <h3>Fallecidos</h3>
+                    <span class="value" id="demises-total">-</span>
+                </div>
+                <div class="card info" id="card-updated">
+                    <h3>Última Actualización</h3>
+                    <span class="value small" id="last-updated">-</span>
+                </div>
+            </section>
+
+            <!-- Panel de Alertas Activas -->
+            <section class="alerts-section">
+                <div class="alerts-header">
+                    <h2>Alertas Activas</h2>
+                    <div class="alerts-actions">
+                        <button id="clear-all-alerts" class="btn-clear-alerts" onclick="clearAllAlerts()">
+                            Limpiar todo
+                        </button>
+                        <button id="toggle-alerts-config" class="btn-config">
+                            <span class="config-icon">&#9881;</span> Configurar
+                        </button>
+                    </div>
+                </div>
+                <div id="active-alerts" class="alerts-container">
+                    <p class="no-alerts">Sin alertas activas</p>
+                </div>
+            </section>
+
+            <!-- Sidebar de Configuración de Umbrales (derecha) -->
+            <div id="alerts-sidebar" class="sidebar hidden">
+                <div class="sidebar-header">
+                    <h3>Configuración de Umbrales</h3>
+                    <button id="close-sidebar" class="btn-close">&times;</button>
+                </div>
+                <div class="sidebar-content" id="thresholds-config">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+            <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+
+            <!-- Gráficas -->
+            <section class="charts-grid">
+                <div class="chart-container">
+                    <h3>Casos por Departamento</h3>
+                    <div id="chart-department"></div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Distribución por Sexo casos confirmados</h3>
+                    <div id="chart-sex"></div>
+                    <h3>Fallecidos por Sexo</h3>
+                    <div id="chart-demises-sex"></div>
+                </div>
+
+                <div class="chart-container wide">
+                    <h3>Casos Confirmados por Fecha</h3>
+                    <div id="chart-timeline"></div>
+                </div>
+
+                <div class="chart-container wide">
+                    <h3>Fallecidos por Fecha</h3>
+                    <div id="chart-demises-timeline"></div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Casos por Grupo de Edad</h3>
+                    <div id="chart-age"></div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Fallecidos por Departamento</h3>
+                    <div id="chart-demises-dept"></div>
+                </div>
+
+                <div class="chart-container wide">
+                    <h3>Mapa de Calor - Casos COVID-19</h3>
+                    <div id="chart-heatmap"></div>
+                </div>
+
+                <div class="chart-container wide">
+                    <h3>Mapa de Calor - Fallecidos COVID-19</h3>
+                    <div id="chart-demises-heatmap"></div>
+                </div>
+            </section>
+
+            <footer>
+                <p>Pipeline: Apache Beam + Kafka + MongoDB | Real-time: WebSockets + Change Streams | Viz: D3.js</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="../static/js/charts.js"></script>
+</body>
+
+</html>

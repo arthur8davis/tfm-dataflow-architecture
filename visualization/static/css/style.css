@@ -1087,6 +1087,84 @@ footer {
     transform: scale(1.02);
 }
 
+/* Fecha global de alertas */
+.config-global-date {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(74, 144, 217, 0.15);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.config-global-date label {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.config-global-date input[type="date"] {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.config-global-date input[type="date"]:focus {
+    outline: none;
+    border-color: #4a90d9;
+}
+
+.config-global-date input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+.config-date-hint {
+    color: #3498db;
+    font-size: 0.8rem;
+    margin: 5px 0 10px 0;
+    font-style: italic;
+}
+
+.config-divider {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 15px 0;
+}
+
+.btn-clear-dates {
+    background: rgba(231, 76, 60, 0.3);
+    border: 1px solid rgba(231, 76, 60, 0.5);
+    color: #e74c3c;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-clear-dates:hover {
+    background: rgba(231, 76, 60, 0.5);
+    color: #fff;
+}
+
+.alert-date-range {
+    font-size: 0.8rem;
+    color: #3498db;
+    font-style: italic;
+}
+
 /* Loading spinner */
 .loading {
     display: flex;

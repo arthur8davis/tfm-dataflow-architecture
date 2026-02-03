@@ -22,6 +22,7 @@ let isConnected = false;
 
 // ============== Estado de Alertas ==============
 let alertsConfig = {};
+let alertsGlobalDate = null;
 let activeAlerts = [];
 
 // ============== Estado de Filtros ==============
@@ -36,6 +37,8 @@ let allDemisesTimelineData = [];
 let allAgeData = [];
 let allSexData = [];
 let allDemisesSexData = [];
+let allHospitalizationsDeptData = [];
+let allHospitalizationsHeatmapData = [];
 
 // ============== Utilidades ==============
 
@@ -159,6 +162,18 @@ socket.on('update_demises_heatmap', (data) => {
     applyFilters();
 });
 
+socket.on('update_hospitalizations_dept', (data) => {
+    console.log('[WebSocket] Actualizando hospitalizaciones por departamento');
+    allHospitalizationsDeptData = data || [];
+    applyFilters();
+});
+
+socket.on('update_hospitalizations_heatmap', (data) => {
+    console.log('[WebSocket] Actualizando mapa de calor de hospitalizaciones');
+    allHospitalizationsHeatmapData = data || [];
+    applyFilters();
+});
+
 // Eventos para datos filtrados desde el servidor
 socket.on('filtered_summary', (data) => {
     console.log('[WebSocket] Resumen filtrado recibido');
@@ -183,6 +198,16 @@ socket.on('filtered_heatmap', (data) => {
 socket.on('filtered_demises_heatmap', (data) => {
     console.log('[WebSocket] Heatmap fallecidos filtrado recibido');
     renderDemisesHeatmap(filterValidDepts(data));
+});
+
+socket.on('filtered_hospitalizations_dept', (data) => {
+    console.log('[WebSocket] Hospitalizaciones por depto filtradas recibidas');
+    allHospitalizationsDeptData = filterValidDepts(data);
+});
+
+socket.on('filtered_hospitalizations_heatmap', (data) => {
+    console.log('[WebSocket] Heatmap hospitalizaciones filtrado recibido');
+    renderHospitalizationsHeatmap(filterValidDepts(data));
 });
 
 socket.on('filtered_sex', (data) => {
@@ -213,17 +238,25 @@ socket.on('update_demises_timeline', (data) => {
 });
 
 // Eventos de Alertas
-socket.on('alerts_config', (config) => {
+socket.on('alerts_config', (data) => {
     console.log('[WebSocket] Configuración de alertas recibida');
-    alertsConfig = config;
+    alertsConfig = data.config || data;
+    alertsGlobalDate = data.global_date || null;
     renderAlertsConfig();
 });
 
-socket.on('alerts_config_updated', (config) => {
+socket.on('alerts_config_updated', (data) => {
     console.log('[WebSocket] Configuración de alertas actualizada');
-    alertsConfig = config;
+    alertsConfig = data.config || data;
+    alertsGlobalDate = data.global_date || null;
     renderAlertsConfig();
     showNotification('Configuración de alertas actualizada');
+});
+
+socket.on('alerts_global_date_updated', (data) => {
+    console.log('[WebSocket] Fecha global de alertas actualizada');
+    alertsGlobalDate = data.global_date || null;
+    renderAlertsConfig();
 });
 
 socket.on('active_alerts', (alerts) => {
@@ -287,6 +320,7 @@ function renderActiveAlerts() {
                     Valor actual: <span class="alert-value">${formatNumber(alert.current_value)}</span>
                     (umbral: <span class="alert-threshold">${formatNumber(alert.threshold)}</span>)
                     ${alert.context ? `<br><span class="alert-context">${alert.context}</span>` : ''}
+                    ${alert.date ? `<br><span class="alert-date-range">Fecha: ${alert.date}</span>` : ''}
                 </div>
                 <div class="alert-time">${formatDateTime(alert.timestamp)}</div>
             </div>
@@ -299,7 +333,23 @@ function renderAlertsConfig() {
     const container = document.getElementById('thresholds-config');
     if (!container) return;
 
-    container.innerHTML = Object.entries(alertsConfig).map(([key, config]) => `
+    // Selector de fecha global al inicio
+    let html = `
+        <div class="config-global-date">
+            <label>Fecha para alertas:</label>
+            <input type="date" id="alerts-global-date"
+                   value="${alertsGlobalDate ? formatDateForInput(alertsGlobalDate) : ''}"
+                   onchange="saveGlobalDate()">
+            <button class="btn-clear-dates" onclick="clearGlobalDate()" title="Limpiar fecha (usar totales)">
+                ✕
+            </button>
+        </div>
+        <p class="config-date-hint">${alertsGlobalDate ? `Filtrando por: ${formatDateForInput(alertsGlobalDate)}` : 'Sin filtro de fecha (totales acumulados)'}</p>
+        <hr class="config-divider">
+    `;
+
+    // Configuración de cada métrica
+    html += Object.entries(alertsConfig).map(([key, config]) => `
         <div class="config-item" data-metric="${key}">
             <div class="config-item-header">
                 <span class="config-item-name">${config.name}</span>
@@ -319,6 +369,30 @@ function renderAlertsConfig() {
             </div>
         </div>
     `).join('');
+
+    container.innerHTML = html;
+}
+
+function formatDateForInput(dateStr) {
+    if (!dateStr || dateStr.length !== 8) return '';
+    return `${dateStr.slice(0,4)}-${dateStr.slice(4,6)}-${dateStr.slice(6,8)}`;
+}
+
+function formatDateFromInput(inputValue) {
+    if (!inputValue) return null;
+    return inputValue.replace(/-/g, '');
+}
+
+function saveGlobalDate() {
+    const dateInput = document.getElementById('alerts-global-date');
+    const date = formatDateFromInput(dateInput?.value);
+    socket.emit('set_alerts_global_date', { date });
+}
+
+function clearGlobalDate() {
+    const dateInput = document.getElementById('alerts-global-date');
+    if (dateInput) dateInput.value = '';
+    socket.emit('set_alerts_global_date', { date: null });
 }
 
 function toggleAlertEnabled(metric, enabled) {
@@ -620,8 +694,10 @@ function applyLocalFilters() {
     // Filtrar "Sin especificar" de todos los datos
     const validDepts = filterValidDepts(allDepartmentsData);
     const validDemisesDepts = filterValidDepts(allDemisesDeptData);
+    const validHospDepts = filterValidDepts(allHospitalizationsDeptData);
     const validHeatmap = filterValidDepts(allHeatmapData);
     const validDemisesHeatmap = filterValidDepts(allDemisesHeatmapData);
+    const validHospHeatmap = filterValidDepts(allHospitalizationsHeatmapData);
     const validSexData = filterValidSex(allSexData);
     const validDemisesSexData = filterValidSex(allDemisesSexData);
 
@@ -630,6 +706,7 @@ function applyLocalFilters() {
     renderDemisesDeptChart(validDemisesDepts);
     renderHeatmap(validHeatmap);
     renderDemisesHeatmap(validDemisesHeatmap);
+    renderHospitalizationsHeatmap(validHospHeatmap);
     renderSexChart(validSexData);
     renderDemisesSexChart(validDemisesSexData);
     renderTimelineChart(allTimelineData);
@@ -639,11 +716,13 @@ function applyLocalFilters() {
     const totalCases = validDepts.reduce((sum, d) => sum + (d.total || 0), 0);
     const totalPositive = validDepts.reduce((sum, d) => sum + (d.positivos || 0), 0);
     const totalDemises = validDemisesDepts.reduce((sum, d) => sum + (d.total || 0), 0);
+    const totalHosp = validHospDepts.reduce((sum, d) => sum + (d.total || 0), 0);
 
     updateSummaryCardsFromServer({
         cases_total: totalCases,
         cases_positive: totalPositive,
-        demises_total: totalDemises
+        demises_total: totalDemises,
+        hospitalizations_total: totalHosp
     });
 }
 
@@ -1430,6 +1509,125 @@ function renderDemisesHeatmap(data) {
 
     setTimeout(() => {
         demisesMap.invalidateSize();
+    }, 100);
+}
+
+// Variables para el mapa de hospitalizaciones
+let hospitalizationsMap = null;
+let hospitalizationsHeatLayer = null;
+let hospitalizationsMarkersLayer = null;
+
+function renderHospitalizationsHeatmap(data) {
+    const container = document.getElementById('chart-hospitalizations-heatmap');
+
+    if (!container) {
+        console.log('[Hospitalizations Heatmap] Contenedor no encontrado');
+        return;
+    }
+
+    if (!data || !data.length) {
+        container.innerHTML = '<p class="no-data">Sin datos disponibles</p>';
+        return;
+    }
+
+    const validData = data.filter(d =>
+        d.lat !== null && d.lon !== null &&
+        !isNaN(d.lat) && !isNaN(d.lon) &&
+        d.lat >= -90 && d.lat <= 90 &&
+        d.lon >= -180 && d.lon <= 180
+    );
+
+    console.log('[Hospitalizations Heatmap] Datos recibidos:', data.length, 'Válidos:', validData.length);
+
+    if (!validData.length) {
+        container.innerHTML = '<p class="no-data">Sin coordenadas disponibles</p>';
+        return;
+    }
+
+    if (!hospitalizationsMap) {
+        container.innerHTML = '';
+        container.style.height = '500px';
+
+        hospitalizationsMap = L.map('chart-hospitalizations-heatmap').setView([-9.19, -75.0152], 5);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            maxZoom: 19
+        }).addTo(hospitalizationsMap);
+    }
+
+    if (hospitalizationsHeatLayer) {
+        hospitalizationsMap.removeLayer(hospitalizationsHeatLayer);
+    }
+    if (hospitalizationsMarkersLayer) {
+        hospitalizationsMap.removeLayer(hospitalizationsMarkersLayer);
+    }
+
+    const maxTotal = d3.max(validData, d => d.total) || 1;
+
+    const heatData = validData.map(d => {
+        const intensity = Math.pow(d.total / maxTotal, 0.5);
+        return [d.lat, d.lon, intensity];
+    });
+
+    hospitalizationsHeatLayer = L.heatLayer(heatData, {
+        radius: 45,
+        blur: 35,
+        minOpacity: 0.25,
+        maxZoom: 12,
+        max: 1.0,
+        gradient: {
+            0.0: '#1a5276',
+            0.2: '#2874a6',
+            0.4: '#3498db',
+            0.6: '#f39c12',
+            0.8: '#e67e22',
+            1.0: '#d35400'
+        }
+    }).addTo(hospitalizationsMap);
+
+    hospitalizationsMarkersLayer = L.layerGroup();
+
+    validData.forEach(d => {
+        const radius = Math.max(5, Math.min(15, Math.sqrt(d.total / maxTotal) * 15));
+
+        const marker = L.circleMarker([d.lat, d.lon], {
+            radius: radius,
+            fillColor: '#e67e22',
+            color: '#fff',
+            weight: 1,
+            opacity: 0.8,
+            fillOpacity: 0.6
+        });
+
+        const location = d.distrito
+            ? `${d.distrito}, ${d.provincia}`
+            : (d.provincia || d.departamento);
+
+        marker.bindPopup(`
+            <div style="text-align: center; min-width: 150px;">
+                <strong>${d.departamento}</strong><br>
+                ${d.provincia ? `<span style="font-size: 11px;">${d.provincia}</span><br>` : ''}
+                ${d.distrito ? `<span style="font-size: 10px; color: #666;">${d.distrito}</span><br>` : ''}
+                <hr style="margin: 5px 0; border-color: #ddd;">
+                <b>Hospitalizaciones:</b> ${formatNumber(d.total)}<br>
+                <small style="color: #888;">Lat: ${d.lat.toFixed(4)}, Lon: ${d.lon.toFixed(4)}</small>
+            </div>
+        `);
+
+        marker.bindTooltip(location, {
+            permanent: false,
+            direction: 'top',
+            className: 'dept-tooltip'
+        });
+
+        hospitalizationsMarkersLayer.addLayer(marker);
+    });
+
+    hospitalizationsMarkersLayer.addTo(hospitalizationsMap);
+
+    setTimeout(() => {
+        hospitalizationsMap.invalidateSize();
     }, 100);
 }
 

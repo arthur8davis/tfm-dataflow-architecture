@@ -97,12 +97,14 @@ _cache_lock = threading.Lock()
 # -----------------------------------------------------------------------------
 # Sistema de Alertas por Umbral
 # -----------------------------------------------------------------------------
+_alerts_global_date = None  # Fecha global para todas las alertas
 _alerts_config = {
     "cases_total": {"enabled": True, "threshold": 1000000, "name": "Total de Casos"},
     "cases_positive": {"enabled": True, "threshold": 1000, "name": "Casos Positivos"},
     "demises_total": {"enabled": True, "threshold": 1000, "name": "Total Fallecidos"},
     "cases_by_dept": {"enabled": True, "threshold": 2000, "name": "Casos Confirmados por Departamento"},
     "demises_by_dept": {"enabled": True, "threshold": 1000, "name": "Fallecidos por Departamento"},
+    "hospitalizations_total": {"enabled": True, "threshold": 500, "name": "Total Hospitalizaciones"},
 }
 _alerts_lock = threading.Lock()
 _active_alerts = []  # Lista de alertas activas
@@ -125,6 +127,11 @@ def check_threshold_alert(metric_key: str, current_value: int, context: str = No
             # Para alertas por departamento, usar contexto como parte del identificador
             alert_key = f"{metric_key}_{context}" if context else metric_key
 
+            # Formatear fecha global si existe
+            date_display = None
+            if _alerts_global_date:
+                date_display = f"{_alerts_global_date[:4]}-{_alerts_global_date[4:6]}-{_alerts_global_date[6:]}"
+
             alert = {
                 "id": f"{alert_key}_{int(datetime.now().timestamp())}",
                 "metric": metric_key,
@@ -132,6 +139,7 @@ def check_threshold_alert(metric_key: str, current_value: int, context: str = No
                 "threshold": threshold,
                 "current_value": current_value,
                 "context": context,
+                "date": date_display,
                 "timestamp": datetime.now().isoformat(),
                 "level": "warning" if current_value < threshold * 1.5 else "critical"
             }
@@ -151,6 +159,7 @@ def check_threshold_alert(metric_key: str, current_value: int, context: str = No
                     if a["metric"] == metric_key and a.get("context") == context:
                         a["current_value"] = current_value
                         a["timestamp"] = datetime.now().isoformat()
+                        a["date"] = date_display
                         a["level"] = "warning" if current_value < threshold * 1.5 else "critical"
     return None
 
@@ -169,42 +178,117 @@ def clear_alert(metric_key: str):
         _active_alerts = [a for a in _active_alerts if a["metric"] != metric_key]
 
 
+def get_count_by_date(collection_name: str, date_field: str, date: str, extra_filter: dict = None, date_as_int: bool = True):
+    """Obtiene conteo de documentos filtrados por fecha específica."""
+    if db is None:
+        return 0
+
+    match_filter = {}
+    if extra_filter:
+        match_filter.update(extra_filter)
+
+    if date:
+        # Convertir a int si es necesario (casos y fallecidos usan int)
+        match_filter[date_field] = int(date) if date_as_int else date
+
+    return db[collection_name].count_documents(match_filter)
+
+
+def get_dept_count_by_date(collection_name: str, dept_field: str, date_field: str, date: str, count_field: str = None, date_as_int: bool = True):
+    """Obtiene conteo por departamento filtrado por fecha específica."""
+    if db is None:
+        return []
+
+    match_filter = {}
+    if date:
+        match_filter[date_field] = int(date) if date_as_int else date
+
+    pipeline = [
+        {"$match": match_filter} if match_filter else {"$match": {}},
+        {"$group": {"_id": f"${dept_field}", "total": {"$sum": 1}}},
+        {"$sort": {"total": -1}},
+        {"$limit": 25}
+    ]
+
+    # Para casos, también contar positivos
+    if count_field:
+        pipeline[1]["$group"]["positivos"] = {"$sum": {"$cond": [{"$eq": ["$resultado", "POSITIVO"]}, 1, 0]}}
+
+    return [{"departamento": r["_id"], "total": r["total"], "positivos": r.get("positivos", r["total"])}
+            for r in db[collection_name].aggregate(pipeline) if r["_id"]]
+
+
 def check_all_thresholds(summary: dict, dept_data: list = None, demises_dept: list = None):
     """Verifica todos los umbrales y emite alertas correspondientes."""
     alerts_to_emit = []
+    global_date = _alerts_global_date
 
-    # Verificar umbrales globales
-    alert = check_threshold_alert("cases_total", summary.get("cases_total", 0))
+    # Total casos
+    if global_date:
+        count = get_count_by_date("cases", "fecha_muestra", global_date,
+                                   {"sexo": {"$nin": [None, "", "Sin especificar"]}})
+        alert = check_threshold_alert("cases_total", count)
+    else:
+        alert = check_threshold_alert("cases_total", summary.get("cases_total", 0))
     if alert:
         alerts_to_emit.append(alert)
 
-    alert = check_threshold_alert("cases_positive", summary.get("cases_positive", 0))
+    # Casos positivos
+    if global_date:
+        count = get_count_by_date("cases", "fecha_muestra", global_date,
+                                   {"sexo": {"$nin": [None, "", "Sin especificar"]}, "resultado": "POSITIVO"})
+        alert = check_threshold_alert("cases_positive", count)
+    else:
+        alert = check_threshold_alert("cases_positive", summary.get("cases_positive", 0))
     if alert:
         alerts_to_emit.append(alert)
 
-    alert = check_threshold_alert("demises_total", summary.get("demises_total", 0))
+    # Fallecidos
+    if global_date:
+        count = get_count_by_date("demises", "fecha_fallecimiento", global_date,
+                                   {"sexo": {"$nin": [None, "", "Sin especificar"]}})
+        alert = check_threshold_alert("demises_total", count)
+    else:
+        alert = check_threshold_alert("demises_total", summary.get("demises_total", 0))
     if alert:
         alerts_to_emit.append(alert)
 
-    # Verificar umbrales por departamento (casos)
-    if dept_data:
-        for dept in dept_data:
-            alert = check_threshold_alert(
-                "cases_by_dept",
-                dept.get("positivos", 0),
-                context=dept.get("departamento")
-            )
+    # Hospitalizaciones (formato fecha: dd/mm/yyyy)
+    if global_date:
+        # Convertir YYYYMMDD a dd/mm/yyyy
+        hosp_date_fmt = f"{global_date[6:8]}/{global_date[4:6]}/{global_date[0:4]}"
+        count = get_count_by_date("hospitalizations", "fecha_ingreso_hosp", hosp_date_fmt,
+                                   {"sexo": {"$nin": [None, ""]}}, date_as_int=False)
+        alert = check_threshold_alert("hospitalizations_total", count)
+    else:
+        alert = check_threshold_alert("hospitalizations_total", summary.get("hospitalizations_total", 0))
+    if alert:
+        alerts_to_emit.append(alert)
+
+    # Casos por departamento
+    if global_date:
+        filtered_dept = get_dept_count_by_date("cases", "departamento_paciente", "fecha_muestra",
+                                                global_date, count_field="positivos")
+        for dept in filtered_dept[:5]:
+            alert = check_threshold_alert("cases_by_dept", dept.get("positivos", 0), context=dept.get("departamento"))
+            if alert:
+                alerts_to_emit.append(alert)
+    elif dept_data:
+        for dept in dept_data[:5]:
+            alert = check_threshold_alert("cases_by_dept", dept.get("positivos", 0), context=dept.get("departamento"))
             if alert:
                 alerts_to_emit.append(alert)
 
-    # Verificar umbrales por departamento (fallecidos)
-    if demises_dept:
-        for dept in demises_dept:
-            alert = check_threshold_alert(
-                "demises_by_dept",
-                dept.get("total", 0),
-                context=dept.get("departamento")
-            )
+    # Fallecidos por departamento
+    if global_date:
+        filtered_dept = get_dept_count_by_date("demises", "departamento", "fecha_fallecimiento", global_date)
+        for dept in filtered_dept[:5]:
+            alert = check_threshold_alert("demises_by_dept", dept.get("total", 0), context=dept.get("departamento"))
+            if alert:
+                alerts_to_emit.append(alert)
+    elif demises_dept:
+        for dept in demises_dept[:5]:
+            alert = check_threshold_alert("demises_by_dept", dept.get("total", 0), context=dept.get("departamento"))
             if alert:
                 alerts_to_emit.append(alert)
 
@@ -224,13 +308,84 @@ def get_summary_data():
         return {"cases_total": 0, "demises_total": 0, "cases_positive": 0, "hospitalizations_total": 0, "last_updated": datetime.now().isoformat()}
     # Excluir registros sin sexo definido para que los totales coincidan con los filtros
     sex_filter = {"sexo": {"$nin": [None, "", "Sin especificar"]}}
+    # Hospitalizaciones usa formato M/F para sexo
+    hosp_filter = {"sexo": {"$nin": [None, ""]}}
     return {
         "cases_total": db.cases.count_documents(sex_filter),
         "demises_total": db.demises.count_documents(sex_filter),
-        "hospitalizations_total": db.hospitalizations.count_documents(sex_filter),
+        "hospitalizations_total": db.hospitalizations.count_documents(hosp_filter),
         "cases_positive": db.cases.count_documents({"resultado": "POSITIVO", **sex_filter}),
         "last_updated": datetime.now().isoformat(),
     }
+
+
+def get_hospitalizations_by_department():
+    """Obtiene hospitalizaciones agrupadas por departamento"""
+    if db is None:
+        return []
+    pipeline = [
+        {"$match": {"sexo": {"$nin": [None, ""]}}},
+        {"$group": {
+            "_id": "$dep_domicilio",
+            "total": {"$sum": 1}
+        }},
+        {"$sort": {"total": -1}},
+        {"$limit": 25},
+    ]
+    results = []
+    for r in db.hospitalizations.aggregate(pipeline):
+        dept = r["_id"] or "Sin especificar"
+        coords = DEPARTAMENTO_COORDS.get(dept.upper(), {"lat": None, "lon": None})
+        results.append({
+            "departamento": dept,
+            "total": r["total"],
+            "lat": coords["lat"],
+            "lon": coords["lon"]
+        })
+    return results
+
+
+def get_hospitalizations_heatmap_data():
+    """Obtiene datos de hospitalizaciones para el mapa de calor"""
+    if db is None:
+        return []
+    pipeline = [
+        {"$match": {"sexo": {"$nin": [None, ""]}}},
+        {"$group": {
+            "_id": {
+                "departamento": "$dep_domicilio",
+                "provincia": "$prov_domicilio",
+                "distrito": "$dist_domicilio"
+            },
+            "total": {"$sum": 1},
+            "lat": {"$max": "$latitud"},
+            "lon": {"$max": "$longitud"}
+        }},
+        {"$sort": {"total": -1}},
+        {"$limit": 200}
+    ]
+    results = []
+    for r in db.hospitalizations.aggregate(pipeline):
+        departamento = r["_id"].get("departamento") or "Sin especificar"
+        provincia = r["_id"].get("provincia") or ""
+        distrito = r["_id"].get("distrito") or ""
+        lat = r.get("lat")
+        lon = r.get("lon")
+        if lat is None or lon is None:
+            coords = get_coords_from_ubigeo(departamento, provincia, distrito)
+            if coords:
+                lat = coords["lat"]
+                lon = coords["lon"]
+        if lat is not None and lon is not None:
+            results.append({
+                "departamento": departamento,
+                "provincia": provincia,
+                "distrito": distrito,
+                "total": r["total"],
+                "lat": lat,
+                "lon": lon
+            })
+    return results
 
 
 # Coordenadas de departamentos de Perú (centroide)
@@ -495,7 +650,7 @@ def get_demises_heatmap_data():
 def get_filtered_summary(departamento: str = None, sexo: str = None):
     """Obtiene resumen filtrado por departamento y/o sexo"""
     if db is None:
-        return {"cases_total": 0, "demises_total": 0, "cases_positive": 0, "last_updated": datetime.now().isoformat()}
+        return {"cases_total": 0, "demises_total": 0, "cases_positive": 0, "hospitalizations_total": 0, "last_updated": datetime.now().isoformat()}
 
     # Filtro base: excluir sin sexo definido
     base_filter = {"sexo": {"$nin": [None, "", "Sin especificar"]}}
@@ -514,9 +669,19 @@ def get_filtered_summary(departamento: str = None, sexo: str = None):
     if departamento and departamento != "TODOS":
         demises_filter["departamento"] = departamento
 
+    # Filtro para hospitalizaciones (usa dep_domicilio y sexo M/F)
+    hosp_base = {"sexo": {"$nin": [None, ""]}}
+    if sexo and sexo != "TODOS":
+        # Convertir MASCULINO/FEMENINO a M/F
+        hosp_base["sexo"] = "M" if sexo == "MASCULINO" else "F"
+    hosp_filter = dict(hosp_base)
+    if departamento and departamento != "TODOS":
+        hosp_filter["dep_domicilio"] = departamento
+
     return {
         "cases_total": db.cases.count_documents(cases_filter),
         "demises_total": db.demises.count_documents(demises_filter),
+        "hospitalizations_total": db.hospitalizations.count_documents(hosp_filter),
         "cases_positive": db.cases.count_documents({**cases_filter, "resultado": "POSITIVO"}),
         "last_updated": datetime.now().isoformat(),
     }
@@ -526,6 +691,8 @@ def get_filtered_cases_by_department(sexo: str = None):
     """Obtiene casos por departamento, opcionalmente filtrado por sexo"""
     if db is None:
         return []
+    
+    
 
     match_filter = {"sexo": {"$nin": [None, "", "Sin especificar"]}}
     if sexo and sexo != "TODOS":
@@ -675,6 +842,93 @@ def get_filtered_demises_heatmap(sexo: str = None, departamento: str = None):
 
     results = []
     for r in db.demises.aggregate(pipeline):
+        departamento_r = r["_id"].get("departamento") or "Sin especificar"
+        provincia = r["_id"].get("provincia") or ""
+        distrito = r["_id"].get("distrito") or ""
+
+        lat = r.get("lat")
+        lon = r.get("lon")
+
+        if lat is None or lon is None:
+            coords = get_coords_from_ubigeo(departamento_r, provincia, distrito)
+            if coords:
+                lat = coords["lat"]
+                lon = coords["lon"]
+
+        if lat is not None and lon is not None:
+            results.append({
+                "departamento": departamento_r,
+                "provincia": provincia,
+                "distrito": distrito,
+                "total": r["total"],
+                "lat": lat,
+                "lon": lon
+            })
+
+    return results
+
+
+def get_filtered_hospitalizations_by_department(sexo: str = None):
+    """Obtiene hospitalizaciones por departamento, filtrado por sexo"""
+    if db is None:
+        return []
+
+    match_filter = {"sexo": {"$nin": [None, ""]}}
+    if sexo and sexo != "TODOS":
+        # Convertir MASCULINO/FEMENINO a M/F
+        match_filter["sexo"] = "M" if sexo == "MASCULINO" else "F"
+
+    pipeline = [
+        {"$match": match_filter},
+        {"$group": {
+            "_id": "$dep_domicilio",
+            "total": {"$sum": 1}
+        }},
+        {"$sort": {"total": -1}},
+        {"$limit": 25},
+    ]
+    results = []
+    for r in db.hospitalizations.aggregate(pipeline):
+        dept = r["_id"] or "Sin especificar"
+        coords = DEPARTAMENTO_COORDS.get(dept.upper(), {"lat": None, "lon": None})
+        results.append({
+            "departamento": dept,
+            "total": r["total"],
+            "lat": coords["lat"],
+            "lon": coords["lon"]
+        })
+    return results
+
+
+def get_filtered_hospitalizations_heatmap(sexo: str = None, departamento: str = None):
+    """Obtiene datos de heatmap de hospitalizaciones filtrados"""
+    if db is None:
+        return []
+
+    match_filter = {"sexo": {"$nin": [None, ""]}}
+    if sexo and sexo != "TODOS":
+        match_filter["sexo"] = "M" if sexo == "MASCULINO" else "F"
+    if departamento and departamento != "TODOS":
+        match_filter["dep_domicilio"] = departamento
+
+    pipeline = [
+        {"$match": match_filter},
+        {"$group": {
+            "_id": {
+                "departamento": "$dep_domicilio",
+                "provincia": "$prov_domicilio",
+                "distrito": "$dist_domicilio"
+            },
+            "total": {"$sum": 1},
+            "lat": {"$max": "$latitud"},
+            "lon": {"$max": "$longitud"}
+        }},
+        {"$sort": {"total": -1}},
+        {"$limit": 200}
+    ]
+
+    results = []
+    for r in db.hospitalizations.aggregate(pipeline):
         departamento_r = r["_id"].get("departamento") or "Sin especificar"
         provincia = r["_id"].get("provincia") or ""
         distrito = r["_id"].get("distrito") or ""
@@ -960,6 +1214,7 @@ def handle_connect(auth=None):
         age = _cache_cases_age or get_cases_by_age()
         dem_dept = _cache_demises_dept or get_demises_by_department()
         dem_sex = _cache_demises_sex or get_demises_by_sex()
+    hosp_dept = get_hospitalizations_by_department()
     emit('update_summary', summary)
     emit('update_department', dept)
     emit('update_sex', sex)
@@ -970,13 +1225,15 @@ def handle_connect(auth=None):
     emit('update_demises_timeline', get_demises_by_date())
     emit('update_heatmap', get_heatmap_data())
     emit('update_demises_heatmap', get_demises_heatmap_data())
+    emit('update_hospitalizations_dept', hosp_dept)
+    emit('update_hospitalizations_heatmap', get_hospitalizations_heatmap_data())
 
     # Verificar umbrales con datos actuales
     check_all_thresholds(summary, dept_data=dept, demises_dept=dem_dept)
 
     # Enviar configuración y alertas activas
     with _alerts_lock:
-        emit('alerts_config', _alerts_config)
+        emit('alerts_config', {"config": _alerts_config, "global_date": _alerts_global_date})
         emit('active_alerts', _active_alerts)
 
 
@@ -990,6 +1247,7 @@ def handle_refresh():
     summary = get_summary_data()
     dept = get_cases_by_department()
     dem_dept = get_demises_by_department()
+    hosp_dept = get_hospitalizations_by_department()
 
     emit('update_summary', summary)
     emit('update_department', dept)
@@ -1000,6 +1258,8 @@ def handle_refresh():
     emit('update_demises_sex', get_demises_by_sex())
     emit('update_heatmap', get_heatmap_data())
     emit('update_demises_heatmap', get_demises_heatmap_data())
+    emit('update_hospitalizations_dept', hosp_dept)
+    emit('update_hospitalizations_heatmap', get_hospitalizations_heatmap_data())
 
     # Verificar umbrales y enviar alertas actualizadas
     check_all_thresholds(summary, dept_data=dept, demises_dept=dem_dept)
@@ -1030,7 +1290,7 @@ def handle_set_refresh_interval(data):
 def handle_get_alerts_config():
     """Devuelve la configuración actual de umbrales."""
     with _alerts_lock:
-        emit('alerts_config', _alerts_config)
+        emit('alerts_config', {"config": _alerts_config, "global_date": _alerts_global_date})
 
 
 @socketio.on('update_alert_threshold')
@@ -1051,11 +1311,41 @@ def handle_update_alert_threshold(data):
             if "enabled" in data:
                 _alerts_config[metric]["enabled"] = bool(data["enabled"])
 
-        emit('alerts_config', _alerts_config)
-        socketio.emit('alerts_config_updated', _alerts_config)
+        emit('alerts_config', {"config": _alerts_config, "global_date": _alerts_global_date})
+        socketio.emit('alerts_config_updated', {"config": _alerts_config, "global_date": _alerts_global_date})
         print(f"[Alertas] Umbral actualizado: {metric} = {_alerts_config[metric]}")
     except Exception as e:
         emit('error', {'message': f'Error actualizando umbral: {e}'})
+
+
+@socketio.on('set_alerts_global_date')
+def handle_set_alerts_global_date(data):
+    """
+    Establece la fecha global para todas las alertas.
+    data: {"date": "20211029"} o {"date": null}
+    """
+    global _alerts_global_date
+    try:
+        with _alerts_lock:
+            _alerts_global_date = data.get("date") if data.get("date") else None
+
+        # Limpiar alertas activas al cambiar fecha
+        global _active_alerts
+        _active_alerts = []
+
+        emit('alerts_config', {"config": _alerts_config, "global_date": _alerts_global_date})
+        socketio.emit('alerts_global_date_updated', {"global_date": _alerts_global_date})
+        print(f"[Alertas] Fecha global actualizada: {_alerts_global_date}")
+
+        # Re-evaluar alertas con nueva fecha
+        summary = get_summary_data()
+        dept = get_cases_by_department()
+        dem_dept = get_demises_by_department()
+        check_all_thresholds(summary, dept_data=dept, demises_dept=dem_dept)
+        with _alerts_lock:
+            emit('active_alerts', list(_active_alerts))
+    except Exception as e:
+        emit('error', {'message': f'Error actualizando fecha global: {e}'})
 
 
 @socketio.on('get_active_alerts')
@@ -1109,8 +1399,10 @@ def handle_filtered_data(data):
     summary = get_filtered_summary(departamento, sexo)
     dept_data = get_filtered_cases_by_department(sexo)
     demises_dept = get_filtered_demises_by_department(sexo)
+    hosp_dept = get_filtered_hospitalizations_by_department(sexo)
     heatmap = get_filtered_heatmap(sexo, departamento)
     demises_heatmap = get_filtered_demises_heatmap(sexo, departamento)
+    hosp_heatmap = get_filtered_hospitalizations_heatmap(sexo, departamento)
 
     # Distribución por sexo filtrada por departamento (solo positivos)
     sex_data = get_cases_by_sex(departamento)
@@ -1124,8 +1416,10 @@ def handle_filtered_data(data):
     emit('filtered_summary', summary)
     emit('filtered_department', dept_data)
     emit('filtered_demises_dept', demises_dept)
+    emit('filtered_hospitalizations_dept', hosp_dept)
     emit('filtered_heatmap', heatmap)
     emit('filtered_demises_heatmap', demises_heatmap)
+    emit('filtered_hospitalizations_heatmap', hosp_heatmap)
     emit('filtered_sex', sex_data)
     emit('filtered_demises_sex', demises_sex_data)
     emit('filtered_timeline', timeline_data)
@@ -1173,6 +1467,11 @@ def api_heatmap():
 @app.route("/api/heatmap/demises")
 def api_heatmap_demises():
     return jsonify(get_demises_heatmap_data())
+
+
+@app.route("/api/heatmap/hospitalizations")
+def api_heatmap_hospitalizations():
+    return jsonify(get_hospitalizations_heatmap_data())
 
 @app.route("/api/refresh-interval", methods=["GET"])
 def api_refresh_interval():

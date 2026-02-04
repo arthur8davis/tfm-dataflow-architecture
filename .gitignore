@@ -14,6 +14,8 @@ doc_tfm/*.log
 doc_tfm/*.pdf
 doc_tfm/*.run.xml
 doc_tfm/*.gz
+doc_tfm/*.lot
+doc_tfm/*.synctex
 
 # Python
 __pycache__/

@@ -134,6 +134,8 @@ Procesamiento de datos en streaming y batch con arquitecturas basadas en flujos 
 \usepackage{etoolbox}
 \usepackage{graphicx}
 \usepackage{varioref}
+\usepackage{booktabs}
+\usepackage{tabularx}
 
 % --- Configuración de imágenes ---
 \makeatletter
@@ -303,7 +305,7 @@ Los resultados obtenidos confirman que la arquitectura propuesta funciona, escal
 
 En definitiva, este trabajo demuestra que las tecnologías de Big Data aplicadas en tiempo real son un recurso de gran valor para analizar y gestionar crisis epidemiológicas, y al mismo tiempo abre camino a futuras líneas de investigación orientadas a la predicción con aprendizaje automático y al despliegue en infraestructuras en la nube.
 
-\textbf{Palabras clave:} Big Data, Streaming, Dataflow, Kafka, Spark, Flink
+\textbf{Palabras clave:} Big Data, Streaming, Dataflow, Kafka, Apache, Beam
 
 \newpage
 
@@ -313,21 +315,21 @@ En definitiva, este trabajo demuestra que las tecnologías de Big Data aplicadas
 \section*{Abstract}
 \addcontentsline{toc}{section}{Abstract}
 
-Every second, vast amounts of data are created and processed around the world. Having the right methods and tools to handle this scale is no longer a luxury --- it is a necessity.
+Today, the amount of data generated and processed every second is immense. Faced with this reality, having the right tools to handle this volume is no longer optional.
 
-The 2020 pandemic, a crisis of global proportions, underscored just how urgently we need platforms that can process large data volumes in real time. With that context in mind, the central goal of this work is to build a platform that covers daily data ingestion, processing, data cleansing, the application of straightforward predictive models in real time, and the presentation of metrics and forecasts through interactive dashboards.
+This work is based on the Dataflow model, an approach that allows for the integrated processing of data arriving in real time and data that is already stored, always seeking the best balance between accuracy, response speed, and utilization of available resources.
 
-The methodological foundation rests on the Dataflow model, a framework that brings batch and streaming processing together under a single conceptual structure, seeking the right balance among accuracy, latency, and cost.
+To implement this model, a set of distributed technologies capable of growing as demand increases was chosen: Apache Kafka is responsible for receiving data continuously, Spark Structured Streaming processes it uniformly both instantly (streaming) and on historical data (batch) under the principles of the Dataflow model, Elasticsearch stores the results, and Grafana presents them visually and interactively.
 
-This model is put into practice through a set of distributed, scalable technologies: Apache Kafka handles continuous data ingestion, Spark Structured Streaming processes data uniformly in both real time (streaming) and historical mode (batch) following the Dataflow model principles, Elasticsearch stores the outputs, and Grafana provides dynamic visualization.
+With this technological foundation, a modular infrastructure was built that replicates the behavior of an epidemiological surveillance system, including components for visualization and real-time alert generation.
 
-Building on this technological foundation, a modular infrastructure was designed to replicate how an epidemiological surveillance system operates, including real-time visualization and alert generation capabilities.
+The 2020 pandemic was chosen as a case study, a global crisis that highlighted the urgent need for platforms capable of managing large amounts of data immediately. In this context, the main purpose of the work is to build a platform that covers everything from the daily reception of data to its processing, cleaning, application of simple predictive models in real time, and presentation of metrics and predictions through interactive control panels.
 
-The results confirm that the proposed architecture works, scales, and delivers low latency, handling high volumes of streaming events with suitable response times. Although simulated data was used, the system is ready to connect with real data sources and can be adapted to other domains, such as endemic disease monitoring or health emergency coordination.
+The results obtained confirm that the proposed architecture works, scales, and operates with low latency, processing high volumes of events in continuous flow with acceptable response times. Although simulated data was used, the system is ready to connect to real information sources and adapt to other scenarios, such as the surveillance of endemic diseases or the coordination of responses to health emergencies.
 
-In short, this work demonstrates that real-time Big Data technologies are a highly valuable resource for analyzing and managing epidemiological crises, while paving the way for future research on machine learning-based prediction and cloud-based deployments.
+In short, this work demonstrates that real-time Big Data technologies are a valuable resource for analyzing and managing epidemiological crises, while also paving the way for future lines of research focused on prediction using machine learning and deployment in cloud infrastructures.
 
-\textbf{Keywords:} Big Data, Streaming, Dataflow, Kafka, Spark, Flink
+\textbf{Keywords:} Big Data, Streaming, Dataflow, Kafka, Apache, Beam
 
 \newpage
 
@@ -3413,18 +3415,30 @@ Definí seis tipos de alertas que me parecieron los más relevantes para vigilan
     \centering
     \caption{Tipos de alertas implementadas en el sistema de vigilancia epidemiológica}
     \label{tab:tipos-alertas}
-    \begin{tabular}{@{}llrp{5.5cm}@{}}
+    \small
+    \begin{tabularx}{\textwidth}{@{}lrX@{}}
         \toprule
-        \textbf{Identificador}           & \textbf{Nombre}             & \textbf{Umbral} & \textbf{Descripción}                                                                                                                                         \\
+        \textbf{Identificador} & \textbf{Umbral} & \textbf{Descripción} \\
         \midrule
-        \texttt{cases\_total}            & Total de Casos              & 1,000,000       & Se activa cuando el número acumulado de casos registrados en el sistema supera el umbral definido. Permite monitorear el crecimiento general de la pandemia. \\
-        \texttt{cases\_positive}         & Casos Positivos             & 1,000           & Detecta incrementos significativos en el número de casos con resultado positivo confirmado por prueba de laboratorio.                                        \\
-        \texttt{demises\_total}          & Total Fallecidos            & 1,000           & Alerta cuando el número acumulado de fallecimientos supera el umbral, indicando una situación de alta mortalidad.                                            \\
-        \texttt{hospitalizations\_total} & Total Hospitalizaciones     & 500             & Monitorea la capacidad hospitalaria alertando cuando el número de pacientes hospitalizados excede el límite configurado.                                     \\
-        \texttt{cases\_by\_dept}         & Casos por Departamento      & 2,000           & Genera alertas específicas para cada departamento cuando los casos positivos en esa región superan el umbral.                                                \\
-        \texttt{demises\_by\_dept}       & Fallecidos por Departamento & 1,000           & Similar al anterior, pero enfocado en la mortalidad por región geográfica.                                                                                   \\
+        \texttt{cases\_total} & 1,000,000 & 
+        Se activa cuando el número acumulado de casos registrados en el sistema supera el umbral definido. Permite monitorear el crecimiento general de la pandemia. \\
+        \addlinespace
+        \texttt{cases\_positive} & 1,000 & 
+        Detecta incrementos significativos en el número de casos con resultado positivo confirmado por prueba de laboratorio. \\
+        \addlinespace
+        \texttt{demises\_total} & 1,000 & 
+        Alerta cuando el número acumulado de fallecimientos supera el umbral, indicando una situación de alta mortalidad. \\
+        \addlinespace
+        \texttt{hospitalizations\_total} & 500 & 
+        Monitorea la capacidad hospitalaria alertando cuando el número de pacientes hospitalizados excede el límite configurado. \\
+        \addlinespace
+        \texttt{cases\_by\_dept} & 2,000 & 
+        Genera alertas específicas para cada departamento cuando los casos positivos en esa región superan el umbral. \\
+        \addlinespace
+        \texttt{demises\_by\_dept} & 1,000 & 
+        Similar al anterior, pero enfocado en la mortalidad por región geográfica. \\
         \bottomrule
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 La configuración de alertas se almacena en una estructura de diccionario que permite su modificación en tiempo de ejecución:
@@ -3761,7 +3775,7 @@ Organicé el código en módulos para que sea más fácil de mantener y entender
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{images/arquitectura-modulos.png}
+    \includegraphics[width=0.7\textwidth]{images/arquitectura-modulos.png}
     \caption{Arquitectura de módulos del sistema de visualización}
     \label{fig:arquitectura-modulos}
 \end{figure}

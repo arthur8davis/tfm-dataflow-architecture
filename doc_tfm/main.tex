@@ -178,6 +178,8 @@ Procesamiento de datos en streaming y batch con arquitecturas basadas en flujos 
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{babel, shapes.geometric, arrows, positioning, fit, backgrounds, calc}
 \usepackage{listings}
+\usepackage{multirow}
+
 
 % Configuración de código
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -205,6 +207,25 @@ Procesamiento de datos en streaming y batch con arquitecturas basadas en flujos 
     frame=single
 }
 \lstset{style=mystyle}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={break, case, catch, continue, debugger, default, delete, do, else, finally,
+    for, function, if, in, instanceof, new, return, switch, this, throw, try, typeof, var, void, while, with, const, let},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{purple}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,
+  stringstyle=\color{orange}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
 
 
 % ============================================================================
@@ -473,46 +494,20 @@ Con el objetivo de analizar las diferencias prácticas entre las principales arq
 La comparación se realiza atendiendo a criterios relevantes para sistemas de análisis en tiempo real, tales como la complejidad operativa, la duplicación de lógica de procesamiento, la capacidad de reprocesamiento, el manejo de eventos tardíos, la consistencia de resultados y los costos de mantenimiento.
 
 \begin{table}[H]
-      \centering
-      \caption{Comparativa técnica entre arquitecturas Lambda, Kappa y Dataflow}
-      \label{tab:lambda-kappa-dataflow}
-      \begin{tabular}{@{}p{0.4\textwidth} p{0.2\textwidth} p{0.2\textwidth} p{0.2\textwidth}@{}}
-            \toprule
-            \textbf{Criterio}                           & \textbf{Lambda} & \textbf{Kappa} & \textbf{Dataflow} \\
-            \midrule
-            Complejidad operativa                       &
-            Alta, requiere mantener múltiples capas     &
-            Media, arquitectura más simple              &
-            Baja, pipeline unificado                                                                           \\
-
-            Duplicación de lógica                       &
-            Sí, batch y speed layer separados           &
-            No, una sola lógica                         &
-            No, lógica única reutilizable                                                                      \\
-
-            Reprocesamiento de datos                    &
-            Completo, mediante batch layer              &
-            Limitado, relectura del log                 &
-            Completo, batch y streaming integrados                                                             \\
-
-            Manejo de eventos tardíos                   &
-            Limitado y dependiente de la implementación &
-            Limitado                                    &
-            Avanzado, mediante ventanas y watermarks                                                           \\
-
-            Consistencia de resultados                  &
-            Eventual, depende de la sincronización      &
-            Alta en streaming                           &
-            Alta y coherente entre batch y streaming                                                           \\
-
-            Costos de mantenimiento                     &
-            Altos, por duplicación de pipelines         &
-            Medios                                      &
-            Reducidos, menor complejidad                                                                       \\
-            \bottomrule
-      \end{tabular}
-      \vspace{1em}
-      {\footnotesize Fuente: Cuadro propio}
+\centering
+\caption{Comparativa técnica entre arquitecturas Lambda, Kappa y Dataflow}
+\begin{tabular}{@{}p{0.4\textwidth}p{0.2\textwidth}p{0.2\textwidth}p{0.2\textwidth}@{}}
+\toprule
+\textbf{Criterio} & \textbf{Lambda} & \textbf{Kappa} & \textbf{Dataflow} \\
+\midrule
+Complejidad operativa & Alta, requiere mantener múltiples capas & Media, arquitectura más simple & Baja, pipeline unificado \\
+Duplicación de lógica & Sí, batch y speed layer separados & No, una sola lógica & No, lógica única reutilizable \\
+Reprocesamiento de datos & Completo, mediante batch layer & Limitado, relectura del log & Completo, batch y streaming integrados \\
+Manejo de eventos tardíos & Limitado y dependiente de la implementación & Limitado & Avanzado, mediante ventanas y watermarks \\
+Consistencia de resultados & Eventual, depende de la sincronización & Alta en streaming & Alta y coherente entre batch y streaming \\
+Costos de mantenimiento & Altos, por duplicación de pipelines & Medios & Reducidos, menor complejidad \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 Del análisis comparativo se observa que la arquitectura Lambda, si bien ofrece una solución robusta para combinar procesamiento en tiempo real y por lotes, introduce una elevada complejidad operativa al requerir el mantenimiento de dos pipelines independientes. Esta duplicación de lógica incrementa los costos de desarrollo, operación y mantenimiento, y dificulta la evolución del sistema.
@@ -2770,27 +2765,26 @@ La Tabla \ref{tab:catalogo-reportes} presenta el catálogo completo de reportes 
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{|l|l|l|l|}
-\hline
+\caption{Catálogo de reportes implementados en el sistema de visualización}
+\label{tab:catalogo-reportes}
+\begin{tabular}{@{}llll@{}}
+\toprule
 \textbf{Reporte} & \textbf{Categoría} & \textbf{Visualización} & \textbf{Filtros} \\
-\hline
+\midrule
 Casos por Departamento & Casos & Barras horizontales & Sexo \\
 Distribución por Sexo (Casos) & Casos & Donut & Departamento \\
 Casos por Fecha & Casos & Línea temporal & Depto., Sexo \\
 Casos por Grupo de Edad & Casos & Histograma & Departamento \\
 Mapa de Calor Casos & Casos & Heatmap geográfico & Depto., Sexo \\
-\hline
+\midrule
 Fallecidos por Departamento & Fallecidos & Barras horizontales & Sexo \\
 Distribución por Sexo (Fallecidos) & Fallecidos & Donut & Departamento \\
 Fallecidos por Fecha & Fallecidos & Línea temporal & Depto., Sexo \\
 Mapa de Calor Fallecidos & Fallecidos & Heatmap geográfico & Depto., Sexo \\
-\hline
+\midrule
 Mapa de Calor Hospitalizaciones & Hospitalizaciones & Heatmap geográfico & Depto., Sexo \\
-\hline
+\bottomrule
 \end{tabular}
-\caption{Catálogo de reportes implementados en el sistema de visualización}
-\label{tab:catalogo-reportes}
 \end{table}
 
 \subsubsection{Modelo de datos y colecciones}
@@ -3208,20 +3202,19 @@ El sistema define un conjunto de eventos para la comunicación bidireccional:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|p{8cm}|}
-\hline
+\caption{Principales eventos WebSocket del sistema de visualización}
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
 \textbf{Evento} & \textbf{Descripción} \\
-\hline
+\midrule
 \texttt{update\_summary} & Actualiza las tarjetas de indicadores clave \\
 \texttt{update\_department} & Actualiza el gráfico de casos por departamento \\
 \texttt{update\_age} & Actualiza el histograma de grupos de edad \\
 \texttt{update\_heatmap} & Actualiza el mapa de calor de casos \\
 \texttt{filtered\_*} & Eventos para datos filtrados por departamento/sexo \\
 \texttt{threshold\_alert} & Notifica una nueva alerta por umbral superado \\
-\hline
+\bottomrule
 \end{tabular}
-\caption{Principales eventos WebSocket del sistema de visualización}
-\label{tab:websocket-events}
 \end{table}
 
 \subsection{Sistema de alertas}\label{sistema-de-alertas}
@@ -3245,25 +3238,20 @@ El sistema implementa seis tipos de alertas configurables que cubren las princip
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|r|p{5.5cm}|}
-\hline
-\textbf{Identificador} & \textbf{Nombre} & \textbf{Umbral} & \textbf{Descripción} \\
-\hline
-\texttt{cases\_total} & Total de Casos & 1,000,000 & Se activa cuando el número acumulado de casos registrados en el sistema supera el umbral definido. Permite monitorear el crecimiento general de la pandemia. \\
-\hline
-\texttt{cases\_positive} & Casos Positivos & 1,000 & Detecta incrementos significativos en el número de casos con resultado positivo confirmado por prueba de laboratorio. \\
-\hline
-\texttt{demises\_total} & Total Fallecidos & 1,000 & Alerta cuando el número acumulado de fallecimientos supera el umbral, indicando una situación de alta mortalidad. \\
-\hline
-\texttt{hospitalizations\_total} & Total Hospitalizaciones & 500 & Monitorea la capacidad hospitalaria alertando cuando el número de pacientes hospitalizados excede el límite configurado. \\
-\hline
-\texttt{cases\_by\_dept} & Casos por Departamento & 2,000 & Genera alertas específicas para cada departamento cuando los casos positivos en esa región superan el umbral. \\
-\hline
-\texttt{demises\_by\_dept} & Fallecidos por Departamento & 1,000 & Similar al anterior, pero enfocado en la mortalidad por región geográfica. \\
-\hline
-\end{tabular}
 \caption{Tipos de alertas implementadas en el sistema de vigilancia epidemiológica}
 \label{tab:tipos-alertas}
+\begin{tabular}{@{}llrp{5.5cm}@{}}
+\toprule
+\textbf{Identificador} & \textbf{Nombre} & \textbf{Umbral} & \textbf{Descripción} \\
+\midrule
+\texttt{cases\_total} & Total de Casos & 1,000,000 & Se activa cuando el número acumulado de casos registrados en el sistema supera el umbral definido. Permite monitorear el crecimiento general de la pandemia. \\
+\texttt{cases\_positive} & Casos Positivos & 1,000 & Detecta incrementos significativos en el número de casos con resultado positivo confirmado por prueba de laboratorio. \\
+\texttt{demises\_total} & Total Fallecidos & 1,000 & Alerta cuando el número acumulado de fallecimientos supera el umbral, indicando una situación de alta mortalidad. \\
+\texttt{hospitalizations\_total} & Total Hospitalizaciones & 500 & Monitorea la capacidad hospitalaria alertando cuando el número de pacientes hospitalizados excede el límite configurado. \\
+\texttt{cases\_by\_dept} & Casos por Departamento & 2,000 & Genera alertas específicas para cada departamento cuando los casos positivos en esa región superan el umbral. \\
+\texttt{demises\_by\_dept} & Fallecidos por Departamento & 1,000 & Similar al anterior, pero enfocado en la mortalidad por región geográfica. \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 La configuración de alertas se almacena en una estructura de diccionario que permite su modificación en tiempo de ejecución:
@@ -3526,31 +3514,34 @@ El sistema de visualización se construye sobre un conjunto de tecnologías mode
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{|l|l|l|p{5cm}|}
-\hline
-\textbf{Capa} & \textbf{Tecnología} & \textbf{Versión} & \textbf{Propósito} \\
-\hline
-\multirow{4}{*}{Backend} & Python & 3.11+ & Lenguaje de programación principal \\
-& Flask & 2.3+ & Framework web para API REST \\
-& Flask-SocketIO & 5.3+ & Extensión para WebSockets \\
-& PyMongo & 4.5+ & Driver de MongoDB para Python \\
-\hline
-\multirow{4}{*}{Frontend} & HTML5/CSS3 & - & Estructura y estilos \\
-& JavaScript ES6+ & - & Lógica de cliente \\
-& D3.js & 7.x & Visualización de datos \\
-& Leaflet.js & 1.9+ & Mapas interactivos \\
-& Socket.IO Client & 4.7+ & Cliente WebSocket \\
-\hline
-\multirow{2}{*}{Base de Datos} & MongoDB & 6.0+ & Almacenamiento NoSQL \\
-& Change Streams & - & Detección de cambios en tiempo real \\
-\hline
-\multirow{2}{*}{Comunicación} & WebSocket & RFC 6455 & Protocolo bidireccional \\
-& REST API & HTTP/1.1 & Endpoints de consulta \\
-\hline
-\end{tabular}
 \caption{Stack tecnológico completo del sistema de visualización}
 \label{tab:stack-tecnologico}
+\begin{tabular}{@{}lllp{5cm}@{}}
+\toprule
+\textbf{Capa} & \textbf{Tecnología} & \textbf{Versión} & \textbf{Propósito} \\
+\midrule
+\multirow{4}{*}{Backend}
+  & Python & 3.11+ & Lenguaje de programación principal \\
+  & Flask & 2.3+ & Framework web para API REST \\
+  & Flask-SocketIO & 5.3+ & Extensión para WebSockets \\
+  & PyMongo & 4.5+ & Driver de MongoDB para Python \\
+\midrule
+\multirow{5}{*}{Frontend}
+  & HTML5/CSS3 & - & Estructura y estilos \\
+  & JavaScript ES6+ & - & Lógica de cliente \\
+  & D3.js & 7.x & Visualización de datos \\
+  & Leaflet.js & 1.9+ & Mapas interactivos \\
+  & Socket.IO Client & 4.7+ & Cliente WebSocket \\
+\midrule
+\multirow{2}{*}{Base de Datos}
+  & MongoDB & 6.0+ & Almacenamiento NoSQL \\
+  & Change Streams & - & Detección de cambios en tiempo real \\
+\midrule
+\multirow{2}{*}{Comunicación}
+  & WebSocket & RFC 6455 & Protocolo bidireccional \\
+  & REST API & HTTP/1.1 & Endpoints de consulta \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \subsubsection{Justificación de las tecnologías seleccionadas}
@@ -3825,22 +3816,22 @@ El sistema está diseñado para minimizar la latencia entre la llegada de nuevos
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|c|l|}
-\hline
+\caption{Latencia por etapa del flujo de datos}
+\label{tab:latencia-etapas}
+\begin{tabular}{@{}lcl@{}}
+\toprule
 \textbf{Etapa} & \textbf{Latencia típica} & \textbf{Factores} \\
-\hline
+\midrule
 Ingesta Kafka & $<$ 100ms & Tamaño del batch, red \\
 Procesamiento Beam & 1-5s & Complejidad de transformaciones \\
 Escritura MongoDB & $<$ 50ms & Índices, tamaño del documento \\
 Change Stream & $<$ 10ms & Configuración de MongoDB \\
 WebSocket broadcast & $<$ 20ms & Número de clientes, red \\
 Renderizado D3.js & 100-750ms & Complejidad del gráfico \\
-\hline
+\midrule
 \textbf{Total end-to-end} & \textbf{2-7s} & Caso típico \\
-\hline
+\bottomrule
 \end{tabular}
-\caption{Latencia por etapa del flujo de datos}
-\label{tab:latencia-etapas}
 \end{table}
 
 \subsection{Integración con el pipeline de procesamiento}\label{integracion-pipeline}
@@ -3884,41 +3875,40 @@ La Tabla \ref{tab:resumen-funcionalidades} presenta un resumen consolidado de to
 
 \begin{table}[H]
 \centering
-\small
-\begin{tabular}{|l|p{7cm}|l|}
-\hline
+\caption{Resumen de funcionalidades implementadas en el sistema}
+\label{tab:resumen-funcionalidades}
+\begin{tabular}{@{}lp{7cm}l@{}}
+\toprule
 \textbf{Categoría} & \textbf{Funcionalidad} & \textbf{Estado} \\
-\hline
+\midrule
 \multirow{5}{*}{Visualizaciones} & Gráfico de casos por departamento & Implementado \\
 & Distribución por sexo (casos y fallecidos) & Implementado \\
 & Series temporales (casos y fallecidos) & Implementado \\
 & Histograma de grupos de edad & Implementado \\
 & Mapas de calor (casos, fallecidos, hospitalizaciones) & Implementado \\
-\hline
+\midrule
 \multirow{3}{*}{Filtros} & Filtro por departamento & Implementado \\
 & Filtro por sexo & Implementado \\
 & Búsqueda de departamento & Implementado \\
-\hline
+\midrule
 \multirow{4}{*}{Indicadores} & Total de casos & Implementado \\
 & Casos positivos & Implementado \\
 & Hospitalizaciones & Implementado \\
 & Fallecidos & Implementado \\
-\hline
+\midrule
 \multirow{6}{*}{Alertas} & Alerta por total de casos & Implementado \\
 & Alerta por casos positivos & Implementado \\
 & Alerta por fallecidos & Implementado \\
 & Alerta por hospitalizaciones & Implementado \\
 & Alerta por casos por departamento & Implementado \\
 & Alerta por fallecidos por departamento & Implementado \\
-\hline
+\midrule
 \multirow{4}{*}{Tiempo Real} & Actualización automática de gráficos & Implementado \\
 & Notificaciones de cambios & Implementado \\
 & Indicador de conexión & Implementado \\
 & Propagación de alertas & Implementado \\
-\hline
+\bottomrule
 \end{tabular}
-\caption{Resumen de funcionalidades implementadas en el sistema}
-\label{tab:resumen-funcionalidades}
 \end{table}
 
 \subsection{Evaluación del sistema y resultados}\label{evaluaciuxf3n-del-sistema-y-resultados}

@@ -177,6 +177,35 @@ Procesamiento de datos en streaming y batch con arquitecturas basadas en flujos 
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{babel, shapes.geometric, arrows, positioning, fit, backgrounds, calc}
+\usepackage{listings}
+
+% Configuración de código
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single
+}
+\lstset{style=mystyle}
+
 
 % ============================================================================
 % INICIO DEL DOCUMENTO
@@ -838,16 +867,16 @@ El presente Trabajo Fin de Máster propone el diseño, implementación y evaluac
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    node distance=0.5cm,
-    layer/.style={rectangle, draw, rounded corners, minimum width=3cm, minimum height=1.2cm, align=center, fill=#1, font=\small},
+    node distance=0.1cm,
+    layer/.style={rectangle, draw, rounded corners, minimum width=1cm, minimum height=1.2cm, align=center, fill=#1, font=\small},
     arrow/.style={->, thick}
 ]
     \node[layer=green!20] (ingest) {Ingesta\\Kafka + CSV};
-    \node[layer=orange!20, right=1.5cm of ingest] (pipeline) {Pipeline Beam\\Transforms + DLQ};
-    \node[layer=blue!15, right=1.5cm of pipeline] (store) {Almacenamiento\\MongoDB Time-Series};
-    \node[layer=yellow!30, right=1.5cm of store] (analytics) {Analítica\\Modelos + Métricas};
-    \node[layer=red!15, below=1.5cm of analytics] (alerts) {Alertas\\Detección + Notificación};
-    \node[layer=purple!15, below=1.5cm of store] (viz) {Visualización\\Dashboards + Reportes};
+    \node[layer=orange!20, right=1.5cm of ingest] (pipeline) {Pipeline Beam\\Transforms + \\DLQ};
+    \node[layer=blue!15, right=1.5cm of pipeline] (store) {Almacenamiento\\MongoDB \\Time-Series};
+    \node[layer=yellow!30, right=1.5cm of store] (analytics) {Analítica\\Modelos + \\Métricas};
+    \node[layer=red!15, below=1.5cm of analytics] (alerts) {Alertas\\Detección + \\Notificación};
+    \node[layer=purple!15, below=1.5cm of store] (viz) {Visualización\\Dashboards + \\Reportes};
 
     \draw[arrow] (ingest) -- (pipeline);
     \draw[arrow] (pipeline) -- (store);
@@ -859,11 +888,1114 @@ El presente Trabajo Fin de Máster propone el diseño, implementación y evaluac
 \caption{Visión general de las capas del sistema}
 \end{figure}
 
-El sistema procesa dos tipos de datos epidemiológicos provenientes de fuentes oficiales:
+El sistema procesa  tipos de datos epidemiológicos provenientes de fuentes oficiales:
 
 \begin{table}[H]
 \centering
 \caption{Datasets procesados por el sistema}
+\begin{tabular}{@{}llrl@{}}
+\toprule
+\textbf{Dataset} & \textbf{Schema} & \textbf{Registros} \\
+\midrule
+Casos & \texttt{cases} & 1,048,575 \\
+Fallecimientos & \texttt{demises} & 220,918 \\
+Hospitalaciones & \texttt{hospitalizations} & 573,240 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La arquitectura sigue el modelo Dataflow, donde todos los datos fluyen a través de Apache Kafka como bus de eventos central, simplificando el diseño al eliminar la necesidad de mantener dos pipelines separados para batch y streaming.
+
+\subsection{\texorpdfstring{Análisis de requisitos del sistema}{Análisis de requisitos del sistema}}\label{anuxe1lisis-de-requisitos-del-sistema}
+
+El análisis de requisitos se organiza en cuatro categorías que cubren la totalidad del sistema: requisitos funcionales del pipeline, requisitos funcionales de analítica y visualización, requisitos no funcionales transversales, y requisitos específicos del dominio epidemiológico. Esta categorización permite trazar cada componente implementado a un requisito concreto.
+
+\subsection{\texorpdfstring{Requisitos funcionales}{Requisitos funcionales}}\label{requisitos-funcionales}
+
+Los requisitos funcionales se dividen en tres bloques: procesamiento de datos, analítica y predicción, y visualización y alertas.
+
+\textbf{Bloque 1: Procesamiento de datos (Pipeline)}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionales -- Procesamiento de datos}
+\begin{tabular}{@{}p{1.5cm}p{12cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Descripción}\\
+\midrule
+RF-01 & El sistema debe ingestar datos desde archivos CSV y producirlos como mensajes en topics de Apache Kafka, preservando el schema de origen \\
+RF-02 & El sistema debe consumir mensajes de Kafka en tiempo real mediante consumer groups, gestionando offsets para garantizar procesamiento at-least-once \\
+RF-03 & El sistema debe normalizar los registros, convirtiendo valores vacíos, nulos y formatos inconsistentes a una representación uniforme \\
+RF-04 & El sistema debe validar cada registro contra esquemas JSON definidos por schema, enviando los registros inválidos a Dead Letter Queue \\
+RF-05 & El sistema debe asignar timestamps de evento a cada registro a partir del campo de fecha correspondiente, soportando múltiples formatos de fecha \\
+RF-06 & El sistema debe aplicar ventanas temporales fijas de duración configurable (por defecto 60 segundos) a los datos en modo streaming \\
+RF-07 & El sistema debe agregar metadata de procesamiento a cada registro, incluyendo versión del pipeline, timestamp de procesamiento, tipo de source e información de ventana \\
+RF-08 & El sistema debe agrupar registros en batches de tamaño configurable antes de la escritura, con timeout para evitar bloqueos en flujos de bajo volumen \\
+RF-09 & El sistema debe almacenar los datos procesados en colecciones Time-Series de MongoDB, organizadas por schema (cases, demises) \\
+RF-10 & El sistema debe capturar todos los errores de procesamiento en colecciones DLQ separadas, registrando el tipo de error, el registro original y el timestamp del fallo \\
+RF-11 & El sistema debe soportar ejecución en modo streaming (fuente Kafka, datos unbounded) y modo batch (fuente archivos, datos bounded) con el mismo código base \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Bloque 2: Analítica y predicción}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionales -- Analítica y predicción}
+\begin{tabular}{@{}p{1.5cm}p{12cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Descripción} \\
+\midrule
+RF-12 & El sistema debe calcular métricas descriptivas por ventana temporal (tasa de positividad, media de edad, distribución por sexo y departamento) \\
+RF-13 & El sistema debe detectar anomalías estadísticas en tiempo real mediante al menos dos métodos (Z-Score, IQR o CUSUM) \\
+RF-14 & El sistema debe integrar modelos predictivos entrenados offline, aplicándolos como \texttt{DoFn} dentro del pipeline sobre las métricas de cada ventana \\
+RF-15 & El sistema debe generar escenarios futuros (optimista, base, pesimista) basados en la estimación de $R_t$ y modelos de series temporales \\
+RF-16 & El sistema debe soportar análisis post-procesamiento sobre los datos almacenados en MongoDB mediante agregaciones y consultas \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Bloque 3: Visualización y alertas}
+
+\begin{table}[H]
+\centering
+\caption{Requisitos funcionales -- Visualización y alertas}
+\begin{tabular}{@{}p{1.5cm}p{12cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Descripción} \\
+\midrule
+RF-17 & El sistema debe proporcionar dashboards interactivos con paneles epidemiológico, de calidad de datos y de infraestructura \\
+RF-18 & Los dashboards deben actualizarse automáticamente con latencia inferior a 2 minutos desde la ocurrencia del evento \\
+RF-19 & El sistema debe permitir filtrado interactivo por rango temporal, región geográfica, grupo de edad y tipo de resultado \\
+RF-20 & El sistema debe evaluar umbrales epidemiológicos (tasa de positividad, $R_t$) y operativos (tasa de error DLQ, lag de Kafka) para generar alertas \\
+RF-21 & El sistema debe clasificar las alertas por severidad (INFO, WARNING, HIGH, CRITICAL) y enrutarlas al canal de notificación correspondiente \\
+RF-22 & El sistema debe proporcionar herramientas de monitorización del estado de Kafka, MongoDB y el pipeline \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{\texorpdfstring{Requisitos no funcionales}{Requisitos no funcionales}}\label{requisitos-no-funcionales}
+
+Los requisitos no funcionales definen las características de calidad que el sistema debe cumplir de forma transversal:
+
+\begin{table}[H]
+\centering
+\caption{Requisitos No Funcionales del Sistema}
+\begin{tabular}{@{}p{1.5cm}p{3cm}p{10cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Categoría} & \textbf{Descripción} \\
+\midrule
+RNF-01 & Escalabilidad & El sistema debe escalar horizontalmente mediante particiones de Kafka, workers de Beam y sharding de MongoDB, soportando al menos $3\times$ el volumen normal sin degradación \\
+RNF-02 & Tolerancia a fallos & Ningún error individual debe detener el pipeline; todos los registros fallidos se capturan en DLQ con información suficiente para diagnóstico y reprocesamiento \\
+RNF-03 & Latencia & El procesamiento en modo streaming debe completarse en ventanas de 60 segundos, con early triggers cada 30 segundos y tolerancia de 300 segundos para datos tardíos \\
+RNF-04 & Portabilidad & El código del pipeline debe ejecutarse sin modificaciones en DirectRunner (desarrollo), DataflowRunner (GCP) y FlinkRunner (cluster), gracias a las abstracciones de Apache Beam \\
+RNF-05 & Mantenibilidad & Los componentes deben ser modulares y reutilizables, organizados en capas (sources, transforms, sinks), permitiendo agregar nuevos schemas o transformaciones sin modificar el core \\
+RNF-06 & Configurabilidad & Todos los parámetros operativos (tamaño de ventana, batch size, timeouts, umbrales de alerta, conexiones) deben ser configurables mediante archivos YAML sin modificar código fuente \\
+RNF-07 & Disponibilidad & El sistema debe mantener una disponibilidad superior al 99.5\%, con recuperación automática tras fallos transitorios de MongoDB o Kafka \\
+RNF-08 & Calidad analítica & Los modelos predictivos deben mantener un MAPE inferior al 15\% y la detección de anomalías una sensibilidad superior al 80\% con especificidad mayor al 90\% \\
+RNF-09 & Despliegue & Todo el sistema debe desplegarse mediante Docker Compose en un único comando, con configuración reproducible de todos los servicios \\
+RNF-10 & Observabilidad & El sistema debe exponer métricas de rendimiento, calidad y estado operativo a través de dashboards y logs estructurados \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{\texorpdfstring{Requisitos epidemiológicos}{Requisitos epidemiológicos}}\label{requisitos-epidemioluxf3gicos}
+
+Los datos epidemiológicos requieren consideraciones específicas que condicionan el diseño del pipeline, los modelos analíticos y la visualización.
+
+\textbf{Requisitos de datos:}
+
+\begin{itemize}
+    \item \textbf{Precisión temporal}: Las fechas de muestra y fallecimiento son la base del análisis epidemiológico. El sistema debe preservar la precisión temporal original y convertir correctamente entre formatos de fecha (string, Unix timestamp) sin pérdida de información.
+    \item \textbf{Cobertura geográfica}: Los campos de departamento, provincia y distrito permiten análisis de distribución espacial. El sistema debe normalizar los nombres geográficos para evitar duplicados por variaciones ortográficas.
+    \item \textbf{Clasificación de resultados}: Los valores de resultado (POSITIVO/NEGATIVO) y clasificación de defunción son variables categóricas críticas. La validación debe asegurar que solo contengan valores del dominio esperado.
+    \item \textbf{Datos demográficos}: Edad y sexo permiten la segmentación de grupos de riesgo. El sistema debe manejar edades declaradas como enteros y categorizar en rangos estandarizados (0--19, 20--39, 40--59, 60--79, 80+).
+\end{itemize}
+
+\textbf{Requisitos analíticos del dominio:}
+
+\begin{itemize}
+    \item \textbf{Indicadores estándar OMS}: El sistema debe calcular indicadores alineados con las recomendaciones de la OMS, como la tasa de positividad (objetivo $< 5\%$) y el número reproductivo efectivo $R_t$.
+    \item \textbf{Detección de olas}: Los modelos de anomalías deben ser capaces de identificar cambios bruscos en la tendencia que indiquen el inicio de una nueva ola epidémica.
+    \item \textbf{Predicción accionable}: Las predicciones a corto plazo (14--60 días) deben incluir intervalos de confianza y presentarse como escenarios para facilitar la planificación sanitaria.
+    \item \textbf{Segmentación de riesgo}: El análisis debe permitir identificar subpoblaciones con mayor riesgo de contagio o mortalidad por combinación de variables demográficas y geográficas.
+\end{itemize}
+
+\textbf{Esquemas de validación:}
+
+\begin{lstlisting}[language=Python, caption=Esquemas de validación para ambos datasets]
+# Schema: cases
+cases_schema = {
+    "required_fields": ["fecha_muestra", "edad", "sexo", "resultado"],
+    "field_types": {
+        "fecha_muestra": "integer",
+        "edad": "integer",
+        "sexo": "string",
+        "resultado": "string",
+        "departamento_paciente": "string",
+        "provincia_paciente": "string",
+        "distrito_paciente": "string",
+        "tipo_muestra": "string",
+        "institucion": "string"
+    }
+
+# Schema: demises
+demises_schema = {
+    "required_fields": ["fecha_fallecimiento", "edad_declarada", "sexo"],
+    "field_types": {
+        "fecha_fallecimiento": "integer",
+        "edad_declarada": "integer",
+        "sexo": "string",
+        "departamento": "string",
+        "provincia": "string",
+        "distrito": "string",
+        "clasificacion_def": "string"
+    }
+}
+
+# Schema: hospitalizations
+hospitalizations_schema: {
+    "required_fields": ["nombre_eess", "renaes", "sexo", "fecha_ingreso_hosp", "edad"],
+    "field_types": {
+        "renaes": "integer",
+        "diresa": "string",
+        "red": "string",
+        "nombre_eess": "string",
+        "sexo": "string",
+        "fecha_ingreso_hosp": "string",
+        "flag_uci": "integer",
+        "fecha_ingreso_uci": "string",
+        "fecha_ingreso_ucin": "string",
+        "con_oxigeno": "integer",
+        "con_ventilacion": "integer",
+        "fecha_segumiento_hosp_ultimo": "string",
+        "evolucion_hosp_ultimo": "string"        
+    }
+  }
+\end{lstlisting}
+\subsection{\texorpdfstring{Diseño de la arquitectura basada en el modelo Dataflow}{Diseño de la arquitectura basada en el modelo Dataflow}}\label{diseuxf1o-de-la-arquitectura-basada-en-el-modelo-dataflow}
+
+La arquitectura del sistema se fundamenta en el modelo Dataflow (también conocido como Beam Model), propuesto por Tyler Akidau et al. en Google. Este modelo proporciona un marco unificado para el procesamiento de datos batch y streaming, abstrayendo las complejidades de manejo de tiempo, orden y completitud de los datos. La elección de este modelo responde a la necesidad de procesar datos epidemiológicos que llegan de forma continua (reportes diarios) y que también requieren reprocesamiento histórico sobre grandes volúmenes.
+
+\subsubsection{Principios del modelo Dataflow aplicados}\label{principios-del-modelo-dataflow-aplicados}
+
+El modelo Dataflow estructura el procesamiento de datos alrededor de cuatro preguntas fundamentales. Cada pregunta se mapea directamente a un concepto de la implementación:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=2cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=3.5cm, minimum height=1.8cm, align=center, fill=blue!10},
+    arrow/.style={->, thick}
+]
+    \node[box] (what) {\textbf{¿QUÉ?}\\(What)\\Transformaciones\\PTransforms + DoFn};
+    \node[box, right=of what] (where) {\textbf{¿DÓNDE?}\\(Where)\\Windowing\\Fixed Windows 60s};
+    \node[box, below=of what] (when) {\textbf{¿CUÁNDO?}\\(When)\\Triggers + Watermarks\\Early/On-time/Late};
+    \node[box, right=of when] (how) {\textbf{¿CÓMO?}\\(How)\\Accumulation Mode\\Discarding};
+
+    \draw[arrow] (what) -- (where);
+    \draw[arrow] (where) -- (how);
+    \draw[arrow] (what) -- (when);
+    \draw[arrow] (when) -- (how);
+\end{tikzpicture}
+\caption{Las cuatro preguntas del modelo Dataflow y su implementación}
+\end{figure}
+
+\textbf{¿Qué resultados se calculan? (What)}
+
+Define las transformaciones que se aplican a los datos. En el sistema se implementan como una cadena de \texttt{PTransform} y \texttt{DoFn} de Apache Beam:
+
+\begin{itemize}
+    \item \textbf{NormalizeRecord}: Limpieza y homogeneización de valores (nulos, espacios, tipos).
+    \item \textbf{ValidateSchema}: Verificación de campos requeridos y tipos contra esquemas JSON.
+    \item \textbf{AssignTimestamp}: Extracción del timestamp de evento desde el campo de fecha del registro.
+    \item \textbf{AddMetadata}: Enriquecimiento con información de procesamiento (versión, source, ventana).
+    \item \textbf{ComputeWindowMetrics}: Cálculo de métricas descriptivas por ventana (capa analítica).
+    \item \textbf{AnomalyDetector}: Detección de anomalías estadísticas sobre las métricas agregadas.
+\end{itemize}
+
+\textbf{¿En qué momento del event time? (Where)}
+
+Define cómo se agrupan los datos en el dominio del tiempo del evento. El sistema utiliza ventanas fijas (Fixed Windows) de 60 segundos, lo que significa que cada registro se asigna a la ventana correspondiente según su timestamp de evento (fecha de muestra o fecha de fallecimiento), no según el momento en que fue procesado. Esto garantiza que los resultados sean deterministas independientemente de cuándo lleguen los datos al pipeline.
+
+\textbf{¿Cuándo se emiten los resultados? (When)}
+
+Define en qué momento del processing time se materializan los resultados de cada ventana. El sistema implementa tres tipos de emisión:
+
+\begin{itemize}
+    \item \textbf{Early triggers}: Resultados parciales cada 30 segundos de processing time, para reducir la latencia visible en dashboards.
+    \item \textbf{On-time trigger}: Emisión principal cuando el watermark supera el fin de la ventana, indicando que se espera haber recibido todos los datos.
+    \item \textbf{Late triggers}: Emisión por cada dato tardío que llega dentro del período de \texttt{allowed\_lateness} (300 segundos), permitiendo corregir resultados.
+\end{itemize}
+
+\textbf{¿Cómo se refinan los resultados? (How)}
+
+Define la estrategia de acumulación cuando hay múltiples emisiones para una misma ventana. El sistema utiliza el modo \textbf{Discarding}, donde cada emisión contiene únicamente los datos nuevos desde la emisión anterior. Esta elección se justifica porque las métricas se recalculan en la capa de visualización, y el modo discarding reduce el volumen de datos escritos a MongoDB.
+
+\subsubsection{Arquitectura general del sistema}\label{arquitectura-general-del-sistema}
+La arquitectura se organiza en cinco capas que cubren desde la ingesta hasta la visualización. Cada capa tiene responsabilidades bien definidas y se comunica con las demás a través de interfaces estandarizadas.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    source/.style={rectangle, draw, rounded corners, minimum width=2.2cm, minimum height=1cm, align=center, fill=green!20, font=\footnotesize},
+    transform/.style={rectangle, draw, rounded corners, minimum width=2.2cm, minimum height=1cm, align=center, fill=orange!20, font=\footnotesize},
+    analytics/.style={rectangle, draw, rounded corners, minimum width=2.2cm, minimum height=1cm, align=center, fill=yellow!30, font=\footnotesize},
+    sink/.style={rectangle, draw, rounded corners, minimum width=2.2cm, minimum height=1cm, align=center, fill=red!20, font=\footnotesize},
+    viz/.style={rectangle, draw, rounded corners, minimum width=2.2cm, minimum height=1cm, align=center, fill=purple!15, font=\footnotesize},
+    arrow/.style={->, thick}
+]
+    % Sources
+    \node[source] (kafka) {Kafka\\Source};
+    \node[source, right=0.5cm of kafka] (storage) {Storage\\Source};
+
+    % Transforms
+    \node[transform, below=1.5cm of kafka, yshift=-0.5cm] (norm) {Normalize};
+    \node[transform, right=0.8cm of norm] (val) {Validate};
+    \node[transform, right=0.8cm of val] (ts) {Timestamp};
+    \node[transform, below=0.5cm of norm] (win) {Windowing};
+    \node[transform, right=0.8cm of win] (meta) {Metadata};
+    \node[transform, right=0.8cm of meta] (batch) {Batching};
+
+    % Analytics
+    \node[analytics, below=0.5cm of win] (metrics) {Compute\\Metrics};
+    \node[analytics, right=0.8cm of metrics] (anomaly) {Anomaly\\Detector};
+
+    % Sinks
+    \node[sink, right=1.5cm of batch] (mongo) {MongoDB\\Time-Series};
+    \node[sink, below=0.5cm of mongo] (dlq) {DLQ};
+    \node[sink, below=0.5cm of dlq] (predictions) {Predictions};
+
+    % Viz
+    \node[viz, right=1.5cm of mongo] (grafana) {Grafana};
+    \node[viz, below=0.5cm of grafana] (streamlit) {Streamlit};
+    \node[viz, below=0.5cm of streamlit] (alerts) {Alertas};
+
+    % Arrows - main flow
+    \draw[arrow] (kafka) -- (norm);
+    \draw[arrow] (storage) -- (norm);
+    \draw[arrow] (norm) -- (val);
+    \draw[arrow] (val) -- (ts);
+    \draw[arrow] (ts) -- (win);
+    \draw[arrow] (win) -- (meta);
+    \draw[arrow] (meta) -- (batch);
+    \draw[arrow] (batch) -- (mongo);
+
+    % Arrows - analytics
+    \draw[arrow, dashed, orange] (win) -- (metrics);
+    \draw[arrow, dashed, orange] (metrics) -- (anomaly);
+    \draw[arrow, dashed, orange] (anomaly) -- (predictions);
+
+    % Arrows - DLQ
+    \draw[->, dashed, red] (norm) |- (dlq);
+    \draw[->, dashed, red] (val) |- (dlq);
+
+    % Arrows - viz
+    \draw[arrow] (mongo) -- (grafana);
+    \draw[arrow] (mongo) -- (streamlit);
+    \draw[arrow] (anomaly) |- (alerts);
+
+    % Labels
+    \node[above=0.3cm of kafka, font=\bfseries\footnotesize] {Sources};
+    \node[above=0.3cm of val, font=\bfseries\footnotesize] {Transforms};
+    \node[above=0.3cm of mongo, font=\bfseries\footnotesize] {Sinks};
+    \node[above=0.3cm of grafana, font=\bfseries\footnotesize] {Visualización};
+\end{tikzpicture}
+\caption{Arquitectura general del sistema con sus cinco capas}
+\end{figure}
+
+\textbf{Capa 1 -- Sources (Ingesta):}
+\begin{itemize}
+    \item \textbf{KafkaSource}: Lee mensajes de topics de Apache Kafka en tiempo real. Cada mensaje contiene un registro envuelto en la estructura \texttt{\{schema, data\}}. Los offsets se gestionan por consumer group.
+    \item \textbf{StorageSource}: Lee archivos CSV desde el sistema de archivos local utilizando Polars para alto rendimiento. Cada fila se convierte a la misma estructura de mensaje que Kafka.
+\end{itemize}
+
+\textbf{Capa 2 -- Transforms (Procesamiento):}
+\begin{itemize}
+    \item Cadena secuencial de transformaciones: Normalize $\rightarrow$ Validate $\rightarrow$ AssignTimestamp $\rightarrow$ Windowing $\rightarrow$ AddMetadata $\rightarrow$ Batching.
+    \item Cada transformación puede emitir registros fallidos a la salida etiquetada \texttt{dlq} mediante \texttt{TaggedOutput}.
+\end{itemize}
+
+\textbf{Capa 3 -- Analytics (Analítica):}
+\begin{itemize}
+    \item Se ejecuta en paralelo a la cadena principal, recibiendo datos de la etapa de windowing.
+    \item Calcula métricas descriptivas por ventana y ejecuta detección de anomalías.
+    \item Puede aplicar modelos predictivos previamente entrenados.
+\end{itemize}
+
+\textbf{Capa 4 -- Sinks (Almacenamiento):}
+\begin{itemize}
+    \item \textbf{MongoDB Time-Series}: Colecciones optimizadas para datos temporales (\texttt{cases}, \texttt{demises}).
+    \item \textbf{DLQ}: Colecciones estándar (\texttt{dlq\_cases}, \texttt{dlq\_demises}) para registros fallidos.
+    \item \textbf{Predictions}: Colección para almacenar las predicciones generadas por los modelos.
+\end{itemize}
+
+\textbf{Capa 5 -- Visualización y Alertas:}
+\begin{itemize}
+    \item \textbf{Grafana}: Dashboards de métricas en tiempo real y series temporales.
+    \item \textbf{Streamlit}: Aplicación interactiva para exploración y análisis ad-hoc.
+    \item \textbf{Sistema de alertas}: Evaluación de umbrales y notificaciones por múltiples canales.
+    \item \textbf{Kafka UI / Mongo Express}: Monitorización de infraestructura.
+\end{itemize}
+
+La comunicación entre capas se realiza de forma desacoplada: las capas de procesamiento y analítica escriben a MongoDB, y las capas de visualización y alertas consultan MongoDB de forma independiente. Esto permite escalar cada capa por separado.
+
+\subsubsection{Flujo de datos streaming y batch}\label{flujo-de-datos-streaming-y-batch}
+Uno de los principios fundamentales del modelo Dataflow es que batch es un caso particular de streaming. En un flujo batch, los datos son finitos (bounded) y el watermark avanza a infinito al finalizar la lectura. En streaming, los datos son potencialmente infinitos (unbounded) y el watermark avanza progresivamente conforme llegan nuevos eventos.
+
+El sistema implementa esta dualidad con el mismo código base, cambiando únicamente la fuente de datos y la configuración de windowing:
+
+\begin{table}[H]
+\centering
+\caption{Comparación detallada de modos Streaming y Batch}
+\begin{tabular}{@{}lp{5cm}p{5cm}@{}}
+\toprule
+\textbf{Aspecto} & \textbf{Streaming} & \textbf{Batch} \\
+\midrule
+Source & Apache Kafka (topics por schema) & Archivos CSV/Parquet locales \\
+Naturaleza de datos & Unbounded: flujo continuo sin fin definido & Bounded: conjunto finito con inicio y fin \\
+Windowing & Fixed Windows de 60s sobre event time & Global Window implícita (todos los datos en una ventana) \\
+Watermark & Progresivo: avanza con el evento más reciente & Determinista: avanza a $+\infty$ al finalizar lectura \\
+Triggers & Early (30s) + On-time + Late (300s) & Único: al completar la lectura \\
+Datos tardíos & Soportados con \texttt{allowed\_lateness} & No aplica (todos los datos están disponibles) \\
+Analítica & Métricas por ventana en tiempo real & Métricas globales al finalizar \\
+Comando & \texttt{--mode streaming} & \texttt{--mode batch} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=3cm, minimum height=0.8cm, align=center, fill=#1, font=\footnotesize},
+    arrow/.style={->, thick}
+]
+    % Streaming path
+    \node[box=green!20] (csv) {CSV Files};
+    \node[box=blue!15, below=1.5cm of csv] (kafkap) {Kafka\\Producer};
+    \node[box=blue!15, below=1.5cm of kafkap] (topic) {Kafka\\Topic};
+    \node[box=orange!20, below=1.5cm of topic] (beam_s) {Beam Pipeline\\(streaming=True)};
+
+    % Batch path
+    \node[box=green!20, right=2cm of csv] (csv_b) {CSV Files};
+    \node[box=orange!20, below=5.5cm of csv_b] (beam_b) {Beam Pipeline\\(streaming=False)};
+
+    % Shared sink
+    \node[box=red!15, below=1.5cm of beam_s, yshift=-1.25cm] (mongo) {MongoDB\\Time-Series};
+
+    \draw[arrow] (csv) -- node[above, font=\scriptsize] {ingesta} (kafkap);
+    \draw[arrow] (kafkap) -- (topic);
+    \draw[arrow] (topic) -- (beam_s);
+    \draw[arrow] (beam_s) -- (mongo);
+
+    \draw[arrow] (csv_b) -- node[above, font=\scriptsize] {lectura directa} (beam_b);
+    \draw[arrow] (beam_b) -- (mongo);
+
+    % Labels
+    \node[left=0.3cm of csv, font=\bfseries\footnotesize] {Streaming:};
+    \node[left=0.3cm of csv_b, font=\bfseries\footnotesize] {Batch:};
+\end{tikzpicture}
+\caption{Flujos de datos en modo streaming y batch}
+\end{figure}
+
+Configuración del modo de ejecución:
+\begin{lstlisting}[language=Python, caption=Selección de modo en pipeline.py]
+if mode == "batch":
+    self.config['source']['type'] = "storage"
+    self.config['pipeline']['streaming'] = False
+    # En batch, se usa Global Window implicitamente
+else:
+    self.config['source']['type'] = "kafka"
+    self.config['pipeline']['streaming'] = True
+    # En streaming, se aplican Fixed Windows + Triggers
+\end{lstlisting}
+
+Esta dualidad permite reprocesar datos históricos completos (por ejemplo, para recalcular métricas tras una corrección de datos) usando el modo batch, y procesar nuevos reportes diarios en tiempo real usando el modo streaming, con las mismas transformaciones y garantías de calidad.
+
+\subsection{\texorpdfstring{Implementación del pipeline de procesamiento}{Implementación del pipeline de procesamiento}}\label{implementaciuxf3n-del-pipeline-de-procesamiento}
+
+Esta sección detalla la implementación técnica de cada componente del pipeline, desde la ingesta de datos hasta su almacenamiento, incluyendo los mecanismos de procesamiento temporal y manejo de errores.
+
+\subsubsection{Ingesta de datos basada en eventos}\label{ingesta-de-datos-basada-en-eventos}
+
+La ingesta de datos sigue un patrón basado en eventos donde cada registro epidemiológico se convierte en un mensaje individual en Apache Kafka. El componente \texttt{KafkaProcessor} actúa como productor, leyendo archivos CSV y publicando cada fila como un mensaje en el topic correspondiente.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=2.5cm, minimum height=1cm, align=center, fill=#1, font=\footnotesize},
+    arrow/.style={->, thick}
+]
+    \node[box=green!20] (csv) {Archivos CSV\\cases.csv\\demises.csv};
+    \node[box=orange!20, right=2cm of csv] (polars) {Polars\\(lectura alta\\velocidad)};
+    \node[box=blue!15, right=2cm of polars] (producer) {Kafka\\Producer};
+    \node[box=purple!15, right=2cm of producer, yshift=0.5cm] (topic1) {Topic:\\covid-cases};
+    \node[box=purple!15, right=2cm of producer, yshift=-1cm] (topic2) {Topic:\\covid-demises};
+
+    \draw[arrow] (csv) -- (polars);
+    \draw[arrow] (polars) -- (producer);
+    \draw[arrow] (producer) -- (topic1);
+    \draw[arrow] (producer) -- (topic2);
+\end{tikzpicture}
+\caption{Flujo de ingesta de datos desde CSV a Kafka}
+\end{figure}
+
+Cada mensaje publicado en Kafka tiene la siguiente estructura, que encapsula el registro original junto con su schema de origen:
+
+\begin{lstlisting}[language=Python, caption=Estructura de mensaje Kafka]
+{
+    "schema": "cases",
+    "data": {
+        "fecha_muestra": 1705315800,
+        "edad": 45,
+        "sexo": "M",
+        "resultado": "POSITIVO",
+        "departamento_paciente": "LIMA",
+        "provincia_paciente": "LIMA",
+        "distrito_paciente": "SAN ISIDRO"
+    }
+}
+\end{lstlisting}
+
+El proceso de ingesta sigue estos pasos:
+
+\begin{enumerate}
+    \item Lee el archivo CSV completo usando Polars, una biblioteca de DataFrames de alto rendimiento escrita en Rust que ofrece velocidad superior a Pandas para archivos grandes.
+    \item Convierte cada fila del DataFrame a un diccionario Python mediante \texttt{iter\_rows(named=True)}.
+    \item Envuelve cada diccionario en la estructura \texttt{\{schema, data\}}, donde \texttt{schema} identifica el tipo de dato para que el pipeline aplique la validación correcta.
+    \item Serializa el mensaje a JSON y lo produce al topic de Kafka correspondiente al schema.
+\end{enumerate}
+
+La configuración del productor garantiza durabilidad y eficiencia:
+
+\begin{lstlisting}[language=Python, caption=Configuración del productor Kafka]
+producer_config = {
+    'bootstrap.servers': 'localhost:9092',
+    'acks': 'all',               # Espera confirmacion de todas las replicas
+    'compression.type': 'snappy', # Compresion para reducir ancho de banda
+    'linger.ms': 5,              # Agrupa mensajes durante 5ms para eficiencia
+    'batch.size': 32768          # Tamano maximo de batch en bytes (32KB)
+}
+\end{lstlisting}
+
+La elección de \texttt{acks=all} garantiza que cada mensaje se replica en todos los brokers antes de confirmar la escritura, evitando pérdida de datos ante fallos de un nodo. La compresión \texttt{snappy} reduce el volumen de datos transmitidos sin penalizar significativamente la latencia.
+
+\subsubsection{Definición del pipeline en Apache Beam}\label{definiciuxf3n-del-pipeline-en-apache-beam}
+
+El pipeline se define utilizando las abstracciones fundamentales de Apache Beam, organizando las transformaciones como una cadena de operaciones sobre colecciones distribuidas (\texttt{PCollection}). Cada pipeline se implementa como una clase que encapsula su configuración y lógica de construcción.
+
+\begin{lstlisting}[language=Python, caption=Estructura completa del pipeline]
+class DemisesPipeline:
+    def __init__(self, config_path: str, mode: str = "streaming"):
+        self.config = load_config(config_path)
+        self.mode = mode
+
+    def build(self) -> beam.Pipeline:
+        pipeline = beam.Pipeline(options=self._get_options())
+
+        # Capa 1: Source
+        read_result = pipeline | "Read" >> create_kafka_source_native(
+            bootstrap_servers=self.config['source']['kafka']['bootstrap_servers'],
+            topic=self.config['source']['kafka']['topic']
+        )
+
+        # Capa 2: Transforms
+        normalized = read_result.main | "Normalize" >> beam.ParDo(
+            NormalizeRecord()
+        ).with_outputs('dlq', main='main')
+
+        validated = normalized.main | "Validate" >> beam.ParDo(
+            ValidateSchema(schema_dir=schema_path)
+        ).with_outputs('dlq', main='main')
+
+        timestamped = validated.main | "Timestamp" >> beam.ParDo(
+            AssignTimestamp(date_field='fecha_fallecimiento')
+        ).with_outputs('dlq', main='main')
+
+        windowed = timestamped.main | "Window" >> create_windowing_transform(
+            window_size_seconds=60, allowed_lateness_seconds=300
+        )
+
+        enriched = windowed | "Metadata" >> beam.ParDo(
+            AddMetadata(pipeline_version='1.0.0', source_type='kafka')
+        )
+
+        batched = enriched | "Batch" >> beam.BatchElements(
+            min_batch_size=10, max_batch_size=100
+        )
+
+        # Capa 3: Sink
+        _ = batched | "Write" >> beam.ParDo(MongoDBSink(
+            uri=self.config['sink']['mongodb']['uri'],
+            database=self.config['sink']['mongodb']['database'],
+            collection=self.config['sink']['mongodb']['collection']
+        ))
+
+        # Recopilar DLQ de todas las etapas
+        all_dlq = (normalized.dlq, validated.dlq, timestamped.dlq
+        ) | "FlattenDLQ" >> beam.Flatten()
+        _ = all_dlq | "WriteDLQ" >> beam.ParDo(MongoDBSink(
+            collection='dlq_demises'
+        ))
+
+        return pipeline
+\end{lstlisting}
+
+Conceptos clave de Apache Beam utilizados en la implementación:
+
+\begin{table}[H]
+\centering
+\caption{Abstracciones de Apache Beam utilizadas}
+\begin{tabular}{@{}lp{12cm}@{}}
+\toprule
+\textbf{Concepto} & \textbf{Uso en el sistema} \\
+\midrule
+\texttt{PCollection} & Colección distribuida e inmutable que fluye entre transformaciones. Cada etapa recibe una PCollection y produce otra nueva \\
+\texttt{PTransform} & Operación que transforma una PCollection en otra. Se compone con el operador \texttt{|} (pipe) \\
+\texttt{DoFn} & Función que procesa cada elemento individualmente. La lógica de normalización, validación y timestamp se implementa en DoFn \\
+\texttt{CombineFn} & Función de agregación asociativa y conmutativa. Se usa para calcular métricas descriptivas por ventana \\
+\texttt{TaggedOutput} & Mecanismo de múltiples salidas desde un DoFn. Permite emitir a \texttt{main} (flujo principal) y \texttt{dlq} (errores) simultáneamente \\
+\texttt{Flatten} & Une múltiples PCollections en una sola. Se usa para consolidar los flujos DLQ de todas las etapas \\
+\texttt{BatchElements} & Agrupa elementos en listas de tamaño configurable para escritura eficiente a MongoDB \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Procesamiento en streaming}\label{procesamiento-en-streaming}
+
+El procesamiento en streaming utiliza \texttt{confluent\_kafka} como cliente nativo de Kafka, integrado en Apache Beam mediante un \texttt{DoFn} personalizado. Esta decisión permite un control fino sobre la configuración del consumidor y el manejo de errores.
+
+\begin{lstlisting}[language=Python, caption=KafkaConsumerDoFn -- Lectura de Kafka en streaming]
+class KafkaConsumerDoFn(beam.DoFn):
+    def __init__(self, bootstrap_servers, topic, group_id):
+        self.bootstrap_servers = bootstrap_servers
+        self.topic = topic
+        self.group_id = group_id
+
+    def setup(self):
+        """Se ejecuta una vez al iniciar el worker"""
+        config = {
+            'bootstrap.servers': self.bootstrap_servers,
+            'group.id': self.group_id,
+            'auto.offset.reset': 'earliest',
+            'enable.auto.commit': True,
+            'auto.commit.interval.ms': 5000
+        }
+        self.consumer = Consumer(config)
+        self.consumer.subscribe([self.topic])
+
+    def process(self, element):
+        while True:
+            msg = self.consumer.poll(timeout=1.0)
+            if msg is None:
+                continue
+            if msg.error():
+                yield beam.pvalue.TaggedOutput('dlq', {
+                    'error': str(msg.error()),
+                    'error_type': 'kafka_consumer_error',
+                    'topic': self.topic,
+                    'partition': msg.partition(),
+                    'offset': msg.offset()
+                })
+            else:
+                record = json.loads(msg.value().decode('utf-8'))
+                yield record
+
+    def teardown(self):
+        """Se ejecuta al detener el worker"""
+        if self.consumer:
+            self.consumer.close()
+\end{lstlisting}
+
+Características del consumidor y sus justificaciones:
+
+\begin{itemize}
+    \item \textbf{Poll timeout de 1 segundo}: Equilibra la latencia de respuesta (no más de 1s de espera) con la eficiencia del CPU (evita busy-waiting).
+    \item \textbf{Consumer group}: Cada instancia del pipeline se une al mismo grupo, permitiendo que Kafka distribuya las particiones entre los workers para paralelismo.
+    \item \textbf{Auto-commit cada 5 segundos}: Los offsets se confirman periódicamente. En caso de fallo, se reprocesan como máximo 5 segundos de mensajes (semántica at-least-once).
+    \item \textbf{Auto.offset.reset = earliest}: Al arrancar por primera vez o tras expiración de offsets, el consumidor lee desde el inicio del topic para no perder datos.
+    \item \textbf{Manejo de errores a DLQ}: Los errores de Kafka (mensajes corruptos, errores de deserialización) se envían a DLQ con contexto de partición y offset para diagnóstico.
+\end{itemize}
+\subsubsection{Ventanas temporales}\label{ventanas-temporales}
+
+Las ventanas temporales son el mecanismo central del modelo Dataflow para agrupar datos según su timestamp de evento. El sistema implementa Fixed Windows de 60 segundos, lo que significa que los datos se agrupan en intervalos no solapados de un minuto en el dominio del event time.
+
+\begin{lstlisting}[language=Python, caption=Configuración completa de Windowing]
+def create_windowing_transform(
+    window_size_seconds: int = 60,
+    allowed_lateness_seconds: int = 300,
+    trigger_type: str = "default"
+) -> beam.PTransform:
+    """Crea la transformacion de ventana temporal configurable"""
+
+    return beam.WindowInto(
+        beam.window.FixedWindows(window_size_seconds),
+        allowed_lateness=Duration(seconds=allowed_lateness_seconds),
+        trigger=AfterWatermark(
+            early=AfterProcessingTime(30),   # Resultados parciales cada 30s
+            late=AfterCount(1)               # Emitir por cada dato tardio
+        ),
+        accumulation_mode=AccumulationMode.DISCARDING
+    )
+\end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.8]
+    % Timeline
+    \draw[->, thick] (0,0) -- (16,0) node[right] {Event Time};
+    \draw[->, thick] (0,0) -- (0,4) node[above] {Processing Time};
+
+    % Windows
+    \foreach \i in {0,1,2,3,4} {
+        \draw[fill=blue!15, draw=blue!50] (\i*3+0.1,0.1) rectangle (\i*3+2.9,0.6);
+        \node[font=\footnotesize] at (\i*3+1.5,0.35) {W\i};
+    }
+
+    % Events (on time)
+    \foreach \x/\y in {0.5/1.2, 1.0/1.5, 1.8/1.8, 3.5/1.0, 4.2/1.3, 4.8/2.0, 7.0/1.5, 7.5/1.8} {
+        \fill[green!60!black] (\x,\y) circle (0.12);
+    }
+
+    % Late event
+    \fill[red] (2.0,3.2) circle (0.12);
+    \draw[->, dashed, red] (2.0,3.2) -- (1.5,0.6);
+    \node[right, font=\scriptsize, red] at (2.1,3.2) {Evento tardío};
+
+    % Watermark line
+    \draw[thick, blue, dashed] (0,0.8) -- (3,1.0) -- (6,1.6) -- (9,2.2) -- (12,2.8) -- (15,3.5);
+    \node[right, font=\scriptsize, blue] at (15,3.5) {Watermark};
+
+    % Labels
+    \node[below, font=\footnotesize] at (1.5,-0.2) {0--60s};
+    \node[below, font=\footnotesize] at (4.5,-0.2) {60--120s};
+    \node[below, font=\footnotesize] at (7.5,-0.2) {120--180s};
+    \node[below, font=\footnotesize] at (10.5,-0.2) {180--240s};
+    \node[below, font=\footnotesize] at (13.5,-0.2) {240--300s};
+
+    % Legend
+    \fill[green!60!black] (0.5,3.8) circle (0.1);
+    \node[right, font=\scriptsize] at (0.7,3.8) {Eventos on-time};
+    \fill[red] (4,3.8) circle (0.1);
+    \node[right, font=\scriptsize] at (4.2,3.8) {Evento tardío};
+\end{tikzpicture}
+\caption{Ventanas fijas de 60 segundos con watermark y datos tardíos}
+\end{figure}
+
+La elección de ventanas de 60 segundos responde a un equilibrio entre granularidad y eficiencia: ventanas más pequeñas producirían demasiadas emisiones con pocos datos, mientras que ventanas más grandes aumentarían la latencia de las métricas en los dashboards.
+
+\subsubsection{Triggers y manejo de eventos tardíos}\label{triggers-y-manejo-de-eventos-tarduxedos}
+
+Los triggers determinan cuándo se materializan los resultados de cada ventana. El sistema implementa una estrategia compuesta que combina tres tipos de emisión:
+
+\begin{table}[H]
+\centering
+\caption{Tipos de Triggers y su comportamiento}
+\begin{tabular}{@{}lp{6cm}p{6cm}@{}}
+\toprule
+\textbf{Trigger} & \textbf{Condición de disparo} & \textbf{Propósito} \\
+\midrule
+Early & Cada 30 segundos de processing time (\texttt{AfterProcessingTime}) & Proporcionar resultados parciales a los dashboards para reducir latencia percibida \\
+On-time & Cuando el watermark supera el fin de la ventana (\texttt{AfterWatermark}) & Emisión principal con todos los datos esperados \\
+Late & Por cada dato tardío que llega (\texttt{AfterCount(1)}) & Corregir resultados cuando llegan datos con retraso \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El watermark representa la estimación del sistema sobre cuánto ha avanzado el event time. Es un marcador monotónicamente creciente que indica: ``todos los datos con event time anterior a este punto ya deberían haber llegado''. En la práctica, esta estimación no es perfecta, por lo que se define un período de tolerancia:
+
+\begin{lstlisting}[language=Python, caption=Configuración de windowing en config.yaml]
+windowing:
+  enabled: true
+  window_size_seconds: 60       # Tamano de ventana en event time
+  allowed_lateness_seconds: 300  # 5 minutos de tolerancia para datos tardios
+  trigger: "default"             # Estrategia de trigger (default/early/late)
+  accumulation_mode: "discarding" # Cada emision contiene solo datos nuevos
+\end{lstlisting}
+
+Los eventos que llegan después de que el watermark haya superado el fin de su ventana, pero dentro del período de \texttt{allowed\_lateness} (300 segundos), aún se procesan y se asignan a la ventana correcta, disparando una emisión late. Los eventos que llegan después de los 300 segundos se descartan y se registran como métrica de calidad.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=4cm, minimum height=0.8cm, align=center, fill=#1, font=\footnotesize},
+    arrow/.style={->, thick}
+]
+    \node[box=green!20] (early) {Early trigger (30s)\\Resultados parciales};
+    \node[box=blue!15, below=0.8cm of early] (ontime) {On-time trigger\\Watermark pasa fin de ventana};
+    \node[box=orange!20, below=0.8cm of ontime] (late) {Late trigger\\Dato tardío ($<$ 300s)};
+    \node[box=red!20, below=0.8cm of late] (discard) {Descartado\\Dato tardío ($>$ 300s)};
+
+    \draw[arrow] (early) -- (ontime);
+    \draw[arrow] (ontime) -- (late);
+    \draw[arrow] (late) -- (discard);
+
+    \node[right=1cm of early, font=\footnotesize] {$\rightarrow$ Dashboard (preview)};
+    \node[right=1cm of ontime, font=\footnotesize] {$\rightarrow$ MongoDB (definitivo)};
+    \node[right=1cm of late, font=\footnotesize] {$\rightarrow$ MongoDB (corrección)};
+    \node[right=1cm of discard, font=\footnotesize] {$\rightarrow$ Métrica de calidad};
+\end{tikzpicture}
+\caption{Ciclo de vida de triggers y destino de cada emisión}
+\end{figure}
+
+\subsubsection{Procesamiento en batch}\label{procesamiento-en-batch}
+
+El modo batch reutiliza las mismas transformaciones que streaming, pero con una fuente de datos diferente. En lugar de consumir de Kafka, lee archivos directamente del sistema de archivos usando Polars:
+
+\begin{lstlisting}[language=Python, caption=StorageSource -- Lectura de archivos en modo batch]
+class ReadCSVFiles(beam.DoFn):
+    def __init__(self, schema_name: str):
+        self.schema_name = schema_name
+
+    def process(self, file_metadata):
+        try:
+            df = polars.read_csv(file_metadata.path)
+            for row in df.iter_rows(named=True):
+                yield {
+                    "schema": self.schema_name,
+                    "data": row
+                }
+        except Exception as e:
+            yield beam.pvalue.TaggedOutput('dlq', {
+                'error': str(e),
+                'error_type': 'file_read_error',
+                'file': file_metadata.path,
+                'timestamp': datetime.utcnow().isoformat()
+            })
+\end{lstlisting}
+
+Las diferencias entre el procesamiento batch y streaming son consecuencia directa de la naturaleza de los datos:
+
+\begin{table}[H]
+\centering
+\caption{Diferencias de comportamiento entre batch y streaming}
+\begin{tabular}{@{}lp{6cm}p{6cm}@{}}
+\toprule
+\textbf{Aspecto} & \textbf{Batch} & \textbf{Streaming} \\
+\midrule
+Datos & Finitos (bounded): el archivo tiene un número conocido de filas & Infinitos (unbounded): los mensajes llegan continuamente \\
+Ventana & Global Window implícita: todos los datos pertenecen a una única ventana & Fixed Windows de 60s: los datos se agrupan por event time \\
+Watermark & Avanza a $+\infty$ al finalizar la lectura del archivo & Progresivo: avanza conforme llegan nuevos eventos \\
+Triggers & Único: se emite al procesar todos los datos & Múltiples: early, on-time y late \\
+Datos tardíos & No aplica: todos los datos están disponibles al inicio & Soportados con \texttt{allowed\_lateness} de 300s \\
+Uso típico & Reprocesamiento histórico, carga inicial & Procesamiento de reportes diarios en tiempo real \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ejecución en modo batch:
+\begin{lstlisting}[language=bash, caption=Comandos para ejecución en modo batch]
+# Procesar datos de fallecimientos en batch
+python pipelines/demises/pipeline.py --mode batch
+
+# Procesar datos de casos en batch
+python pipelines/cases/pipeline.py --mode batch
+
+# Ejecucion completa mediante orquestador
+python orchestrator.py --schema demises --mode batch
+\end{lstlisting}
+
+\subsection{Transformaciones y cálculos analíticos}\label{transformaciones-y-cuxe1lculos-analuxedticos}
+
+El pipeline implementa una cadena de transformaciones que garantiza la calidad, consistencia y enriquecimiento de los datos antes de su almacenamiento. Cada transformación se implementa como un \texttt{DoFn} independiente, siguiendo el principio de responsabilidad única.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.8cm,
+    step/.style={rectangle, draw, rounded corners, minimum width=10cm, minimum height=1.2cm, align=left, fill=#1, font=\footnotesize},
+    arrow/.style={->, thick}
+]
+    \node[step=green!15] (norm) {\textbf{1. NormalizeRecord} -- Limpieza de datos crudos\\
+    \quad Convierte vacíos $\rightarrow$ None \quad | \quad Trim de strings \quad | \quad Normaliza tipos};
+
+    \node[step=blue!10, below=0.5cm of norm] (val) {\textbf{2. ValidateSchema} -- Verificación contra esquema\\
+    \quad Campos requeridos presentes \quad | \quad Tipos correctos \quad | \quad Valores en dominio};
+
+    \node[step=orange!15, below=0.5cm of val] (ts) {\textbf{3. AssignTimestamp} -- Asignación temporal\\
+    \quad Parsea fecha (múltiples formatos) \quad | \quad Convierte a Unix timestamp \quad | \quad Asigna event time};
+
+    \node[step=purple!10, below=0.5cm of ts] (meta) {\textbf{4. AddMetadata} -- Enriquecimiento\\
+    \quad Versión pipeline \quad | \quad Tipo source \quad | \quad Processing time \quad | \quad Info ventana};
+
+    \draw[arrow] (norm) -- (val);
+    \draw[arrow] (val) -- (ts);
+    \draw[arrow] (ts) -- (meta);
+
+    % DLQ arrows
+    \node[rectangle, draw, rounded corners, fill=red!15, font=\footnotesize, minimum width=2cm] (dlq) at (8,{-1.5}) {DLQ};
+    \draw[->, dashed, red, thick] (norm.east) -- ++(0.5,0) |- (dlq);
+    \draw[->, dashed, red, thick] (val.east) -- ++(0.3,0) |- (dlq);
+    \draw[->, dashed, red, thick] (ts.east) -- ++(0.1,0) |- (dlq);
+\end{tikzpicture}
+\caption{Cadena de transformaciones con salidas a DLQ}
+\end{figure}
+
+\textbf{1. NormalizeRecord} -- Cada registro crudo puede contener inconsistencias heredadas del archivo CSV original. Esta transformación homogeneiza los datos:
+
+\begin{lstlisting}[language=Python, caption=Lógica de NormalizeRecord]
+class NormalizeRecord(beam.DoFn):
+    NULL_VALUES = {'', 'NULL', 'NA', 'None', 'null', 'N/A', '-'}
+
+    def process(self, element):
+        try:
+            data = element.get('data', {})
+            normalized = {}
+            for key, value in data.items():
+                if isinstance(value, str):
+                    value = value.strip()
+                    if value in self.NULL_VALUES:
+                        value = None
+                normalized[key] = value
+            yield {'schema': element['schema'], 'data': normalized}
+        except Exception as e:
+            yield beam.pvalue.TaggedOutput('dlq', {
+                'error': str(e), 'error_type': 'normalization_error',
+                'original_record': element
+            })
+\end{lstlisting}
+
+\textbf{2. ValidateSchema} -- Verifica que cada registro cumpla con el esquema definido para su tipo de dato. Los registros que no pasan la validación se envían a DLQ con el detalle del error:
+
+\begin{itemize}
+    \item Verifica la presencia de todos los campos requeridos según el schema (\texttt{cases} o \texttt{demises}).
+    \item Comprueba que el tipo de cada campo coincida con el definido en el esquema JSON.
+    \item Valida que los valores categóricos pertenezcan al dominio esperado (por ejemplo, sexo solo acepta MASCULINO o FEMENINO).
+\end{itemize}
+
+\textbf{3. AssignTimestamp} -- Extrae y asigna el timestamp de evento, que es fundamental para el correcto funcionamiento del windowing:
+
+\begin{itemize}
+    \item Soporta múltiples formatos de fecha: Unix timestamp (entero), ISO 8601 (\texttt{YYYY-MM-DD}), y formatos localizados (\texttt{DD/MM/YYYY}).
+    \item Asigna el timestamp al elemento mediante \texttt{beam.window.TimestampedValue}, que es lo que Beam utiliza para determinar a qué ventana pertenece cada registro.
+    \item Agrega el campo \texttt{timestamp} al registro para que MongoDB pueda utilizarlo como campo temporal de la colección Time-Series.
+\end{itemize}
+
+\textbf{4. AddMetadata} -- Enriquece cada registro con información de contexto de procesamiento:
+
+\begin{lstlisting}[language=Python, caption=Estructura de metadata agregada a cada registro]
+metadata = {
+    "pipeline_version": "1.0.0",       # Version del pipeline
+    "source_type": "kafka",             # Origen del dato (kafka/storage)
+    "processed_at": "2024-01-15T10:30:05.123456",  # Timestamp de procesamiento
+    "worker_host": "worker-1.local",    # Identificador del worker
+    "window_start": "2024-01-15T10:30:00",  # Inicio de ventana temporal
+    "window_end": "2024-01-15T10:31:00"     # Fin de ventana temporal
+}
+\end{lstlisting}
+
+Esta metadata permite trazabilidad completa: dado un registro en MongoDB, se puede determinar cuándo fue procesado, por qué worker, desde qué fuente y en qué ventana temporal.
+
+\subsection{Consideraciones de escalabilidad y tolerancia a fallos}\label{consideraciones-de-escalabilidad-y-tolerancia-a-fallos}
+
+El sistema está diseñado para operar de forma confiable ante fallos parciales y escalar según la demanda de datos. Esta sección describe los mecanismos de escalabilidad horizontal, el patrón de tolerancia a fallos, la portabilidad entre runners y la estrategia de batching.
+
+\textbf{Escalabilidad horizontal}
+
+Cada componente del sistema puede escalar de forma independiente, lo que permite ajustar los recursos según el cuello de botella:
+
+\begin{table}[H]
+\centering
+\caption{Mecanismos de escalabilidad por componente}
+\begin{tabular}{@{}llp{8cm}@{}}
+\toprule
+\textbf{Componente} & \textbf{Mecanismo} & \textbf{Funcionamiento} \\
+\midrule
+Kafka & Particiones & Cada topic puede tener múltiples particiones. La ingesta se distribuye entre ellas por hash de clave o round-robin \\
+Kafka & Replicación & Cada partición se replica en múltiples brokers. Si un broker cae, una réplica asume el liderazgo \\
+Kafka & Consumer Groups & Múltiples instancias del pipeline se unen al mismo grupo. Kafka asigna particiones a cada instancia automáticamente \\
+Beam & Workers & El runner distribuye los DoFn entre workers paralelos. Cada worker procesa un subconjunto de datos \\
+Beam & DoFn parallelism & Dentro de cada worker, múltiples instancias del DoFn procesan elementos en paralelo \\
+MongoDB & Sharding & Las colecciones Time-Series pueden distribuirse entre múltiples shards por rango temporal \\
+MongoDB & Replica Sets & Cada shard se replica para alta disponibilidad, con failover automático \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=1.8cm, minimum height=0.7cm, align=center, fill=#1, font=\scriptsize},
+    arrow/.style={->, thick}
+]
+    % Kafka partitions
+    \node[box=blue!15] (p0) {Partición 0};
+    \node[box=blue!15, below=0.3cm of p0] (p1) {Partición 1};
+    \node[box=blue!15, below=0.3cm of p1] (p2) {Partición 2};
+
+    % Workers
+    \node[box=orange!20, right=2.5cm of p0] (w0) {Worker 0\\DoFn x4};
+    \node[box=orange!20, right=2.5cm of p1] (w1) {Worker 1\\DoFn x4};
+    \node[box=orange!20, right=2.5cm of p2] (w2) {Worker 2\\DoFn x4};
+
+    % MongoDB shards
+    \node[box=green!15, right=2.5cm of w0, yshift=-0.3cm] (s0) {Shard 0\\(2020-2021)};
+    \node[box=green!15, right=2.5cm of w2, yshift=0.5cm] (s1) {Shard 1\\(2021-2022)};
+
+    \draw[arrow] (p0) -- (w0);
+    \draw[arrow] (p1) -- (w1);
+    \draw[arrow] (p2) -- (w2);
+    \draw[arrow] (w0) -- (s0);
+    \draw[arrow] (w1) -- (s0);
+    \draw[arrow] (w1) -- (s1);
+    \draw[arrow] (w2) -- (s1);
+
+    % Labels
+    \node[above=0.3cm of p0, font=\bfseries\footnotesize] {Kafka};
+    \node[above=0.3cm of w0, font=\bfseries\footnotesize] {Beam Workers};
+    \node[above=0.3cm of s0, font=\bfseries\footnotesize] {MongoDB};
+\end{tikzpicture}
+\caption{Escalabilidad horizontal: particiones, workers y shards}
+\end{figure}
+
+\textbf{Tolerancia a fallos -- Dead Letter Queue (DLQ)}
+
+El patrón DLQ es la estrategia central de tolerancia a fallos del pipeline. Su principio es que ningún error individual debe detener el procesamiento de los demás registros. Cada etapa del pipeline puede emitir registros a dos salidas: el flujo principal (\texttt{main}) y la cola de errores (\texttt{dlq}).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.3cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=2cm, minimum height=0.8cm, align=center, fill=blue!10, font=\footnotesize},
+    dlq/.style={rectangle, draw, rounded corners, minimum width=2cm, minimum height=0.8cm, align=center, fill=red!20, font=\footnotesize},
+    arrow/.style={->, thick}
+]
+    \node[box] (source) {Source};
+    \node[box, right=of source] (norm) {Normalize};
+    \node[box, right=of norm] (val) {Validate};
+    \node[box, right=of val] (ts) {Timestamp};
+    \node[box, right=of ts] (sink) {MongoDB};
+
+    \node[dlq, below=2.5cm of val] (dlq) {DLQ Collection\\(diagnóstico + reproceso)};
+
+    \draw[arrow] (source) -- (norm);
+    \draw[arrow] (norm) -- (val);
+    \draw[arrow] (val) -- (ts);
+    \draw[arrow] (ts) -- (sink);
+
+    \draw[->, dashed, red] (source) |- node[pos=0.25, right, font=\scriptsize] {parse\_error} (dlq);
+    \draw[->, dashed, red] (norm) -- node[left, font=\scriptsize] {normalization\_error} (dlq);
+    \draw[->, dashed, red] (val) -- node[right, font=\scriptsize] {validation\_error} (dlq);
+    \draw[->, dashed, red] (ts) |- node[pos=0.25, right, font=\scriptsize] {timestamp\_error} (dlq);
+\end{tikzpicture}
+\caption{Patrón Dead Letter Queue con tipos de error por etapa}
+\end{figure}
+
+Cada registro en DLQ contiene información suficiente para diagnóstico y reprocesamiento:
+
+\begin{table}[H]
+\centering
+\caption{Tipos de errores capturados en DLQ}
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+\textbf{Tipo de error} & \textbf{Etapa} & \textbf{Causa típica} \\
+\midrule
+\texttt{kafka\_consumer\_error} & Source & Mensaje corrupto, error de deserialización \\
+\texttt{parse\_error} & Source & JSON malformado en el valor del mensaje \\
+\texttt{normalization\_error} & Normalize & Estructura inesperada del registro \\
+\texttt{validation\_error} & Validate & Campos requeridos ausentes o tipos incorrectos \\
+\texttt{timestamp\_error} & Timestamp & Fecha en formato no reconocido o fuera de rango \\
+\texttt{mongo\_write\_error} & Sink & Fallo de conexión o documento demasiado grande \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La tasa de error DLQ es un indicador clave de calidad del sistema: una tasa inferior al 1\% indica que los datos de origen son consistentes y los esquemas de validación están bien calibrados. Tasas superiores pueden indicar cambios en el formato de los datos fuente que requieren ajuste de las transformaciones.
+
+\textbf{Portabilidad de Runners}
+
+Una de las ventajas del modelo Dataflow implementado con Apache Beam es la portabilidad entre diferentes motores de ejecución. El mismo código del pipeline se ejecuta sin modificaciones en tres entornos:
+
+\begin{lstlisting}[language=bash, caption=Ejecución en diferentes runners]
+# DirectRunner: ejecucion local para desarrollo y testing
+python pipeline.py --mode streaming
+
+# DataflowRunner: Google Cloud Platform (produccion cloud)
+python pipeline.py --runner DataflowRunner \
+    --project mi-proyecto \
+    --region us-central1 \
+    --temp_location gs://bucket/temp \
+    --num_workers 4
+
+# FlinkRunner: cluster Apache Flink (produccion on-premise)
+python pipeline.py --runner FlinkRunner \
+    --flink_master localhost:8081 \
+    --parallelism 8
+\end{lstlisting}
+
+Esta portabilidad permite desarrollar y probar localmente con DirectRunner, y desplegar en producción con DataflowRunner o FlinkRunner sin cambiar el código, solo la configuración del runner.
+
+\textbf{Batching para eficiencia de escritura}
+
+La escritura a MongoDB se optimiza mediante batching, agrupando múltiples registros en una sola operación de inserción:
+
+\begin{lstlisting}[language=Python, caption=Configuración de batching en config.yaml]
+batching:
+  strategy: "native"          # Usa BatchElements de Beam
+  batch_size: 100             # Maximo de elementos por batch
+  batch_timeout_seconds: 30   # Timeout para batches incompletos
+\end{lstlisting}
+
+El batching nativo de Beam (\texttt{BatchElements}) agrupa elementos en listas y emite cuando se cumple cualquiera de las dos condiciones:
+
+\begin{itemize}
+    \item Se alcanza el tamaño máximo de batch (100 elementos), lo que ocurre en flujos de alto volumen.
+    \item Se alcanza el timeout (30 segundos) sin completar un batch, lo que ocurre en flujos de bajo volumen y garantiza que los datos no queden retenidos indefinidamente.
+\end{itemize}
+
+Esta estrategia dual permite que el sistema funcione eficientemente tanto en picos de carga (batches completos que aprovechan la inserción masiva de MongoDB) como en períodos de baja actividad (timeout que asegura entrega oportuna de datos a los dashboards).
+
+\subsection{Modelos analíticos y predictivos}\label{modelos-analuxedticos-y-predictivos}
+
+La arquitectura de procesamiento implementada sobre Apache Beam, Kafka y MongoDB proporciona una base robusta sobre la cual se construyen modelos analíticos y predictivos para datos epidemiológicos. Esta sección describe los objetivos de dichos modelos y su integración con la arquitectura Dataflow.
+
+\subsubsection{Objetivos de los modelos analíticos y predictivos}
+
+Los modelos analíticos y predictivos del sistema persiguen los siguientes objetivos:
+
+\begin{enumerate}
+    \item \textbf{Análisis descriptivo}: Caracterizar la evolución de la pandemia mediante métricas epidemiológicas calculadas sobre los datos almacenados en MongoDB.
+    \item \textbf{Detección temprana}: Identificar cambios bruscos en la tendencia de casos o fallecimientos que puedan indicar nuevas olas o brotes.
+    \item \textbf{Predicción a corto plazo}: Estimar el número de casos y fallecimientos en los próximos días o semanas para facilitar la planificación sanitaria.
+    \item \textbf{Segmentación de riesgo}: Identificar grupos poblacionales con mayor riesgo según edad, sexo y ubicación geográfica.
+    \item \textbf{Soporte a la toma de decisiones}: Proporcionar información procesable para autoridades sanitarias.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=3.5cm, minimum height=1cm, align=center, fill=#1},
+    arrow/.style={->, thick}
+]
+    \node[box=green!20] (ingest) {Ingesta\\Kafka + Beam};
+    \node[box=orange!20, below=2cm of ingest] (store) {Almacenamiento\\MongoDB Time-Series};
+    \node[box=blue!15, below=2cm of store] (analytics) {Analítica\\Modelos + Métricas};
+    \node[box=red!15, below=2cm of analytics] (action) {Acción\\Decisiones + Alertas};
+
+    \draw[arrow] (ingest) -- (store);
+    \draw[arrow] (store) -- (analytics);
+    \draw[arrow] (analytics) -- (action);
+
+    \node[right=0.3cm of ingest, font=\footnotesize] {1,269,506 registros};
+    \node[right=0.3cm of store, font=\footnotesize] {Time-Series + DLQ};
+    \node[right=0.3cm of analytics, font=\footnotesize] {Descriptivo + Predictivo};
+    \node[right=0.3cm of action, font=\footnotesize] {Dashboards + Alertas};
+\end{tikzpicture}
+\caption{Cadena de valor: de los datos a la acción}
+\end{figure}
+
+Los datos disponibles para los modelos provienen de dos datasets principales:
+
+\begin{table}[H]
+\centering
+\caption{Datos disponibles para modelado}
 \begin{tabular}{@{}llrl@{}}
 \toprule
 \textbf{Dataset} & \textbf{Schema} & \textbf{Registros} & \textbf{Variables clave} \\
@@ -874,430 +2006,643 @@ Fallecimientos & \texttt{demises} & 220,918 & fecha\_fallecimiento, edad, sexo, 
 \end{tabular}
 \end{table}
 
-La arquitectura sigue el patrón Kappa, donde todos los datos fluyen a través de Apache Kafka como bus de eventos central, simplificando el diseño al eliminar la necesidad de mantener dos pipelines separados para batch y streaming.
+\subsubsection{Integración de los modelos en la arquitectura Dataflow}
 
-\subsection{\texorpdfstring{Análisis de requisitos del sistema}{Análisis de requisitos del sistema}}\label{anuxe1lisis-de-requisitos-del-sistema}
+Los modelos analíticos se integran en la arquitectura Dataflow de dos maneras complementarias:
 
-El analisis de requisitos que debe cumplir el sistema propuesto, tanto desde una perspectiva funcional como no funcional y epidemiológica. Estos requisitos se han definido a partir del análisis del dominio del problema, las características de los datos epidemiológicos y los objetivos del procesamiento en tiempo real y por lotes, garantizando que la arquitectura diseñada sea adecuada para la monitorización y análisis de la evolución de la enfermedad.
+\textbf{Modo 1: Análisis en línea (dentro del pipeline)}
 
-\subsection{\texorpdfstring{Requisitos
-            funcionales}{Requisitos funcionales}}\label{requisitos-funcionales}
+Se implementan como \texttt{DoFn} adicionales dentro del pipeline de Apache Beam, procesando datos en tiempo real conforme pasan por las ventanas temporales.
 
-El sistema debe ser capaz de ingerir datos epidemiológicos en tiempo real procedentes de fuentes de mensajería como Apache Kafka, permitiendo la incorporación continua de nuevos eventos conforme se generan. Esta capacidad resulta esencial para reflejar de manera actualizada la evolución de los indicadores epidemiológicos y posibilitar la detección temprana de cambios relevantes.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=2cm, minimum height=0.8cm, align=center, fill=blue!10, font=\footnotesize},
+    analytics/.style={rectangle, draw, rounded corners, minimum width=2cm, minimum height=0.8cm, align=center, fill=yellow!30, font=\footnotesize},
+    arrow/.style={->, thick}
+]
+    \node[box] (source) {Source};
+    \node[box, right=0.8cm of source] (norm) {Normalize};
+    \node[box, right=0.8cm of norm] (val) {Validate};
+    \node[box, right=0.8cm of val] (ts) {Timestamp};
+    \node[box, below=0.8cm of source] (win) {Windowing};
 
-Asimismo, el sistema debe soportar procesamiento tanto en modalidad en tiempo real como en lotes, de forma que sea posible analizar datos históricos mediante procesos por lotes y, simultáneamente, tratar los eventos entrantes en tiempo real. Esta dualidad permite reutilizar la misma lógica de transformación y validación en ambos contextos, alineándose con el modelo Dataflow.
+    \node[analytics, below=1cm of win] (metrics) {Compute\\Metrics};
+    \node[analytics, right=0.8cm of metrics] (anomaly) {Detect\\Anomalies};
 
-Otro requisito fundamental es la generación de métricas epidemiológicas, tales como recuentos de casos, tasas de incidencia o indicadores derivados, a partir de los datos procesados. Estas métricas constituyen la base para el análisis posterior y para la toma de decisiones informadas.
+    \node[box, right=0.8cm of win] (meta) {Metadata};
+    \node[box, right=0.8cm of meta] (batch) {Batching};
+    \node[box, right=0.8cm of batch] (sink) {MongoDB};
 
-El sistema debe permitir también la predicción de tendencias, facilitando el análisis de la evolución temporal de los datos y la identificación de patrones que puedan anticipar incrementos o descensos significativos en la incidencia de la enfermedad.
+    \draw[arrow] (source) -- (norm);
+    \draw[arrow] (norm) -- (val);
+    \draw[arrow] (val) -- (ts);
+    \draw[arrow] (ts) -- (win);
+    \draw[arrow] (win) -- (meta);
+    \draw[arrow] (meta) -- (batch);
+    \draw[arrow] (batch) -- (sink);
 
-Finalmente, se requiere la visualización de la información y la generación de alertas, de manera que los resultados del procesamiento puedan ser consultados de forma clara e intuitiva mediante herramientas de visualización, así como la emisión de alertas cuando se superen determinados umbrales predefinidos.
-Los requisitos funcionales del sistema son:
+    \draw[arrow, dashed, orange] (win) -- (metrics);
+    \draw[arrow, dashed, orange] (metrics) -- (anomaly);
+    \draw[arrow, dashed, orange] (anomaly) -| (sink);
+
+    \node[below=0.3cm of metrics, font=\footnotesize\itshape, orange] {Capa analítica};
+\end{tikzpicture}
+\caption{Integración de modelos analíticos en el pipeline Beam}
+\end{figure}
+
+\begin{lstlisting}[language=Python, caption=DoFn analítico dentro del pipeline]
+class ComputeWindowMetrics(beam.DoFn):
+    """Calcula metricas descriptivas por ventana temporal"""
+
+    def process(self, element, window=beam.DoFn.WindowParam):
+        data = element.get('data', {})
+        yield {
+            'window_start': window.start.to_utc_datetime().isoformat(),
+            'window_end': window.end.to_utc_datetime().isoformat(),
+            'schema': element.get('schema'),
+            'edad': data.get('edad') or data.get('edad_declarada'),
+            'sexo': data.get('sexo'),
+            'resultado': data.get('resultado'),
+            'departamento': data.get('departamento_paciente')
+                           or data.get('departamento')
+        }
+\end{lstlisting}
+
+\textbf{Modo 2: Análisis fuera de línea (post-procesamiento)}
+
+Se ejecutan consultas y modelos sobre los datos ya almacenados en MongoDB, aprovechando las colecciones Time-Series para agregaciones eficientes.
+
+\begin{lstlisting}[language=Python, caption=Análisis post-procesamiento sobre MongoDB]
+from pymongo import MongoClient
+import polars as pl
+
+client = MongoClient("mongodb://admin:admin123@localhost:27017")
+db = client["covid-db"]
+
+# Serie temporal de casos diarios
+pipeline_ts = [
+    {"$group": {
+        "_id": {"$dateToString": {
+            "format": "%Y-%m-%d", "date": "$timestamp"
+        }},
+        "total_cases": {"$sum": 1}
+    }},
+    {"$sort": {"_id": 1}}
+]
+
+daily_cases = list(db.cases.aggregate(pipeline_ts))
+df = pl.DataFrame(daily_cases)
+\end{lstlisting}
+
+\subsection{Análisis exploratorio en tiempo real}\label{anuxe1lisis-exploratorio-en-tiempo-real}
+
+El análisis exploratorio en tiempo real aprovecha las ventanas temporales del modelo Dataflow para calcular métricas descriptivas conforme los datos fluyen por el pipeline.
+
+\subsubsection{Métricas descriptivas en tiempo real}
+
+Las métricas descriptivas se calculan por ventana temporal (60 segundos por defecto) y permiten monitorizar el estado de la pandemia en tiempo real.
+
+\textbf{Métricas del dataset Cases:}
 
 \begin{table}[H]
 \centering
-\caption{Requisitos Funcionales del Sistema}
-\begin{tabular}{@{}p{3cm}p{10cm}@{}}
+\caption{Métricas descriptivas para el schema Cases}
+\begin{tabular}{@{}lp{6cm}l@{}}
 \toprule
-\textbf{ID} & \textbf{Descripción} \\
+\textbf{Métrica} & \textbf{Descripción} & \textbf{Fórmula} \\
 \midrule
-RF-01 & El sistema debe ingestar datos desde archivos CSV y enviarlos a Apache Kafka \\
-RF-02 & El sistema debe consumir mensajes de Kafka en tiempo real \\
-RF-03 & El sistema debe normalizar los datos (limpieza de nulos, tipos) \\
-RF-04 & El sistema debe validar los registros contra esquemas JSON definidos \\
-RF-05 & El sistema debe asignar timestamps para procesamiento temporal \\
-RF-06 & El sistema debe aplicar ventanas temporales a los datos \\
-RF-07 & El sistema debe agregar metadata de procesamiento \\
-RF-08 & El sistema debe agrupar registros en batches para escritura eficiente \\
-RF-09 & El sistema debe almacenar los datos en MongoDB \\
-RF-10 & El sistema debe manejar errores mediante Dead Letter Queue \\
-RF-11 & El sistema debe soportar ejecución en modo streaming y batch \\
+Tasa de positividad & Proporción de resultados positivos & $\frac{\text{Positivos}}{\text{Total}} \times 100$ \\[6pt]
+Media de edad & Edad promedio de los casos & $\bar{x} = \frac{\sum x_i}{n}$ \\[6pt]
+Distribución por sexo & Proporción masculino/femenino & $\frac{n_{\text{sexo}}}{n_{\text{total}}}$ \\[6pt]
+Concentración geográfica & Departamentos con más casos & Top-$k$ por conteo \\[6pt]
+Tasa por institución & Distribución por tipo de institución & $\frac{n_{\text{inst}}}{n_{\text{total}}}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{\texorpdfstring{Requisitos no funcionales}{Requisitos no funcionales}}\label{requisitos-no-funcionales}
-
-Desde el punto de vista no funcional, el sistema debe garantizar escalabilidad, permitiendo incrementar su capacidad de procesamiento conforme aumente el volumen de datos sin necesidad de rediseñar la arquitectura. Este aspecto es especialmente relevante en escenarios epidemiológicos, donde el número de eventos puede variar de forma significativa.
-
-La arquitectura debe ofrecer baja latencia, de modo que exista un retardo mínimo entre la llegada de un evento y su disponibilidad para el análisis y la visualización. Esto resulta crítico en contextos de monitorización en tiempo real.
-
-Asimismo, el sistema debe ser tolerante a fallos, asegurando la continuidad del procesamiento incluso ante errores en componentes individuales, como caídas temporales de servicios o recepción de datos inválidos.
-
-En términos de seguridad, se requiere implementar mecanismos de control de acceso y protección de la información, garantizando que solo los usuarios y servicios autorizados puedan acceder a los datos y resultados, especialmente considerando la sensibilidad de la información sanitaria.
-
-Por último, el pipeline debe ser reproducible, permitiendo ejecutar nuevamente los procesos sobre los mismos datos y obtener resultados consistentes. Este requisito es clave tanto para la validación académica del trabajo como para la trazabilidad de los análisis realizados.
-
-\subsection{\texorpdfstring{Requisitos epidemiológicos}{Requisitos epidemiológicos}}\label{requisitos-epidemioluxf3gicos}
-
-El sistema debe contemplar distintos tipos de eventos epidemiológicos, tales como casos confirmados, hospitalizaciones y fallecimientos, los cuales presentan características y necesidades de análisis diferenciadas.
-
-Asimismo, es necesario definir ventanas temporales relevantes para el análisis, como ventanas diarias, semanales o móviles, que permitan estudiar la evolución de la enfermedad en distintos horizontes temporales.
-
-Entre los resultados esperados se incluyen indicadores epidemiológicos clave, como el número reproductivo efectivo o la incidencia acumulada, los cuales requieren un tratamiento específico de los datos y un cálculo consistente a lo largo del tiempo.
-
-Finalmente, se debe considerar la frecuencia y granularidad de los datos, garantizando que el sistema pueda manejar información a nivel individual o agregado, según el caso, y adaptarse a diferentes ritmos de actualización sin perder consistencia ni precisión en los resultados.
-
-\subsection{\texorpdfstring{Diseño de la arquitectura basada en el modelo Dataflow}{Diseño de la arquitectura basada en el modelo Dataflow}}\label{diseuxf1o-de-la-arquitectura-basada-en-el-modelo-dataflow}
-
-\subsubsection{Principios del modelo Dataflow aplicados}\label{principios-del-modelo-dataflow-aplicados}
-
-El diseño de la arquitectura propuesta se fundamenta en el modelo Dataflow, el cual plantea un enfoque unificado para el procesamiento de datos en streaming y batch. A diferencia de las arquitecturas tradicionales, el modelo Dataflow permite tratar ambos tipos de procesamiento bajo un mismo paradigma, simplificando la complejidad el sistema y mejorando su mantenibilidad.
-
-\begin{itemize}
-      \tightlist
-      \item
-            Eventos como entidad central: cada dato epidemiológico se modela como un evento que contiene información asociada al tiempo de ocurrencia (event time), lo que permite análisis temporales más precisos.
-      \item
-            Procesamiento unificado: el mismo pipeline lógico es utilizado tanto para datos en tiempo real como para datos históricos, diferenciándose únicamente en el modelo de ejecución.
-      \item
-            Separación entre lógica y ejecución: el modelo Dataflow desacopla el motor de ejecución, permitiendo su despliegue en distintos entornos sin modificar la lógica del procesamiento.
-      \item
-            Windows, triggers y watermarks: posibilitan la agregación de datos en intervalos relevantes para el análisis epidemiológico.
-      \item
-            Gestión explícita del tiempo: el uso de event time, processing time y watermarks permite manejar eventos tardíos y desordenados de forma controlada.
-\end{itemize}
-
-\subsubsection{Arquitectura general del sistema}\label{arquitectura-general-del-sistema}
-
-La arquitectura propuesta sigue un enfoque modular y desacoplado, organizado en capas funcionales que interactúan a través de flujos de eventos. Esta organización facilita la usabilidad, la tolerancia a fallos y la evolución del sistema.
-
-\begin{itemize}
-      \tightlist
-      \item
-            Diagrama de arquitectura.
-      \item
-            Componentes:
-            \begin{itemize}
-                  \tightlist
-                  \item
-                        Recolección de datos: datos extraídos de fuentes públicas, generadas y/o simuladas para reproducir patrones temporales y variabilidad realista.
-                  \item
-                        Sistema de ingesta de eventos: utiliza la plataforma de \emph{event streaming Kafka }para recibir y distribuir los eventos de forma continua y confiable.
-                  \item
-                        Pipeline de procesamiento: implementa la lógica de transformación, agregación y análisis de los datos, siguiendo el modelo Dataflow.
-                  \item
-                        Motor de ejecución: ejecuta el pipeline en modo \emph{streaming} o \emph{batch, }garantizando paralelismo, tolerancia a fallos y escalabilidad automática.
-                  \item
-                        Sistemas de almacenamiento: almacena tanto datos crudos como datos procesados para análisis en tiempo real e histórico.
-                  \item
-                        Capa de visualización y alertas: permite la exploración interactiva de los resultados y la notificación de eventos críticos.
-            \end{itemize}
-\end{itemize}
-
-\subsubsection{Flujo de datos streaming y batch}\label{flujo-de-datos-streaming-y-batch}
-
-\begin{itemize}
-      \tightlist
-      \item
-            Flujo de procesamiento en tiempo real (streaming).\\
-            En el modo \emph{streaming}, los eventos epidemiológicos son generados de forma continua y enviados al sistema de ingesta. Estos eventos son procesados en tiempo real por el pipeline Dataflow, donde se aplican transformaciones, ventanas temporales y agregaciones para calcular indicadores clave. Los resultados se almacenan y visualizan con latencias reducidas, permitiendo el monitoreo continuo de la situación epidemiológica.
-      \item
-            Flujo de procesamiento por lotes.\\
-            En el modo \emph{batch}, el sistema reprocesa datos históricos almacenados previamente. Este enfoque permite recalcular métricas, validar resultados obtenidos en tiempo real y realizar análisis comparativos. Gracias al modelo Dataflow, el mismo pipeline lógico puede ejecutarse en este modo sin modificaciones sustanciales.
-      \item
-            Convergencia de flujos.\\
-            Ambos flujos convergen en los sistemas de almacenamiento y visualización, proporcionando una visión unificada del estado actual y pasado del fenómeno epidemiológico. Esta convergencia elimina la duplicación de lógica y reduce la complejidad operativa del sistema.
-\end{itemize}
-
-\subsection{\texorpdfstring{Implementación del pipeline de procesamiento}{Implementación del pipeline de procesamiento}}\label{implementaciuxf3n-del-pipeline-de-procesamiento}
-
-\subsubsection{Ingesta de datos basada en eventos}\label{ingesta-de-datos-basada-en-eventos}
-
-La implementación del pipeline comienza con la ingesta de datos epidemiológicos modelados como eventos, los cuales representan observaciones discretas asociadas a un instante temporal específico. Para ello, se emplea un sistema de event streaming que actúa como intermediario entre las fuentes de datos y el procesamiento analítico.
-
-Cada evento contiene información estructurada, incluyendo atributos como el identificador del caso, la ubicación geográfica, el tipo de evento (caso confirmado, hospitalización, fallecimiento), y la marca temporal (event time). Estos eventos son publicados en uno o varios tópicos, permitiendo su consumo de manera paralela y escalable.
-
-El uso de una plataforma de mensajería desacoplada garantiza:
-
-\begin{itemize}
-      \item
-            Alta disponibilidad y tolerancia a fallos.
-      \item
-            Capacidad de absorción de picos en la tasa de eventos.
-      \item
-            Reprocesamiento de datos históricos mediante retención de mensajes.
-\end{itemize}
-
-Esta capa constituye la base del enfoque orientado a eventos de la arquitectura.
-
-\subsubsection{Definición del pipeline en Apache Beam}\label{definiciuxf3n-del-pipeline-en-apache-beam}
-
-El pipeline de procesamiento se implementa utilizando Apache Beam, siguiendo el paradigma del modelo Dataflow. Beam permite definir la lógica de procesamiento de manera independiente del entorno de ejecución, lo que facilita la portabilidad entre distintos motores y modos de operación.
-
-El pipeline se estructura en una secuencia de transformaciones aplicadas sobre colecciones de datos (PCollections), entre las que se incluyen:
-
-\begin{itemize}
-      \item
-            Lectura de eventos desde el sistema de ingesta.
-      \item
-            Asignación explícita del tiempo del evento.
-      \item
-            Agrupación y agregación de datos.
-      \item
-            Generación de métricas epidemiológicas.
-      \item
-            Escritura de resultados en sistemas de almacenamiento.
-\end{itemize}
-
-Esta definición lógica es común tanto para el procesamiento en streaming como en batch, diferenciándose únicamente en la configuración de la fuente de datos y el modo de ejecución.
-
-\subsubsection{Procesamiento en streaming}\label{procesamiento-en-streaming}
-
-En el procesamiento en \emph{streaming}, el pipeline opera sobre flujos continuos de datos, procesando los eventos a medida que son recibidos. Para ello, se utilizan mecanismos específicos del modelo Dataflow que permiten gestionar la naturaleza temporal de los datos.
-
-\subsubsection{Ventanas temporales}\label{ventanas-temporales}
-
-Las ventanas temporales permiten agrupar eventos en intervalos de tiempo relevantes para el análisis epidemiológico. En este trabajo se emplean ventanas de tipo:
-
-\begin{itemize}
-      \tightlist
-      \item
-            \textbf{Tumbling windows} para el cálculo de métricas por intervalos fijos.
-      \item
-            \textbf{Sliding windows} para detectar tendencias y cambios progresivos.
-\end{itemize}
-
-\subsubsection{Triggers y manejo de eventos tardíos}\label{triggers-y-manejo-de-eventos-tarduxedos}
-
-En arquitecturas de procesamiento de datos en tiempo real, uno de los principales desafíos es el manejo de eventos que llegan fuera de orden o con retraso respecto a su instante real de ocurrencia. En el contexto epidemiológico, este fenómeno es especialmente relevante, ya que los registros de casos, hospitalizaciones o fallecimientos pueden ser reportados con retrasos variables debido a procesos administrativos, validaciones manuales o problemas de conectividad.
-
-Para abordar esta problemática, el pipeline implementado utiliza triggers y watermarks, conceptos fundamentales del modelo Dataflow. Los triggers permiten controlar de forma explícita cuándo se emiten resultados parciales o finales de una ventana temporal, independientemente de que la ventana haya recibido todos los eventos esperados. De este modo, es posible generar resultados preliminares que proporcionen información temprana, sin necesidad de esperar al cierre definitivo de la ventana.
-
-Por su parte, los watermarks actúan como una estimación del progreso del tiempo de los eventos (event time), indicando hasta qué punto se considera improbable la llegada de nuevos eventos con marcas temporales anteriores. Esta estimación permite decidir cuándo cerrar una ventana y emitir resultados finales, incluso en presencia de eventos tardíos.
-
-La combinación de triggers y watermarks permite alcanzar un equilibrio entre oportunidad y precisión: el sistema puede ofrecer métricas actualizadas con baja latencia, al tiempo que incorpora eventos retrasados de forma controlada, evitando inconsistencias significativas en los resultados. Este enfoque resulta especialmente adecuado para sistemas de vigilancia epidemiológica, donde la rapidez en la detección de tendencias es crítica, pero la calidad y coherencia de los datos no puede verse comprometida.
-
-\subsubsection{Procesamiento en batch}\label{procesamiento-en-batch}
-
-El procesamiento en modo batch se emplea para el análisis de grandes volúmenes de datos históricos, permitiendo recalcular métricas, validar resultados obtenidos en tiempo real y realizar análisis retrospectivos más exhaustivos. En el contexto de este trabajo, el procesamiento batch resulta clave para consolidar la información epidemiológica y evaluar la consistencia de los indicadores generados durante la ejecución en streaming.
-
-En este modo de operación, el pipeline realiza las siguientes acciones principales:
-
-Lectura de datos almacenados previamente en sistemas persistentes, que contienen registros históricos completos.
-
-Aplicación de las mismas transformaciones, validaciones y agregaciones definidas para el procesamiento en streaming, garantizando coherencia metodológica.
-
-Generación de resultados consolidados que pueden compararse directamente con los obtenidos en tiempo real.
-
-Gracias al modelo Dataflow, la lógica del pipeline se mantiene idéntica entre los modos batch y streaming, diferenciándose únicamente en la fuente de datos y el modo de ejecución. Esta característica elimina la duplicación de código característica de arquitecturas tradicionales, como Lambda, y reduce de forma significativa la complejidad de desarrollo, mantenimiento y evolución del sistema.
-
-Además, el reprocesamiento batch permite corregir posibles desviaciones derivadas de eventos tardíos, errores de entrada o ajustes en los criterios de análisis, reforzando la fiabilidad global del sistema y proporcionando una base sólida para el análisis histórico y la validación de resultados.
-
-\begin{itemize}
-      \tightlist
-      \item
-            Lee datos almacenados previamente en sistemas persistentes.
-      \item
-            Aplica las mismas transformaciones y agregaciones definidas para el \emph{streaming}.
-      \item
-            Genera resultados consolidados que pueden compararse con los obtenidos en tiempo real.
-\end{itemize}
-
-Gracias al modelo Dataflow, la lógica del pipeline se mantiene consistente entre ambos modos, evitando duplicación de código y reduciendo la complejidad del sistema.
-
-\subsection{Transformaciones y cálculos analíticos}\label{transformaciones-y-cuxe1lculos-analuxedticos}
-
-Durante el procesamiento de los datos, tanto en modo \emph{streaming} como en \emph{batch}, se aplican diversas transformaciones y cálculos analíticos orientados a convertir los eventos crudos en información estructurada y útil para el análisis epidemiológico. Estas transformaciones constituyen el núcleo del valor analítico del pipeline desarrollado.
-
-Entre las principales transformaciones aplicadas se incluyen:
-
-\begin{itemize}
-      \item Limpieza y validación de datos, orientadas a eliminar registros incompletos, inconsistentes o inválidos, garantizando la calidad de la información procesada.
-      \item Normalización de atributos, unificando formatos, valores categóricos y representaciones temporales para asegurar consistencia en los cálculos posteriores.
-      \item Cálculo de métricas descriptivas, tales como conteos de casos, promedios móviles, tasas de crecimiento y proporciones relevantes para el análisis epidemiológico.
-      \item Agregaciones por dimensiones temporales, mediante ventanas de tiempo diarias, semanales o móviles, que permiten analizar la evolución de los indicadores a lo largo del tiempo.
-      \item Agregaciones por dimensiones geográficas, facilitando el estudio comparativo entre regiones, provincias o distritos.
-      \item Identificación de patrones relevantes, como incrementos sostenidos, picos abruptos o cambios significativos en la tendencia de los datos.
-\end{itemize}
-
-Estas transformaciones permiten generar indicadores epidemiológicos interpretables y coherentes, que sirven como base tanto para la visualización interactiva como para el análisis predictivo posterior. Al estar integradas directamente en el pipeline basado en el modelo Dataflow, se garantiza que los resultados producidos en tiempo real y en modo batch sean consistentes, reproducibles y alineados con los objetivos analíticos del trabajo.
-\begin{itemize}
-      \tightlist
-      \item
-            \textbf{Datos crudos}, conservados para reprocesamiento y auditoría.
-      \item
-            \textbf{Datos procesados}, optimizados para consultas rápidas y dashboards.
-      \item
-            \textbf{Resultados analíticos}, utilizados por modelos predictivos y sistemas de alertas.
-\end{itemize}
-
-La separación de estos niveles de almacenamiento mejora la eficiencia del sistema y facilita su mantenimiento.
-
-\subsection{Consideraciones de escalabilidad y tolerancia a fallos}\label{consideraciones-de-escalabilidad-y-tolerancia-a-fallos}
-
-La implementación del pipeline aprovecha las capacidades de escalabilidad y tolerancia a fallos proporcionadas por el motor de ejecución distribuido, permitiendo que el sistema se adapte de forma dinámica a variaciones en la carga de trabajo y mantenga un funcionamiento estable ante posibles fallos parciales.
-
-Desde el punto de vista de la \textbf{escalabilidad}, la arquitectura está diseñada para ajustar automáticamente los recursos computacionales en función de la tasa de llegada de eventos y del volumen de datos a procesar. Este ajuste dinámico permite incrementar o reducir el paralelismo del procesamiento sin necesidad de modificar la lógica del pipeline, garantizando un uso eficiente de los recursos disponibles. En escenarios de alta demanda, el sistema es capaz de absorber picos de carga manteniendo niveles de latencia aceptables, mientras que en periodos de menor actividad optimiza el consumo de recursos.
-
-En cuanto a la \textbf{tolerancia a fallos}, el sistema incorpora mecanismos que permiten recuperarse ante interrupciones parciales, como caídas temporales de nodos, fallos en componentes del motor de ejecución o problemas transitorios en la infraestructura. Gracias al uso de procesamiento distribuido y a la gestión consistente del estado, el pipeline puede reanudar su ejecución sin pérdida de datos ni necesidad de reprocesar manualmente la información ya tratada.
-
-Asimismo, se garantiza la \textbf{consistencia de los resultados} tanto en el procesamiento en tiempo real como en el reprocesamiento por lotes. Los mecanismos de control de estado y de gestión del tiempo de los eventos permiten que los cálculos agregados y las métricas generadas sean coherentes incluso en presencia de eventos tardíos o fallos parciales. Esta consistencia resulta clave para asegurar la fiabilidad del análisis epidemiológico y la comparabilidad entre los resultados obtenidos en distintos momentos o modos de ejecución.
-
-En conjunto, estas características dotan al sistema de una elevada robustez operativa, permitiéndole funcionar de manera estable en escenarios caracterizados por una alta variabilidad en la llegada de eventos y por condiciones de ejecución no deterministas. Este enfoque resulta especialmente adecuado para aplicaciones de análisis en tiempo real, donde la continuidad del servicio y la fiabilidad de los resultados son factores críticos para la toma de decisiones basada en datos.
-\subsection{Modelos analíticos y predictivos}\label{modelos-analuxedticos-y-predictivos}
-
-Este apartado describe los modelos analíticos y predictivos integrados en la arquitectura propuesta, cuyo propósito es extraer conocimiento a partir de los datos epidemiológicos procesados tanto en tiempo real como en modo batch. Estos modelos permiten identificar patrones relevantes, detectar comportamientos anómalos y generar escenarios futuros que apoyen la toma de decisiones en contextos de emergencia sanitaria.
-
-Desde un enfoque progresivo, el sistema combina técnicas descriptivas, analíticas y predictivas, permitiendo evolucionar desde una comprensión básica de los datos hacia un análisis más avanzado orientado a la anticipación de tendencias. Esta integración se realiza de forma coherente con el modelo Dataflow, aprovechando la capacidad del pipeline para reutilizar resultados intermedios y garantizar consistencia entre los distintos niveles de análisis.
-
-\subsubsection{Objetivos de los modelos analíticos y predictivos}
-
-Los modelos integrados en el sistema persiguen los siguientes objetivos principales:
-
-\begin{itemize}
-      \item Proporcionar una visión descriptiva y actualizada del estado epidemiológico.
-      \item Identificar patrones temporales y geográficos relevantes en la evolución de los datos.
-      \item Detectar comportamientos anómalos o cambios bruscos en los indicadores clave.
-      \item Generar escenarios futuros que apoyen la planificación y la toma de decisiones.
-\end{itemize}
-
-Estos objetivos se alinean con las necesidades propias de los sistemas de vigilancia epidemiológica, donde la rapidez de análisis y la capacidad de anticipación resultan fundamentales.
-
-\subsubsection{Integración de los modelos en la arquitectura Dataflow}
-
-Los modelos analíticos y predictivos se integran de manera desacoplada dentro de la arquitectura, permitiendo su ejecución tanto sobre flujos en tiempo real como sobre datos históricos. Esta integración posibilita:
-
-\begin{itemize}
-      \item El cálculo incremental de métricas analíticas durante el procesamiento en streaming.
-      \item El entrenamiento y validación de modelos predictivos mediante reprocesamiento batch.
-      \item La reutilización de resultados analíticos como variables de entrada para modelos de mayor complejidad.
-\end{itemize}
-
-Gracias a esta integración, el sistema mantiene coherencia entre el análisis descriptivo inmediato y el análisis predictivo basado en datos históricos consolidados.
-
-\subsection{Análisis exploratorio en tiempo real}\label{anuxe1lisis-exploratorio-en-tiempo-real}
-
-El análisis exploratorio en tiempo real constituye la primera capa de inteligencia del sistema y se realiza directamente sobre los flujos de datos en \emph{streaming}. Su objetivo principal es proporcionar una visión descriptiva y actualizada de la evolución epidemiológica, así como detectar posibles irregularidades de forma temprana.
-
-Este análisis permite transformar los eventos crudos en indicadores comprensibles, facilitando la supervisión continua del sistema y sirviendo como base para etapas analíticas más avanzadas.
-
-\subsubsection{Métricas descriptivas en tiempo real}
-
-A partir de los eventos procesados por el pipeline Dataflow, se calculan métricas descriptivas mediante agregaciones en ventanas temporales, entre las que destacan:
-
-\begin{itemize}
-      \item Número de casos confirmados por intervalo de tiempo.
-      \item Tasas de crecimiento diario y semanal.
-      \item Promedios móviles y acumulados.
-      \item Distribución de casos por región o área geográfica.
-\end{itemize}
-
-Estas métricas se actualizan de manera incremental, permitiendo disponer de indicadores casi en tiempo real con baja latencia.
-con el análisis histórico.
+\textbf{Métricas del dataset Demises:}
+
+\begin{table}[H]
+\centering
+\caption{Métricas descriptivas para el schema Demises}
+\begin{tabular}{@{}lp{6cm}l@{}}
+\toprule
+\textbf{Métrica} & \textbf{Descripción} & \textbf{Fórmula} \\
+\midrule
+Tasa de mortalidad & Ratio de fallecimientos sobre casos & $\frac{\text{Muertes}}{\text{Casos}} \times 100$ \\[6pt]
+Edad media de fallecidos & Edad promedio de fallecidos & $\bar{x} = \frac{\sum x_i}{n}$ \\[6pt]
+Distribución por clasificación & Proporción por criterio de defunción & $\frac{n_{\text{clasif}}}{n_{\text{total}}}$ \\[6pt]
+Mortalidad por departamento & Fallecimientos por región & Conteo por departamento \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Implementación como agregación por ventana:
+
+\begin{lstlisting}[language=Python, caption=Agregación de métricas por ventana temporal]
+class AggregateWindowMetrics(beam.CombineFn):
+    """Combina metricas dentro de una ventana temporal"""
+
+    def create_accumulator(self):
+        return {
+            'count': 0, 'positives': 0,
+            'ages': [], 'male': 0, 'female': 0,
+            'departments': {}
+        }
+
+    def add_input(self, acc, element):
+        acc['count'] += 1
+        data = element.get('data', {})
+        if data.get('resultado') == 'POSITIVO':
+            acc['positives'] += 1
+        edad = data.get('edad')
+        if edad is not None:
+            acc['ages'].append(edad)
+        sexo = data.get('sexo', '')
+        if sexo == 'MASCULINO':
+            acc['male'] += 1
+        elif sexo == 'FEMENINO':
+            acc['female'] += 1
+        dept = data.get('departamento_paciente', 'UNKNOWN')
+        acc['departments'][dept] = acc['departments'].get(dept, 0) + 1
+        return acc
+
+    def extract_output(self, acc):
+        count = acc['count']
+        return {
+            'total': count,
+            'positivity_rate': acc['positives'] / count if count > 0 else 0,
+            'avg_age': sum(acc['ages']) / len(acc['ages'])
+                       if acc['ages'] else None,
+            'male_ratio': acc['male'] / count if count > 0 else 0,
+            'top_departments': sorted(
+                acc['departments'].items(),
+                key=lambda x: x[1], reverse=True
+            )[:5]
+        }
+\end{lstlisting}
 
 \subsubsection{Detección de anomalías simples}\label{detección-de-anomalías-simples}
 
-omo parte del análisis exploratorio, el sistema incorpora mecanismos simples de detección de anomalías orientados a identificar comportamientos inusuales en los datos. Entre estos mecanismos se incluyen:
+La detección de anomalías en tiempo real identifica desviaciones significativas respecto al comportamiento esperado. Se implementa mediante métodos estadísticos ligeros que pueden ejecutarse dentro del pipeline.
 
-\begin{itemize}
-      \item Identificación de picos abruptos en el número de casos.
-      \item Comparación de valores actuales con promedios históricos en ventanas equivalentes.
-      \item Detección de desviaciones significativas respecto a tendencias recientes.
-\end{itemize}
+\textbf{Método 1: Z-Score por ventana móvil}
 
-Estas técnicas permiten señalar posibles eventos críticos de forma temprana, sirviendo como base para la generación de alertas y el análisis posterior.
+Se calcula el Z-score de cada ventana respecto a las $n$ ventanas anteriores:
+
+\[
+z = \frac{x - \mu}{\sigma}
+\]
+
+donde $x$ es el conteo de la ventana actual, $\mu$ la media de las $n$ ventanas anteriores y $\sigma$ su desviación estándar. Un valor $|z| > 2$ indica anomalía.
+
+\textbf{Método 2: Regla IQR (Rango Intercuartílico)}
+
+Se utiliza el rango intercuartílico para detectar outliers:
+
+\[
+\text{IQR} = Q_3 - Q_1
+\]
+\[
+\text{Límite inferior} = Q_1 - 1.5 \times \text{IQR}, \quad
+\text{Límite superior} = Q_3 + 1.5 \times \text{IQR}
+\]
+
+\textbf{Método 3: CUSUM (Cumulative Sum)}
+
+Detecta cambios en la media de una serie temporal de forma acumulativa:
+
+\[
+S_t = \max(0, S_{t-1} + (x_t - \mu_0) - k)
+\]
+
+donde $\mu_0$ es la media de referencia y $k$ es el umbral de sensibilidad. Se genera una alerta cuando $S_t > h$.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    method/.style={rectangle, draw, rounded corners, minimum width=3cm, minimum height=1cm, align=center, fill=#1, font=\small},
+    arrow/.style={->, thick}
+]
+    \node[method=blue!15] (data) {Datos por\\ventana};
+
+    \node[method=green!20, below left=1.5cm of data] (zscore) {Z-Score\\$|z| > 2$};
+    \node[method=orange!20, below=1.5cm of data] (iqr) {IQR\\Outliers};
+    \node[method=red!15, below right=1.5cm of data] (cusum) {CUSUM\\$S_t > h$};
+
+    \node[method=purple!15, below=2cm of iqr] (alert) {Sistema de\\Alertas};
+
+    \draw[arrow] (data) -- (zscore);
+    \draw[arrow] (data) -- (iqr);
+    \draw[arrow] (data) -- (cusum);
+    \draw[arrow] (zscore) -- (alert);
+    \draw[arrow] (iqr) -- (alert);
+    \draw[arrow] (cusum) -- (alert);
+\end{tikzpicture}
+\caption{Métodos de detección de anomalías implementados}
+\end{figure}
+
+\begin{lstlisting}[language=Python, caption=Detección de anomalías por Z-Score]
+class AnomalyDetector(beam.DoFn):
+    """Detecta anomalias en metricas por ventana"""
+
+    def __init__(self, window_history=20, z_threshold=2.0):
+        self.window_history = window_history
+        self.z_threshold = z_threshold
+        self.history = []
+
+    def process(self, metrics):
+        count = metrics.get('total', 0)
+        self.history.append(count)
+
+        if len(self.history) > self.window_history:
+            self.history = self.history[-self.window_history:]
+
+        if len(self.history) >= 5:
+            mean = sum(self.history[:-1]) / len(self.history[:-1])
+            std = (sum((x - mean)**2
+                       for x in self.history[:-1])
+                   / len(self.history[:-1])) ** 0.5
+
+            if std > 0:
+                z_score = (count - mean) / std
+                if abs(z_score) > self.z_threshold:
+                    yield {
+                        'type': 'anomaly',
+                        'metric': 'case_count',
+                        'value': count,
+                        'z_score': z_score,
+                        'mean': mean,
+                        'std': std,
+                        'severity': 'HIGH' if abs(z_score) > 3 else 'MEDIUM'
+                    }
+\end{lstlisting}
 
 \subsubsection{Soporte a la visualización y toma de decisiones}
 
-Los resultados del análisis exploratorio en tiempo real se integran directamente en los dashboards de visualización, proporcionando a los usuarios una representación clara y actualizada del estado epidemiológico. Esta integración facilita:
+Las métricas calculadas en tiempo real alimentan dashboards que permiten a los tomadores de decisiones monitorear la evolución de la pandemia:
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=3cm, minimum height=1cm, align=center, fill=#1, font=\footnotesize},
+    arrow/.style={->, thick}
+]
+    \node[box=blue!15] (pipeline) {Pipeline Beam\\(Métricas por ventana)};
+
+    \node[box=green!15, below left=1.5cm and -0.5cm of pipeline] (mongo) {MongoDB\\Time-Series};
+    \node[box=orange!15, below right=1.5cm and -0.5cm of pipeline] (alerts) {Sistema de\\Alertas};
+
+    \node[box=purple!15, below=1.5cm of mongo] (dashboard) {Dashboard\\Interactivo};
+    \node[box=red!15, below=1.5cm of alerts] (notification) {Notificaciones\\Email / Slack};
+
+    \draw[arrow] (pipeline) -- (mongo);
+    \draw[arrow] (pipeline) -- (alerts);
+    \draw[arrow] (mongo) -- (dashboard);
+    \draw[arrow] (alerts) -- (notification);
+\end{tikzpicture}
+\caption{Flujo de métricas hacia visualización y alertas}
+\end{figure}
+
+Indicadores clave que alimentan los dashboards:
 \begin{itemize}
-      \item El seguimiento continuo de indicadores clave.
-      \item La identificación rápida de cambios relevantes en la evolución de los datos.
-      \item El apoyo a la toma de decisiones informadas en contextos de alta incertidumbre.
+    \item \textbf{Tasa de positividad}: Proporción de tests positivos en la ventana actual.
+    \item \textbf{Tendencia}: Comparación de la ventana actual con las $n$ anteriores, indicando si la curva es ascendente, estable o descendente.
+    \item \textbf{Hotspots geográficos}: Departamentos con incremento sostenido de casos durante varias ventanas consecutivas.
+    \item \textbf{Alertas activas}: Anomalías detectadas que requieren atención inmediata del personal sanitario.
 \end{itemize}
-
-De este modo, el análisis exploratorio no solo cumple una función descriptiva, sino que actúa como un componente fundamental del sistema de vigilancia y monitorización en tiempo real.
 
 \subsection{Modelos predictivos}\label{modelos-predictivos}
 
-Sobre la base del análisis exploratorio, el sistema incorpora modelos predictivos orientados a anticipar la evolución de los indicadores epidemiológicos y analizar posibles escenarios futuros.
+Los modelos predictivos estiman la evolución futura de la pandemia basándose en patrones históricos. Se proponen tres familias de algoritmos adecuados a los datos disponibles.
 
 \subsubsection{Algoritmos utilizados}\label{algoritmos-utilizados}
 
-Dependiendo del tipo de análisis y del horizonte temporal, se consideran distintos enfoques de modelado, entre los que destacan:
 
-\begin{itemize}
-      \tightlist
-      \item
-            \textbf{Modelos de regresión} para la predicción de tendencias a corto plazo.
-      \item
-            \textbf{Modelos ARIMA} para el análisis de series temporales y la identificación de patrones estacionales.
-\end{itemize}
+\textbf{1. Modelos de Series de Tiempo}
 
-La selección de los modelos se realiza teniendo en cuenta la disponibilidad de datos, la interpretabilidad de los resultados y el coste computacional.
+\begin{table}[H]
+\centering
+\caption{Modelos de series de tiempo para predicción epidemiológica}
+\begin{tabular}{@{}lp{5.5cm}p{5.5cm}@{}}
+\toprule
+\textbf{Modelo} & \textbf{Descripción} & \textbf{Aplicación} \\
+\midrule
+ARIMA/SARIMA & Autoregresivo integrado con media móvil, captura estacionalidad & Predicción de casos diarios y semanales \\[6pt]
+Prophet & Modelo aditivo de Facebook, descompone en tendencia + estacionalidad + eventos & Predicción con intervalos de confianza \\[6pt]
+LSTM & Red neuronal recurrente, captura dependencias temporales largas & Predicción multi-step con variables exógenas \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{2. Modelos de Clasificación}
+
+\begin{table}[H]
+\centering
+\caption{Modelos de clasificación para predicción de resultados}
+\begin{tabular}{@{}lp{5.5cm}p{5.5cm}@{}}
+\toprule
+\textbf{Modelo} & \textbf{Descripción} & \textbf{Aplicación} \\
+\midrule
+XGBoost & Gradient boosting con regularización & Predicción de resultado (positivo/negativo) \\[6pt]
+Random Forest & Conjunto de árboles de decisión & Clasificación de riesgo por grupo demográfico \\[6pt]
+Regresión Logística & Modelo lineal para probabilidades & Estimación de probabilidad de positividad \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{3. Modelos de Detección de Anomalías}
+
+\begin{table}[H]
+\centering
+\caption{Modelos de detección de anomalías}
+\begin{tabular}{@{}lp{5.5cm}p{5.5cm}@{}}
+\toprule
+\textbf{Modelo} & \textbf{Descripción} & \textbf{Aplicación} \\
+\midrule
+Isolation Forest & Aísla observaciones anómalas mediante particionamiento aleatorio & Detección de picos inusuales en conteo de casos \\[6pt]
+Autoencoder & Red neuronal que aprende representaciones comprimidas & Anomalías en patrones multivariantes \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsubsection{Variables de entrada}\label{variables-de-entrada}
 
-Los modelos predictivos utilizan como variables de entrada los indicadores generados por el pipeline, entre los que se incluyen:
+Las variables de entrada para los modelos se extraen de los dos datasets disponibles.
+
+\textbf{Variables del dataset Cases:}
+
+\begin{table}[H]
+\centering
+\caption{Variables de entrada del dataset Cases}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Variable} & \textbf{Tipo} & \textbf{Rol} & \textbf{Descripción} \\
+\midrule
+\texttt{fecha\_muestra} & Temporal & Feature & Fecha del test diagnóstico \\
+\texttt{edad} & Numérica & Feature & Edad del paciente \\
+\texttt{sexo} & Categórica & Feature & Género del paciente \\
+\texttt{institucion} & Categórica & Feature & Tipo de centro de salud \\
+\texttt{departamento\_paciente} & Categórica & Feature & Ubicación geográfica \\
+\texttt{tipo\_muestra} & Categórica & Feature & Método de diagnóstico \\
+\texttt{resultado} & Categórica & Target & POSITIVO / NEGATIVO \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Variables del dataset Demises:}
+
+\begin{table}[H]
+\centering
+\caption{Variables de entrada del dataset Demises}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Variable} & \textbf{Tipo} & \textbf{Rol} & \textbf{Descripción} \\
+\midrule
+\texttt{fecha\_fallecimiento} & Temporal & Feature & Fecha de defunción \\
+\texttt{edad\_declarada} & Numérica & Feature & Edad del fallecido \\
+\texttt{sexo} & Categórica & Feature & Género del fallecido \\
+\texttt{departamento} & Categórica & Feature & Ubicación geográfica \\
+\texttt{clasificacion\_def} & Categórica & Target & Criterio de clasificación \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Variables derivadas (feature engineering):}
 
 \begin{itemize}
-      \tightlist
-      \item
-            Número de casos diarios y acumulados.
-      \item
-            Tasas de crecimiento y promedios móviles.
-      \item
-            Variables temporales (día, semana, periodo epidemiológico).
-      \item
-            Variables geográficas agregadas por región.
+    \item \texttt{dia\_semana}: Día de la semana extraído de la fecha (captura patrones semanales de reporte).
+    \item \texttt{mes}: Mes del año (captura estacionalidad).
+    \item \texttt{casos\_7d\_rolling}: Media móvil de 7 días de casos, suaviza ruido diario.
+    \item \texttt{tasa\_positividad\_rolling}: Tasa de positividad en ventana móvil de 7 días.
+    \item \texttt{grupo\_edad}: Categorización de edad en rangos (0--19, 20--39, 40--59, 60--79, 80+).
+    \item \texttt{es\_capital}: Indicador binario que señala si el departamento es Lima.
+    \item \texttt{lag\_1d}, \texttt{lag\_7d}: Valores retrasados para capturar autocorrelación temporal.
 \end{itemize}
-
-Estas variables se preparan y normalizan durante el procesamiento batch, garantizando la consistencia de los datos utilizados para el entrenamiento y la inferencia.
 
 \subsubsection{Integración con el pipeline}\label{integraciuxf3n-con-el-pipeline}
 
-La integración de los modelos predictivos con la arquitectura Dataflow se realiza de manera desacoplada, permitiendo:
+Los modelos predictivos se integran con el pipeline Dataflow mediante un \texttt{DoFn} que aplica el modelo previamente entrenado:
 
-\begin{itemize}
-      \tightlist
-      \item
-            Entrenamiento de modelos mediante procesamiento batch sobre datos históricos.
-      \item
-            Aplicación de inferencia en tiempo real sobre los flujos de eventos.
-      \item
-            Reentrenamiento periódico para adaptarse a cambios en el comportamiento de los datos.
-\end{itemize}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    box/.style={rectangle, draw, rounded corners, minimum width=2.5cm, minimum height=0.8cm, align=center, fill=blue!10, font=\footnotesize},
+    model/.style={rectangle, draw, rounded corners, minimum width=2.5cm, minimum height=0.8cm, align=center, fill=yellow!30, font=\footnotesize},
+    store/.style={cylinder, draw, minimum width=2cm, minimum height=0.8cm, align=center, fill=green!15, font=\footnotesize, shape border rotate=90, aspect=0.2},
+    arrow/.style={->, thick}
+]
+    \node[box] (win) {Windowed\\Data};
+    \node[model, right=1.5cm of win] (aggregate) {Aggregate\\Metrics};
+    \node[model, right=1.5cm of aggregate] (predict) {Apply\\Model};
 
-Este enfoque facilita la reutilización de la lógica analítica y mantiene la coherencia entre el análisis histórico y el análisis en tiempo real.
+    \node[store, below=1.5cm of predict] (model_store) {Modelo\\Entrenado\\(.pkl)};
+    \node[store, right=1.5cm of predict] (results) {MongoDB\\predictions};
+
+    \draw[arrow] (win) -- (aggregate);
+    \draw[arrow] (aggregate) -- (predict);
+    \draw[arrow, dashed] (model_store) -- (predict);
+    \draw[arrow] (predict) -- (results);
+\end{tikzpicture}
+\caption{Integración del modelo predictivo en el pipeline}
+\end{figure}
+
+\begin{lstlisting}[language=Python, caption=DoFn para aplicar modelo predictivo en el pipeline]
+class ApplyPredictiveModel(beam.DoFn):
+    """Aplica un modelo entrenado a los datos del pipeline"""
+
+    def __init__(self, model_path: str):
+        self.model_path = model_path
+        self.model = None
+
+    def setup(self):
+        import joblib
+        self.model = joblib.load(self.model_path)
+
+    def process(self, window_metrics):
+        features = self._extract_features(window_metrics)
+        prediction = self.model.predict([features])[0]
+
+        yield {
+            'window': window_metrics.get('window_start'),
+            'predicted_cases': float(prediction),
+            'actual_cases': window_metrics.get('total'),
+            'model_version': '1.0.0',
+            'timestamp': datetime.utcnow().isoformat()
+        }
+
+    def _extract_features(self, metrics):
+        return [
+            metrics.get('total', 0),
+            metrics.get('positivity_rate', 0),
+            metrics.get('avg_age', 0),
+            metrics.get('male_ratio', 0)
+        ]
+\end{lstlisting}
+
+El flujo de entrenamiento y despliegue sigue estos pasos:
+
+\begin{enumerate}
+    \item Los datos históricos se extraen de MongoDB mediante agregaciones.
+    \item El modelo se entrena offline con scikit-learn, XGBoost o Prophet.
+    \item El modelo entrenado se serializa con \texttt{joblib} en formato \texttt{.pkl}.
+    \item El \texttt{DoFn} carga el modelo en \texttt{setup()} y lo aplica en cada ventana.
+    \item Las predicciones se almacenan en una colección separada de MongoDB (\texttt{predictions}).
+\end{enumerate}
 
 \subsection{Generación de escenarios futuros}\label{generaciuxf3n-de-escenarios-futuros}
 
-La combinación de métricas descriptivas y modelos predictivos permite la generación de escenarios futuros que simulan distintas evoluciones posibles de la pandemia.
+La generación de escenarios futuros permite estimar la evolución de la pandemia bajo diferentes supuestos, proporcionando herramientas para la planificación sanitaria.
 
 \subsubsection{Simulación de tendencias}\label{simulaciuxf3n-de-tendencias}
 
-A partir de los modelos entrenados, se simulan escenarios como:
+Se definen tres escenarios basados en la extrapolación de tendencias históricas y el número reproductivo efectivo $R_t$:
 
-\begin{itemize}
-      \tightlist
-      \item
-            Continuidad de la tendencia actual.
-      \item
-            Incrementos o descensos acelerados en la tasa de contagios.
-      \item
-            Cambios abruptos en el comportamiento epidemiológico.
-\end{itemize}
+\begin{table}[H]
+\centering
+\caption{Escenarios de simulación}
+\begin{tabular}{@{}lp{8cm}l@{}}
+\toprule
+\textbf{Escenario} & \textbf{Descripción} & \textbf{Parámetro $R_t$} \\
+\midrule
+Optimista & Tendencia descendente sostenida, medidas de control efectivas & $R_t < 1.0$ \\
+Base & Continuación de la tendencia actual sin cambios significativos & $R_t \approx 1.0$ \\
+Pesimista & Incremento por relajación de medidas o nueva variante & $R_t > 1.5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-Estas simulaciones permiten evaluar la sensibilidad del sistema ante variaciones en los datos y explorar posibles resultados futuros.
+El número reproductivo efectivo $R_t$ se estima a partir de los datos mediante la razón de casos en ventanas consecutivas:
+
+\[
+R_t = \frac{I_t}{\sum_{s=1}^{S} I_{t-s} \cdot w_s}
+\]
+
+donde $I_t$ es el número de nuevos casos en el día $t$ y $w_s$ es la distribución del intervalo serial.
+
+\begin{lstlisting}[language=Python, caption=Estimación de $R_t$ a partir de datos históricos]
+def estimate_rt(daily_cases, serial_interval=5, window=7):
+    """
+    Estima Rt usando metodo simplificado de razon de casos
+    """
+    rt_values = []
+    for t in range(serial_interval + window, len(daily_cases)):
+        numerator = sum(daily_cases[t-window:t])
+        denominator = sum(
+            daily_cases[t-serial_interval-window:t-serial_interval]
+        )
+        if denominator > 0:
+            rt = numerator / denominator
+            rt_values.append({'day': t, 'rt': rt, 'cases': daily_cases[t]})
+    return rt_values
+\end{lstlisting}
+
+La simulación genera proyecciones para los próximos 14, 30 y 60 días utilizando Prophet:
+
+\begin{lstlisting}[language=Python, caption=Simulación de escenarios con Prophet]
+from prophet import Prophet
+
+def generate_scenarios(daily_cases_df, horizon_days=30):
+    """Genera escenarios optimista, base y pesimista"""
+    model = Prophet(
+        changepoint_prior_scale=0.05,
+        seasonality_mode='multiplicative'
+    )
+    model.fit(daily_cases_df.rename({'date': 'ds', 'cases': 'y'}))
+    future = model.make_future_dataframe(periods=horizon_days)
+    forecast = model.predict(future)
+
+    return {
+        'optimista': forecast['yhat_lower'].tail(horizon_days),
+        'base': forecast['yhat'].tail(horizon_days),
+        'pesimista': forecast['yhat_upper'].tail(horizon_days)
+    }
+\end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.9]
+    \begin{axis}[
+        width=12cm, height=6cm,
+        xlabel={Días}, ylabel={Casos diarios},
+        legend pos=north west,
+        grid=major,
+        xmin=0, xmax=60,
+        ymin=0, ymax=5000,
+        title={Proyección de escenarios a 60 días}
+    ]
+    % Datos historicos (simulados)
+    \addplot[thick, black, domain=0:30, samples=30] {2000 + 500*sin(deg(x/5)) + 100*rand};
+    \addlegendentry{Histórico}
+
+    % Escenario optimista
+    \addplot[thick, green!70!black, dashed, domain=30:60, samples=30] {1800 - 20*(x-30) + 200*sin(deg(x/5))};
+    \addlegendentry{Optimista}
+
+    % Escenario base
+    \addplot[thick, blue, dashed, domain=30:60, samples=30] {2000 + 300*sin(deg(x/5))};
+    \addlegendentry{Base}
+
+    % Escenario pesimista
+    \addplot[thick, red, dashed, domain=30:60, samples=30] {2200 + 30*(x-30) + 400*sin(deg(x/5))};
+    \addlegendentry{Pesimista}
+
+    % Linea vertical separadora
+    \draw[dashed, gray] (axis cs:30,0) -- (axis cs:30,5000);
+    \node[above] at (axis cs:30,4800) {\footnotesize Hoy};
+    \end{axis}
+\end{tikzpicture}
+\caption{Ejemplo de proyección de escenarios futuros}
+\end{figure}
 
 \subsubsection{Uso en la toma de decisiones}\label{uso-en-la-toma-de-decisiones}
 
-Los escenarios generados constituyen una herramienta de apoyo para la toma de decisiones basada en datos, ya que permiten:
+Los escenarios generados apoyan la toma de decisiones en tres ámbitos principales:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.5cm,
+    decision/.style={rectangle, draw, rounded corners, minimum width=4cm, minimum height=1cm, align=center, fill=#1, font=\small},
+    arrow/.style={->, thick}
+]
+    \node[decision=blue!15] (scenarios) {Escenarios\\Generados};
+
+    \node[decision=green!15, below left=1.5cm of scenarios] (capacity) {Planificación de\\Capacidad Hospitalaria};
+    \node[decision=orange!15, below=1.5cm of scenarios] (resources) {Asignación de\\Recursos Sanitarios};
+    \node[decision=red!15, below right=1.5cm of scenarios] (policy) {Políticas de\\Salud Pública};
+
+    \draw[arrow] (scenarios) -- (capacity);
+    \draw[arrow] (scenarios) -- (resources);
+    \draw[arrow] (scenarios) -- (policy);
+
+    \node[below=0.3cm of capacity, font=\footnotesize, align=center] {Camas UCI\\Personal médico};
+    \node[below=0.3cm of resources, font=\footnotesize, align=center] {Vacunas\\Tests diagnósticos};
+    \node[below=0.3cm of policy, font=\footnotesize, align=center] {Restricciones\\Cuarentenas};
+\end{tikzpicture}
+\caption{Uso de escenarios en la toma de decisiones}
+\end{figure}
+
+Indicadores clave derivados de los escenarios:
 
 \begin{itemize}
-      \tightlist
-      \item
-            Anticipar situaciones críticas.
-      \item
-            Evaluar el impacto potencial de medidas de control simuladas.
-      \item
-            Apoyar la planificación y asignación de recursos en contextos de emergencia sanitaria.
+    \item \textbf{Pico estimado}: Fecha y magnitud del máximo de casos esperado en cada escenario.
+    \item \textbf{Tiempo de duplicación}: Días necesarios para que los casos se dupliquen al ritmo actual, calculado como:
 \end{itemize}
 
-De este modo, el sistema no solo describe el estado actual de los datos, sino que también proporciona una visión prospectiva que refuerza el valor práctico de la arquitectura propuesta.
+\[
+T_{\text{duplicación}} = \frac{\ln(2)}{\ln(1 + r)}, \quad \text{donde } r = \frac{C_t - C_{t-7}}{C_{t-7}}
+\]
 
+\begin{itemize}
+    \item \textbf{Demanda hospitalaria}: Estimación de hospitalizaciones basada en la tasa de hospitalización por grupo de edad.
+    \item \textbf{Punto de inflexión}: Momento estimado en que la curva cambia de tendencia ascendente a descendente.
+\end{itemize}
 
 \subsection{Visualización interactiva y monitorización}\label{visualizaciuxf3n-interactiva-y-monitorizaciuxf3n}
 

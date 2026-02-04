@@ -60,15 +60,17 @@ export function renderAlertsConfig() {
 
     let html = `
         <div class="config-global-date">
-            <label>Fecha para alertas:</label>
-            <input type="date" id="alerts-global-date"
-                   value="${state.alertsGlobalDate ? formatDateForInput(state.alertsGlobalDate) : ''}"
-                   onchange="saveGlobalDate()">
-            <button class="btn-clear-dates" onclick="clearGlobalDate()" title="Limpiar fecha (usar totales)">
-                ✕
-            </button>
+            <label class="config-date-label">Fecha para alertas:</label>
+            <div class="config-date-input-row">
+                <input type="date" id="alerts-global-date"
+                       value="${state.alertsGlobalDate ? formatDateForInput(state.alertsGlobalDate) : ''}"
+                       onchange="saveGlobalDate()">
+                <button class="btn-clear-dates" onclick="clearGlobalDate()" title="Limpiar fecha (usar totales)">
+                    ✕
+                </button>
+            </div>
+            <p class="config-date-hint">${state.alertsGlobalDate ? `Filtrando por: ${formatDateForInput(state.alertsGlobalDate)}` : 'Sin filtro de fecha (totales acumulados)'}</p>
         </div>
-        <p class="config-date-hint">${state.alertsGlobalDate ? `Filtrando por: ${formatDateForInput(state.alertsGlobalDate)}` : 'Sin filtro de fecha (totales acumulados)'}</p>
         <hr class="config-divider">
     `;
 

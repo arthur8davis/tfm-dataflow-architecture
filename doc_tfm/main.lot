@@ -1,0 +1,28 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {table}{\numberline {1}{\ignorespaces Comparativa técnica entre arquitecturas Lambda, Kappa y Dataflow}}{20}{table.1}%
+\contentsline {table}{\numberline {2}{\ignorespaces Datasets procesados por el sistema}}{33}{table.2}%
+\contentsline {table}{\numberline {3}{\ignorespaces Requisitos funcionales -- Procesamiento de datos}}{34}{table.3}%
+\contentsline {table}{\numberline {4}{\ignorespaces Requisitos funcionales -- Analítica y predicción}}{35}{table.4}%
+\contentsline {table}{\numberline {5}{\ignorespaces Requisitos funcionales -- Visualización y alertas}}{35}{table.5}%
+\contentsline {table}{\numberline {6}{\ignorespaces Requisitos No Funcionales del Sistema}}{36}{table.6}%
+\contentsline {table}{\numberline {7}{\ignorespaces Comparación detallada de modos Streaming y Batch}}{43}{table.7}%
+\contentsline {table}{\numberline {8}{\ignorespaces Abstracciones de Apache Beam utilizadas}}{48}{table.8}%
+\contentsline {table}{\numberline {9}{\ignorespaces Tipos de Triggers y su comportamiento}}{51}{table.9}%
+\contentsline {table}{\numberline {10}{\ignorespaces Diferencias de comportamiento entre batch y streaming}}{53}{table.10}%
+\contentsline {table}{\numberline {11}{\ignorespaces Mecanismos de escalabilidad por componente}}{56}{table.11}%
+\contentsline {table}{\numberline {12}{\ignorespaces Tipos de errores capturados en DLQ}}{57}{table.12}%
+\contentsline {table}{\numberline {13}{\ignorespaces Datos disponibles para modelado}}{60}{table.13}%
+\contentsline {table}{\numberline {14}{\ignorespaces Métricas descriptivas para el schema Cases}}{62}{table.14}%
+\contentsline {table}{\numberline {15}{\ignorespaces Métricas descriptivas para el schema Demises}}{62}{table.15}%
+\contentsline {table}{\numberline {16}{\ignorespaces Modelos de series de tiempo para predicción epidemiológica}}{66}{table.16}%
+\contentsline {table}{\numberline {17}{\ignorespaces Modelos de clasificación para predicción de resultados}}{66}{table.17}%
+\contentsline {table}{\numberline {18}{\ignorespaces Modelos de detección de anomalías}}{67}{table.18}%
+\contentsline {table}{\numberline {19}{\ignorespaces Variables de entrada del dataset Cases}}{67}{table.19}%
+\contentsline {table}{\numberline {20}{\ignorespaces Variables de entrada del dataset Demises}}{67}{table.20}%
+\contentsline {table}{\numberline {21}{\ignorespaces Escenarios de simulación}}{70}{table.21}%
+\contentsline {table}{\numberline {22}{\ignorespaces Catálogo de reportes implementados en el sistema de visualización}}{77}{table.22}%
+\contentsline {table}{\numberline {23}{\ignorespaces Principales eventos WebSocket del sistema de visualización}}{88}{table.23}%
+\contentsline {table}{\numberline {24}{\ignorespaces Tipos de alertas implementadas en el sistema de vigilancia epidemiológica}}{90}{table.24}%
+\contentsline {table}{\numberline {25}{\ignorespaces Stack tecnológico completo del sistema de visualización}}{98}{table.25}%
+\contentsline {table}{\numberline {26}{\ignorespaces Latencia por etapa del flujo de datos}}{106}{table.26}%
+\contentsline {table}{\numberline {27}{\ignorespaces Resumen de funcionalidades implementadas en el sistema}}{108}{table.27}%

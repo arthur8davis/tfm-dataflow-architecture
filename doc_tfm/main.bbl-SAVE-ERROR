@@ -1,0 +1,1325 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{apa/apasortcite//global/global/global}
+    \entry{akidau2015dataflow}{article}{}{}
+      \name{author}{10}{}{%
+        {{un=0,uniquepart=base,hash=9b03535781b5c447925402c3ac5aec0f}{%
+           family={Akidau},
+           familyi={A\bibinitperiod},
+           given={T.},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b1dd2d63a817c9591bd3533ccbd5fdef}{%
+           family={Balikov},
+           familyi={B\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=cabbbf0c9c8ba0e9e0521e1147f7bde4}{%
+           family={Bekiroğlu},
+           familyi={B\bibinitperiod},
+           given={K.},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ced107e7bbddc93c55073d5528d867ee}{%
+           family={Chernyak},
+           familyi={C\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=05287c5746046425f4692a4836f3a6b1}{%
+           family={Haberman},
+           familyi={H\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2ee402d0979e31f230151a0c93d2b532}{%
+           family={Lax},
+           familyi={L\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9065773b032d9541a53ad3a01be92a99}{%
+           family={McVeety},
+           familyi={M\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7fd2fb2f4942648b368fe46d2a6ef7e7}{%
+           family={Mills},
+           familyi={M\bibinitperiod},
+           given={D.},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=be1469f7f0cdc5bc12e4c1fd757c2544}{%
+           family={Nordstrom},
+           familyi={N\bibinitperiod},
+           given={P.},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c7c73049227c579227d17ba9eb9b8029}{%
+           family={Whittle},
+           familyi={W\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{f3e65c293e8a2f535e7425b9a1ac333e}
+      \strng{fullhash}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{fullhashraw}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{bibnamehash}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{authorbibnamehash}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{authornamehash}{f3e65c293e8a2f535e7425b9a1ac333e}
+      \strng{authorfullhash}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{authorfullhashraw}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the VLDB Endowment}
+      \field{number}{12}
+      \field{title}{The Dataflow Model: A practical approach to balancing correctness, latency, and cost in massive-scale, unbounded, out-of-order data processing}
+      \field{volume}{8}
+      \field{year}{2015}
+      \field{pages}{1792\bibrangedash 1803}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.14778/2824032.2824076
+      \endverb
+    \endentry
+    \entry{bustamante2019implementacion}{thesis}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4839fce727968912aac84fa5fa17cbed}{%
+           family={Bustamante\bibnamedelima Rojas},
+           familyi={B\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Universidad Nacional del Altiplano}%
+      }
+      \strng{namehash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{fullhash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{fullhashraw}{4839fce727968912aac84fa5fa17cbed}
+      \strng{bibnamehash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{authorbibnamehash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{authornamehash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{authorfullhash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{authorfullhashraw}{4839fce727968912aac84fa5fa17cbed}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Implementación de una plataforma Big Data para el estudio de casos de anemia en América Latina}
+      \field{type}{Tesis de maestría}
+      \field{year}{2019}
+      \verb{urlraw}
+      \verb https://repositorio.unap.edu.pe/bitstream/handle/20.500.14082/13491/Rosario_Bustamante_Rojas.pdf?sequence=1&isAllowed=y
+      \endverb
+      \verb{url}
+      \verb https://repositorio.unap.edu.pe/bitstream/handle/20.500.14082/13491/Rosario_Bustamante_Rojas.pdf?sequence=1&isAllowed=y
+      \endverb
+    \endentry
+    \entry{chaosgenius2025kappa}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=94f7bd6b51eeed143799dce74aede2ad}{%
+           family={{Chaos Genius}},
+           familyi={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{fullhash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{fullhashraw}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{bibnamehash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{authorbibnamehash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{authornamehash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{authorfullhash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{authorfullhashraw}{94f7bd6b51eeed143799dce74aede2ad}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Kappa vs Lambda: Which Architecture Should You Choose?}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://www.chaosgenius.io/blog/kappa-architecture/
+      \endverb
+      \verb{url}
+      \verb https://www.chaosgenius.io/blog/kappa-architecture/
+      \endverb
+    \endentry
+    \entry{gomez2023modelo}{thesis}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=e0a2c5010f4e7c381d37ee8ccb6a06ed}{%
+           family={Gómez\bibnamedelima Figueroa},
+           familyi={G\bibinitperiod\bibinitdelim F\bibinitperiod},
+           given={I.\bibnamedelimi F.},
+           giveni={I\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b418c1289d6ca3b86e791e49c479c481}{%
+           family={Urcia\bibnamedelima Farroñay},
+           familyi={U\bibinitperiod\bibinitdelim F\bibinitperiod},
+           given={L.\bibnamedelimi A.},
+           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Universidad Tecnológica del Perú}%
+      }
+      \strng{namehash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{fullhash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{fullhashraw}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{bibnamehash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{authorbibnamehash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{authornamehash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{authorfullhash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{authorfullhashraw}{29e50aff257a7a16f26fadbff3a59c0d}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Modelo de una arquitectura Big Data para mejorar el análisis de datos abiertos del MINSA de casos COVID-19 en el Perú}
+      \field{type}{Tesis de grado}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://repositorio.utp.edu.pe/handle/20.500.12867/8171
+      \endverb
+      \verb{url}
+      \verb https://repositorio.utp.edu.pe/handle/20.500.12867/8171
+      \endverb
+    \endentry
+    \entry{grafana2024doc}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=92d1002bbeda9145e9369766ab6d96a9}{%
+           family={{Grafana Labs}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{fullhash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{fullhashraw}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{bibnamehash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{authorbibnamehash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{authornamehash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{authorfullhash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{authorfullhashraw}{92d1002bbeda9145e9369766ab6d96a9}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Grafana Documentation}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://grafana.com/docs/
+      \endverb
+      \verb{url}
+      \verb https://grafana.com/docs/
+      \endverb
+    \endentry
+    \entry{guillen2025big}{article}{}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=7989b540c08fed8a15f4f9f58fa98d89}{%
+           family={Guillén\bibnamedelima Guillén},
+           familyi={G\bibinitperiod\bibinitdelim G\bibinitperiod},
+           given={E.\bibnamedelimi N.},
+           giveni={E\bibinitperiod\bibinitdelim N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=191c2c02a9db01b9981c827ddf688b5b}{%
+           family={Martínez\bibnamedelima Hernández},
+           familyi={M\bibinitperiod\bibinitdelim H\bibinitperiod},
+           given={J.\bibnamedelimi A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ea4bbf5df57924543a928f3faa9f0f48}{%
+           family={Massa\bibnamedelima Palacios},
+           familyi={M\bibinitperiod\bibinitdelim P\bibinitperiod},
+           given={L.\bibnamedelimi A.},
+           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=eaf62a63d67c556ac6ea9a32111d90b2}{%
+           family={Cabel\bibnamedelima Moscoso},
+           familyi={C\bibinitperiod\bibinitdelim M\bibinitperiod},
+           given={D.\bibnamedelimi J.},
+           giveni={D\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{66d39482f9057abb629900d281cea4fd}
+      \strng{fullhash}{057423358e90b642adaa8805b10f0ad3}
+      \strng{fullhashraw}{057423358e90b642adaa8805b10f0ad3}
+      \strng{bibnamehash}{057423358e90b642adaa8805b10f0ad3}
+      \strng{authorbibnamehash}{057423358e90b642adaa8805b10f0ad3}
+      \strng{authornamehash}{66d39482f9057abb629900d281cea4fd}
+      \strng{authorfullhash}{057423358e90b642adaa8805b10f0ad3}
+      \strng{authorfullhashraw}{057423358e90b642adaa8805b10f0ad3}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Revista Venezolana de Gerencia}
+      \field{title}{Big Data y toma de decisiones en el sector público peruano}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://produccioncientificaluz.org/index.php/rvg/article/view/43889/51982
+      \endverb
+      \verb{url}
+      \verb https://produccioncientificaluz.org/index.php/rvg/article/view/43889/51982
+      \endverb
+    \endentry
+    \entry{hazelcast2025kappa}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=242da9f99e89cf996d335aeb0827c5cd}{%
+           family={{Hazelcast}},
+           familyi={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{fullhash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{fullhashraw}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{bibnamehash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{authorbibnamehash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{authornamehash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{authorfullhash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{authorfullhashraw}{242da9f99e89cf996d335aeb0827c5cd}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Kappa Architecture: Stream Processing in Big Data Analytics}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://hazelcast.com/foundations/software-architecture/kappa-architecture/
+      \endverb
+      \verb{url}
+      \verb https://hazelcast.com/foundations/software-architecture/kappa-architecture/
+      \endverb
+    \endentry
+    \entry{kreps2014lambda}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=07f8a3405ec460d8cd113fab8c24c6ae}{%
+           family={Kreps},
+           familyi={K\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{organization}{1}{%
+        {Confluent Blog}%
+      }
+      \strng{namehash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{fullhash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{fullhashraw}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{bibnamehash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{authorbibnamehash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{authornamehash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{authorfullhash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{authorfullhashraw}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Questioning the Lambda Architecture}
+      \field{year}{2014}
+      \verb{urlraw}
+      \verb https://www.confluent.io/blog/questioning-the-lambda-architecture/
+      \endverb
+      \verb{url}
+      \verb https://www.confluent.io/blog/questioning-the-lambda-architecture/
+      \endverb
+    \endentry
+    \entry{marz2015bigdata}{book}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=29ba0a679abe9a670094e88116505108}{%
+           family={Marz},
+           familyi={M\bibinitperiod},
+           given={N.},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7dcb165f469c5836dd3907ea9628983d}{%
+           family={Warren},
+           familyi={W\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Manning Publications}%
+      }
+      \strng{namehash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{fullhash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{fullhashraw}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{bibnamehash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{authorbibnamehash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{authornamehash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{authorfullhash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{authorfullhashraw}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Big Data: Principles and best practices of scalable realtime data systems}
+      \field{year}{2015}
+      \verb{urlraw}
+      \verb https://www.manning.com/books/big-data
+      \endverb
+      \verb{url}
+      \verb https://www.manning.com/books/big-data
+      \endverb
+    \endentry
+    \entry{mongodb2024manual}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1ac6d614186c0e0c6ded2e295019b862}{%
+           family={{MongoDB Inc.}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{fullhash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{fullhashraw}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{bibnamehash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{authorbibnamehash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{authornamehash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{authorfullhash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{authorfullhashraw}{1ac6d614186c0e0c6ded2e295019b862}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{MongoDB Manual}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://www.mongodb.com/docs/
+      \endverb
+      \verb{url}
+      \verb https://www.mongodb.com/docs/
+      \endverb
+    \endentry
+    \entry{ops2025interoperabilidad}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=f262986543e589383939f5f8640a516e}{%
+           family={{OPS/OMS}},
+           familyi={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{f262986543e589383939f5f8640a516e}
+      \strng{fullhash}{f262986543e589383939f5f8640a516e}
+      \strng{fullhashraw}{f262986543e589383939f5f8640a516e}
+      \strng{bibnamehash}{f262986543e589383939f5f8640a516e}
+      \strng{authorbibnamehash}{f262986543e589383939f5f8640a516e}
+      \strng{authornamehash}{f262986543e589383939f5f8640a516e}
+      \strng{authorfullhash}{f262986543e589383939f5f8640a516e}
+      \strng{authorfullhashraw}{f262986543e589383939f5f8640a516e}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Transformación digital: Perú valida interoperabilidad de historias clínicas electrónicas}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://www.paho.org/es/noticias/31-1-2025-transformacion-digital-peru-valida-interoperabilidad-historias-clinicas
+      \endverb
+      \verb{url}
+      \verb https://www.paho.org/es/noticias/31-1-2025-transformacion-digital-peru-valida-interoperabilidad-historias-clinicas
+      \endverb
+    \endentry
+    \entry{pedregosa2011scikit}{article}{}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=6e96fec0d63277626bb324bd28cdecb7}{%
+           family={Pedregosa},
+           familyi={P\bibinitperiod},
+           given={F.},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b99c2df2144dc5ee09317a7833dea42d}{%
+           family={Varoquaux},
+           familyi={V\bibinitperiod},
+           given={G.},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=955f19cea89ae97bb7936078898e6255}{%
+           family={Gramfort},
+           familyi={G\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2787869c9954c1d4e9891098995feb75}{%
+           family={Michel},
+           familyi={M\bibinitperiod},
+           given={V.},
+           giveni={V\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=86d47ab9ca1a9dae108b4d4a0418c679}{%
+           family={Thirion},
+           familyi={T\bibinitperiod},
+           given={B.},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d42f9e9cec95da1dad2232eac74982ab}{%
+           family={Grisel},
+           familyi={G\bibinitperiod},
+           given={O.},
+           giveni={O\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{3a097aa3ebf2b8c2acf988341dde9710}
+      \strng{fullhash}{d49627903052f0f2012dfa447ac3b083}
+      \strng{fullhashraw}{d49627903052f0f2012dfa447ac3b083}
+      \strng{bibnamehash}{d49627903052f0f2012dfa447ac3b083}
+      \strng{authorbibnamehash}{d49627903052f0f2012dfa447ac3b083}
+      \strng{authornamehash}{3a097aa3ebf2b8c2acf988341dde9710}
+      \strng{authorfullhash}{d49627903052f0f2012dfa447ac3b083}
+      \strng{authorfullhashraw}{d49627903052f0f2012dfa447ac3b083}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Machine Learning Research}
+      \field{title}{Scikit-learn: Machine Learning in Python}
+      \field{volume}{12}
+      \field{year}{2011}
+      \field{pages}{2825\bibrangedash 2830}
+      \range{pages}{6}
+      \verb{urlraw}
+      \verb https://www.jmlr.org/papers/v12/pedregosa11a.html
+      \endverb
+      \verb{url}
+      \verb https://www.jmlr.org/papers/v12/pedregosa11a.html
+      \endverb
+    \endentry
+    \entry{prometheus2024doc}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=6cf8f74708cd9ab082f17d5df3da9242}{%
+           family={{Prometheus Authors}},
+           familyi={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{fullhash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{fullhashraw}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{bibnamehash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{authorbibnamehash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{authornamehash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{authorfullhash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{authorfullhashraw}{6cf8f74708cd9ab082f17d5df3da9242}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Prometheus Documentation}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://prometheus.io/docs/
+      \endverb
+      \verb{url}
+      \verb https://prometheus.io/docs/
+      \endverb
+    \endentry
+    \entry{beam2024guide}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=f57c55dac81a8285538aae51dacc9857}{%
+           family={{The Apache Software Foundation}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{fullhash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{fullhashraw}{f57c55dac81a8285538aae51dacc9857}
+      \strng{bibnamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorbibnamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authornamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorfullhash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorfullhashraw}{f57c55dac81a8285538aae51dacc9857}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Apache Beam Programming Guide}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://beam.apache.org/documentation/programming-guide/
+      \endverb
+      \verb{url}
+      \verb https://beam.apache.org/documentation/programming-guide/
+      \endverb
+    \endentry
+    \entry{viteri2023solucion}{thesis}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=019169e35348724320824fc644b776d9}{%
+           family={Viteri\bibnamedelima Gonzales},
+           familyi={V\bibinitperiod\bibinitdelim G\bibinitperiod},
+           given={A.\bibnamedelimi P.},
+           giveni={A\bibinitperiod\bibinitdelim P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d470084b8c123b475ab1553c70e54e18}{%
+           family={Beltrán\bibnamedelima García},
+           familyi={B\bibinitperiod\bibinitdelim G\bibinitperiod},
+           given={J.\bibnamedelimi A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Universidad Privada Antenor Orrego}%
+      }
+      \strng{namehash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{fullhash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{fullhashraw}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{bibnamehash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{authorbibnamehash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{authornamehash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{authorfullhash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{authorfullhashraw}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \field{sortinit}{V}
+      \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Solución de big data para el análisis de los datos abiertos de MINSA y CENARES para el monitoreo y control de la emergencia sanitaria COVID-19 bajo el ecosistema de Apache Hadoop y Microsoft Azure}
+      \field{type}{Tesis de grado}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://repositorio.upao.edu.pe/item/692baba5-ef59-4306-89ef-988d3864c77d
+      \endverb
+      \verb{url}
+      \verb https://repositorio.upao.edu.pe/item/692baba5-ef59-4306-89ef-988d3864c77d
+      \endverb
+    \endentry
+    \entry{wikipedia2024lambda}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=9c677286866aad38f8e9b660f5411814}{%
+           family={{Wikipedia}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhashraw}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhashraw}{9c677286866aad38f8e9b660f5411814}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Lambda architecture}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Lambda_architecture
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Lambda_architecture
+      \endverb
+    \endentry
+  \enddatalist
+  \datalist[entry]{apa/global//global/global/global}
+    \entry{akidau2015dataflow}{article}{}{}
+      \name{author}{10}{}{%
+        {{un=0,uniquepart=base,hash=9b03535781b5c447925402c3ac5aec0f}{%
+           family={Akidau},
+           familyi={A\bibinitperiod},
+           given={T.},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b1dd2d63a817c9591bd3533ccbd5fdef}{%
+           family={Balikov},
+           familyi={B\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=cabbbf0c9c8ba0e9e0521e1147f7bde4}{%
+           family={Bekiroğlu},
+           familyi={B\bibinitperiod},
+           given={K.},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ced107e7bbddc93c55073d5528d867ee}{%
+           family={Chernyak},
+           familyi={C\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=05287c5746046425f4692a4836f3a6b1}{%
+           family={Haberman},
+           familyi={H\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2ee402d0979e31f230151a0c93d2b532}{%
+           family={Lax},
+           familyi={L\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9065773b032d9541a53ad3a01be92a99}{%
+           family={McVeety},
+           familyi={M\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7fd2fb2f4942648b368fe46d2a6ef7e7}{%
+           family={Mills},
+           familyi={M\bibinitperiod},
+           given={D.},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=be1469f7f0cdc5bc12e4c1fd757c2544}{%
+           family={Nordstrom},
+           familyi={N\bibinitperiod},
+           given={P.},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c7c73049227c579227d17ba9eb9b8029}{%
+           family={Whittle},
+           familyi={W\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{f3e65c293e8a2f535e7425b9a1ac333e}
+      \strng{fullhash}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{fullhashraw}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{bibnamehash}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{authorbibnamehash}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{authornamehash}{f3e65c293e8a2f535e7425b9a1ac333e}
+      \strng{authorfullhash}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \strng{authorfullhashraw}{6b3ec3d96ed25a8295341ba7d484e6d8}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the VLDB Endowment}
+      \field{number}{12}
+      \field{title}{The Dataflow Model: A practical approach to balancing correctness, latency, and cost in massive-scale, unbounded, out-of-order data processing}
+      \field{volume}{8}
+      \field{year}{2015}
+      \field{pages}{1792\bibrangedash 1803}
+      \range{pages}{12}
+      \verb{doi}
+      \verb 10.14778/2824032.2824076
+      \endverb
+    \endentry
+    \entry{bustamante2019implementacion}{thesis}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4839fce727968912aac84fa5fa17cbed}{%
+           family={Bustamante\bibnamedelima Rojas},
+           familyi={B\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={R.},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Universidad Nacional del Altiplano}%
+      }
+      \strng{namehash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{fullhash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{fullhashraw}{4839fce727968912aac84fa5fa17cbed}
+      \strng{bibnamehash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{authorbibnamehash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{authornamehash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{authorfullhash}{4839fce727968912aac84fa5fa17cbed}
+      \strng{authorfullhashraw}{4839fce727968912aac84fa5fa17cbed}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Implementación de una plataforma Big Data para el estudio de casos de anemia en América Latina}
+      \field{type}{Tesis de maestría}
+      \field{year}{2019}
+      \verb{urlraw}
+      \verb https://repositorio.unap.edu.pe/bitstream/handle/20.500.14082/13491/Rosario_Bustamante_Rojas.pdf?sequence=1&isAllowed=y
+      \endverb
+      \verb{url}
+      \verb https://repositorio.unap.edu.pe/bitstream/handle/20.500.14082/13491/Rosario_Bustamante_Rojas.pdf?sequence=1&isAllowed=y
+      \endverb
+    \endentry
+    \entry{chaosgenius2025kappa}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=94f7bd6b51eeed143799dce74aede2ad}{%
+           family={{Chaos Genius}},
+           familyi={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{fullhash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{fullhashraw}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{bibnamehash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{authorbibnamehash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{authornamehash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{authorfullhash}{94f7bd6b51eeed143799dce74aede2ad}
+      \strng{authorfullhashraw}{94f7bd6b51eeed143799dce74aede2ad}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Kappa vs Lambda: Which Architecture Should You Choose?}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://www.chaosgenius.io/blog/kappa-architecture/
+      \endverb
+      \verb{url}
+      \verb https://www.chaosgenius.io/blog/kappa-architecture/
+      \endverb
+    \endentry
+    \entry{gomez2023modelo}{thesis}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=e0a2c5010f4e7c381d37ee8ccb6a06ed}{%
+           family={Gómez\bibnamedelima Figueroa},
+           familyi={G\bibinitperiod\bibinitdelim F\bibinitperiod},
+           given={I.\bibnamedelimi F.},
+           giveni={I\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b418c1289d6ca3b86e791e49c479c481}{%
+           family={Urcia\bibnamedelima Farroñay},
+           familyi={U\bibinitperiod\bibinitdelim F\bibinitperiod},
+           given={L.\bibnamedelimi A.},
+           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Universidad Tecnológica del Perú}%
+      }
+      \strng{namehash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{fullhash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{fullhashraw}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{bibnamehash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{authorbibnamehash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{authornamehash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{authorfullhash}{29e50aff257a7a16f26fadbff3a59c0d}
+      \strng{authorfullhashraw}{29e50aff257a7a16f26fadbff3a59c0d}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Modelo de una arquitectura Big Data para mejorar el análisis de datos abiertos del MINSA de casos COVID-19 en el Perú}
+      \field{type}{Tesis de grado}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://repositorio.utp.edu.pe/handle/20.500.12867/8171
+      \endverb
+      \verb{url}
+      \verb https://repositorio.utp.edu.pe/handle/20.500.12867/8171
+      \endverb
+    \endentry
+    \entry{grafana2024doc}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=92d1002bbeda9145e9369766ab6d96a9}{%
+           family={{Grafana Labs}},
+           familyi={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{fullhash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{fullhashraw}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{bibnamehash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{authorbibnamehash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{authornamehash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{authorfullhash}{92d1002bbeda9145e9369766ab6d96a9}
+      \strng{authorfullhashraw}{92d1002bbeda9145e9369766ab6d96a9}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Grafana Documentation}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://grafana.com/docs/
+      \endverb
+      \verb{url}
+      \verb https://grafana.com/docs/
+      \endverb
+    \endentry
+    \entry{guillen2025big}{article}{}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=7989b540c08fed8a15f4f9f58fa98d89}{%
+           family={Guillén\bibnamedelima Guillén},
+           familyi={G\bibinitperiod\bibinitdelim G\bibinitperiod},
+           given={E.\bibnamedelimi N.},
+           giveni={E\bibinitperiod\bibinitdelim N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=191c2c02a9db01b9981c827ddf688b5b}{%
+           family={Martínez\bibnamedelima Hernández},
+           familyi={M\bibinitperiod\bibinitdelim H\bibinitperiod},
+           given={J.\bibnamedelimi A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ea4bbf5df57924543a928f3faa9f0f48}{%
+           family={Massa\bibnamedelima Palacios},
+           familyi={M\bibinitperiod\bibinitdelim P\bibinitperiod},
+           given={L.\bibnamedelimi A.},
+           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=eaf62a63d67c556ac6ea9a32111d90b2}{%
+           family={Cabel\bibnamedelima Moscoso},
+           familyi={C\bibinitperiod\bibinitdelim M\bibinitperiod},
+           given={D.\bibnamedelimi J.},
+           giveni={D\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{66d39482f9057abb629900d281cea4fd}
+      \strng{fullhash}{057423358e90b642adaa8805b10f0ad3}
+      \strng{fullhashraw}{057423358e90b642adaa8805b10f0ad3}
+      \strng{bibnamehash}{057423358e90b642adaa8805b10f0ad3}
+      \strng{authorbibnamehash}{057423358e90b642adaa8805b10f0ad3}
+      \strng{authornamehash}{66d39482f9057abb629900d281cea4fd}
+      \strng{authorfullhash}{057423358e90b642adaa8805b10f0ad3}
+      \strng{authorfullhashraw}{057423358e90b642adaa8805b10f0ad3}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Revista Venezolana de Gerencia}
+      \field{title}{Big Data y toma de decisiones en el sector público peruano}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://produccioncientificaluz.org/index.php/rvg/article/view/43889/51982
+      \endverb
+      \verb{url}
+      \verb https://produccioncientificaluz.org/index.php/rvg/article/view/43889/51982
+      \endverb
+    \endentry
+    \entry{hazelcast2025kappa}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=242da9f99e89cf996d335aeb0827c5cd}{%
+           family={{Hazelcast}},
+           familyi={H\bibinitperiod}}}%
+      }
+      \strng{namehash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{fullhash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{fullhashraw}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{bibnamehash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{authorbibnamehash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{authornamehash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{authorfullhash}{242da9f99e89cf996d335aeb0827c5cd}
+      \strng{authorfullhashraw}{242da9f99e89cf996d335aeb0827c5cd}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Kappa Architecture: Stream Processing in Big Data Analytics}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://hazelcast.com/foundations/software-architecture/kappa-architecture/
+      \endverb
+      \verb{url}
+      \verb https://hazelcast.com/foundations/software-architecture/kappa-architecture/
+      \endverb
+    \endentry
+    \entry{kreps2014lambda}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=07f8a3405ec460d8cd113fab8c24c6ae}{%
+           family={Kreps},
+           familyi={K\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{organization}{1}{%
+        {Confluent Blog}%
+      }
+      \strng{namehash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{fullhash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{fullhashraw}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{bibnamehash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{authorbibnamehash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{authornamehash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{authorfullhash}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \strng{authorfullhashraw}{07f8a3405ec460d8cd113fab8c24c6ae}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Questioning the Lambda Architecture}
+      \field{year}{2014}
+      \verb{urlraw}
+      \verb https://www.confluent.io/blog/questioning-the-lambda-architecture/
+      \endverb
+      \verb{url}
+      \verb https://www.confluent.io/blog/questioning-the-lambda-architecture/
+      \endverb
+    \endentry
+    \entry{marz2015bigdata}{book}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=29ba0a679abe9a670094e88116505108}{%
+           family={Marz},
+           familyi={M\bibinitperiod},
+           given={N.},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7dcb165f469c5836dd3907ea9628983d}{%
+           family={Warren},
+           familyi={W\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Manning Publications}%
+      }
+      \strng{namehash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{fullhash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{fullhashraw}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{bibnamehash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{authorbibnamehash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{authornamehash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{authorfullhash}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \strng{authorfullhashraw}{36c8ad5f1f07a536169f733d8e3b34b5}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Big Data: Principles and best practices of scalable realtime data systems}
+      \field{year}{2015}
+      \verb{urlraw}
+      \verb https://www.manning.com/books/big-data
+      \endverb
+      \verb{url}
+      \verb https://www.manning.com/books/big-data
+      \endverb
+    \endentry
+    \entry{mongodb2024manual}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=1ac6d614186c0e0c6ded2e295019b862}{%
+           family={{MongoDB Inc.}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{fullhash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{fullhashraw}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{bibnamehash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{authorbibnamehash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{authornamehash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{authorfullhash}{1ac6d614186c0e0c6ded2e295019b862}
+      \strng{authorfullhashraw}{1ac6d614186c0e0c6ded2e295019b862}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{MongoDB Manual}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://www.mongodb.com/docs/
+      \endverb
+      \verb{url}
+      \verb https://www.mongodb.com/docs/
+      \endverb
+    \endentry
+    \entry{ops2025interoperabilidad}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=f262986543e589383939f5f8640a516e}{%
+           family={{OPS/OMS}},
+           familyi={O\bibinitperiod}}}%
+      }
+      \strng{namehash}{f262986543e589383939f5f8640a516e}
+      \strng{fullhash}{f262986543e589383939f5f8640a516e}
+      \strng{fullhashraw}{f262986543e589383939f5f8640a516e}
+      \strng{bibnamehash}{f262986543e589383939f5f8640a516e}
+      \strng{authorbibnamehash}{f262986543e589383939f5f8640a516e}
+      \strng{authornamehash}{f262986543e589383939f5f8640a516e}
+      \strng{authorfullhash}{f262986543e589383939f5f8640a516e}
+      \strng{authorfullhashraw}{f262986543e589383939f5f8640a516e}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Transformación digital: Perú valida interoperabilidad de historias clínicas electrónicas}
+      \field{year}{2025}
+      \verb{urlraw}
+      \verb https://www.paho.org/es/noticias/31-1-2025-transformacion-digital-peru-valida-interoperabilidad-historias-clinicas
+      \endverb
+      \verb{url}
+      \verb https://www.paho.org/es/noticias/31-1-2025-transformacion-digital-peru-valida-interoperabilidad-historias-clinicas
+      \endverb
+    \endentry
+    \entry{pedregosa2011scikit}{article}{}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=6e96fec0d63277626bb324bd28cdecb7}{%
+           family={Pedregosa},
+           familyi={P\bibinitperiod},
+           given={F.},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b99c2df2144dc5ee09317a7833dea42d}{%
+           family={Varoquaux},
+           familyi={V\bibinitperiod},
+           given={G.},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=955f19cea89ae97bb7936078898e6255}{%
+           family={Gramfort},
+           familyi={G\bibinitperiod},
+           given={A.},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2787869c9954c1d4e9891098995feb75}{%
+           family={Michel},
+           familyi={M\bibinitperiod},
+           given={V.},
+           giveni={V\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=86d47ab9ca1a9dae108b4d4a0418c679}{%
+           family={Thirion},
+           familyi={T\bibinitperiod},
+           given={B.},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d42f9e9cec95da1dad2232eac74982ab}{%
+           family={Grisel},
+           familyi={G\bibinitperiod},
+           given={O.},
+           giveni={O\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{3a097aa3ebf2b8c2acf988341dde9710}
+      \strng{fullhash}{d49627903052f0f2012dfa447ac3b083}
+      \strng{fullhashraw}{d49627903052f0f2012dfa447ac3b083}
+      \strng{bibnamehash}{d49627903052f0f2012dfa447ac3b083}
+      \strng{authorbibnamehash}{d49627903052f0f2012dfa447ac3b083}
+      \strng{authornamehash}{3a097aa3ebf2b8c2acf988341dde9710}
+      \strng{authorfullhash}{d49627903052f0f2012dfa447ac3b083}
+      \strng{authorfullhashraw}{d49627903052f0f2012dfa447ac3b083}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Machine Learning Research}
+      \field{title}{Scikit-learn: Machine Learning in Python}
+      \field{volume}{12}
+      \field{year}{2011}
+      \field{pages}{2825\bibrangedash 2830}
+      \range{pages}{6}
+      \verb{urlraw}
+      \verb https://www.jmlr.org/papers/v12/pedregosa11a.html
+      \endverb
+      \verb{url}
+      \verb https://www.jmlr.org/papers/v12/pedregosa11a.html
+      \endverb
+    \endentry
+    \entry{prometheus2024doc}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=6cf8f74708cd9ab082f17d5df3da9242}{%
+           family={{Prometheus Authors}},
+           familyi={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{fullhash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{fullhashraw}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{bibnamehash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{authorbibnamehash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{authornamehash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{authorfullhash}{6cf8f74708cd9ab082f17d5df3da9242}
+      \strng{authorfullhashraw}{6cf8f74708cd9ab082f17d5df3da9242}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Prometheus Documentation}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://prometheus.io/docs/
+      \endverb
+      \verb{url}
+      \verb https://prometheus.io/docs/
+      \endverb
+    \endentry
+    \entry{beam2024guide}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=f57c55dac81a8285538aae51dacc9857}{%
+           family={{The Apache Software Foundation}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{fullhash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{fullhashraw}{f57c55dac81a8285538aae51dacc9857}
+      \strng{bibnamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorbibnamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authornamehash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorfullhash}{f57c55dac81a8285538aae51dacc9857}
+      \strng{authorfullhashraw}{f57c55dac81a8285538aae51dacc9857}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Apache Beam Programming Guide}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://beam.apache.org/documentation/programming-guide/
+      \endverb
+      \verb{url}
+      \verb https://beam.apache.org/documentation/programming-guide/
+      \endverb
+    \endentry
+    \entry{viteri2023solucion}{thesis}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=019169e35348724320824fc644b776d9}{%
+           family={Viteri\bibnamedelima Gonzales},
+           familyi={V\bibinitperiod\bibinitdelim G\bibinitperiod},
+           given={A.\bibnamedelimi P.},
+           giveni={A\bibinitperiod\bibinitdelim P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d470084b8c123b475ab1553c70e54e18}{%
+           family={Beltrán\bibnamedelima García},
+           familyi={B\bibinitperiod\bibinitdelim G\bibinitperiod},
+           given={J.\bibnamedelimi A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Universidad Privada Antenor Orrego}%
+      }
+      \strng{namehash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{fullhash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{fullhashraw}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{bibnamehash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{authorbibnamehash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{authornamehash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{authorfullhash}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \strng{authorfullhashraw}{8c419a2ee24ef0e1f4bd627e882d3cfe}
+      \field{sortinit}{V}
+      \field{sortinithash}{afb52128e5b4dc4b843768c0113d673b}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Solución de big data para el análisis de los datos abiertos de MINSA y CENARES para el monitoreo y control de la emergencia sanitaria COVID-19 bajo el ecosistema de Apache Hadoop y Microsoft Azure}
+      \field{type}{Tesis de grado}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://repositorio.upao.edu.pe/item/692baba5-ef59-4306-89ef-988d3864c77d
+      \endverb
+      \verb{url}
+      \verb https://repositorio.upao.edu.pe/item/692baba5-ef59-4306-89ef-988d3864c77d
+      \endverb
+    \endentry
+    \entry{wikipedia2024lambda}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=9c677286866aad38f8e9b660f5411814}{%
+           family={{Wikipedia}},
+           familyi={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{fullhashraw}{9c677286866aad38f8e9b660f5411814}
+      \strng{bibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorbibnamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authornamehash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhash}{9c677286866aad38f8e9b660f5411814}
+      \strng{authorfullhashraw}{9c677286866aad38f8e9b660f5411814}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Lambda architecture}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://en.wikipedia.org/wiki/Lambda_architecture
+      \endverb
+      \verb{url}
+      \verb https://en.wikipedia.org/wiki/Lambda_architecture
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

@@ -25,6 +25,7 @@ from src.common.batching.manual_batch import GroupIntoBatches
 from src.common.batching.native_batch import NativeBatcher
 from src.common.sinks.mongo_sink import MongoDBSink
 from src.common.sinks.dlq_sink import DLQSink, CombineDLQErrors
+from src.common.transforms.enrich_geo import EnrichGeoFromUbigeo
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -168,6 +169,21 @@ class HospitalizationsPipeline:
             dlq_list.append(normalized.dlq)
             main_data = normalized.main
 
+        # Enrich Geo (agregar latitud/longitud basado en departamento/provincia/distrito de muestra)
+        enriched = (
+            main_data
+            | "Enrich Geo" >> beam.ParDo(
+                EnrichGeoFromUbigeo(
+                    ubigeo_field="ubigeo_inei_domicilio",
+                    dept_field="dep_domicilio",
+                    prov_field="prov_domicilio",
+                    dist_field="dist_domicilio"
+                )
+            ).with_outputs('dlq', main='main')
+        )
+        dlq_list.append(enriched.dlq)
+        main_data = enriched.main
+        
         # Validate
         if transforms_config['validate']['enabled']:
             schema_file = Path(__file__).parent / "schema.json"
@@ -257,10 +273,12 @@ def main():
         '--mode',
         type=str,
         choices=['streaming', 'batch'],
-        default='streaming',
+        default='batch',
         help='Modo de ejecución: streaming (Kafka) o batch (Storage)'
     )
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
+    if unknown:
+        logger.debug(f"Ignoring unknown args: {unknown}")
 
     pipeline = HospitalizationsPipeline(mode=args.mode)
     pipeline.run()

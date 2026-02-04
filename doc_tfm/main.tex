@@ -2646,289 +2646,1280 @@ T_{\text{duplicación}} = \frac{\ln(2)}{\ln(1 + r)}, \quad \text{donde } r = \fr
 
 \subsection{Visualización interactiva y monitorización}\label{visualizaciuxf3n-interactiva-y-monitorizaciuxf3n}
 
-Este apartado describe los mecanismos de visualización interactiva y monitorización implementados para explotar los resultados generados por el pipeline de procesamiento de datos. La visualización constituye un elemento clave del sistema, ya que permite transformar los resultados analíticos en información comprensible, accesible y útil para el seguimiento de la evolución epidemiológica en tiempo real.
+Este apartado describe en detalle los mecanismos de visualización interactiva y monitorización implementados para explotar los resultados generados por el pipeline de procesamiento de datos. La visualización constituye un elemento clave del sistema, ya que permite transformar los resultados analíticos en información comprensible, accesible y útil para el seguimiento de la evolución epidemiológica en tiempo real.
+
+\subsection{Arquitectura del sistema de visualización}\label{arquitectura-visualizacion}
+
+La arquitectura de visualización se construye sobre un stack tecnológico moderno orientado a la comunicación en tiempo real y la representación interactiva de datos. El sistema implementa una arquitectura cliente-servidor donde el backend gestiona las consultas a la base de datos y la lógica de negocio, mientras que el frontend se encarga de la representación visual y la interacción del usuario.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/dashboard-arquitectura.png}
+\caption{Arquitectura del sistema de visualización en tiempo real}
+\label{fig:dashboard-arquitectura}
+\end{figure}
+
+\subsubsection{Stack tecnológico del backend}
+
+El servidor de visualización se implementa utilizando \textbf{Flask}, un microframework de Python que proporciona flexibilidad y simplicidad para construir aplicaciones web. La elección de Flask responde a su facilidad de integración con otras bibliotecas del ecosistema Python y su capacidad para manejar tanto endpoints REST como conexiones WebSocket.
+
+Para la comunicación bidireccional en tiempo real se utiliza \textbf{Flask-SocketIO}, una extensión que implementa el protocolo WebSocket sobre Flask. Esta tecnología permite establecer conexiones persistentes entre el servidor y los clientes, habilitando la transmisión instantánea de actualizaciones cuando se detectan cambios en los datos.
+
+La integración con \textbf{MongoDB} se realiza mediante \textbf{PyMongo}, el driver oficial de MongoDB para Python. El sistema aprovecha las capacidades de \textbf{Change Streams} de MongoDB para detectar modificaciones en las colecciones de datos en tiempo real, propagando automáticamente estos cambios a todos los clientes conectados.
+
+\begin{lstlisting}[language=Python, caption={Configuración del servidor Flask con WebSocket}, label={lst:flask-config}]
+from flask import Flask
+from flask_socketio import SocketIO, emit
+from pymongo import MongoClient
+
+app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Conexion a MongoDB
+client = MongoClient(MONGO_URI)
+db = client.covid_database
+
+@socketio.on('connect')
+def handle_connect():
+    # Enviar datos iniciales al cliente
+    emit('update_summary', get_summary_data())
+    emit('update_department', get_cases_by_department())
+\end{lstlisting}
+
+\subsubsection{Stack tecnológico del frontend}
+
+El frontend se desarrolla utilizando tecnologías web estándar optimizadas para la visualización de datos:
+
+\begin{itemize}
+    \item \textbf{D3.js (Data-Driven Documents)}: Biblioteca JavaScript para la manipulación de documentos basada en datos. Se utiliza para crear visualizaciones interactivas como gráficos de barras, líneas temporales y diagramas de distribución. D3.js proporciona control granular sobre cada elemento visual, permitiendo animaciones fluidas y transiciones durante las actualizaciones de datos.
+
+    \item \textbf{Leaflet.js}: Biblioteca de código abierto para mapas interactivos. Se emplea para la representación de mapas de calor georreferenciados que muestran la distribución espacial de casos, fallecimientos y hospitalizaciones. La extensión \textbf{Leaflet.heat} permite generar visualizaciones de densidad sobre el mapa base.
+
+    \item \textbf{Socket.IO Client}: Biblioteca JavaScript que implementa la comunicación WebSocket en el lado del cliente, permitiendo recibir actualizaciones en tiempo real desde el servidor sin necesidad de realizar polling.
+\end{itemize}
+
+\begin{lstlisting}[language=JavaScript, caption={Conexión WebSocket y manejo de eventos en el cliente}, label={lst:socketio-client}]
+const socket = io();
+
+socket.on('connect', () => {
+    showConnectionStatus(true);
+    socket.emit('get_alerts_config');
+});
+
+socket.on('update_department', (data) => {
+    state.allDepartmentsData = data;
+    renderDepartmentChart(data);
+});
+
+socket.on('filtered_age', (data) => {
+    renderAgeChart(data);
+});
+\end{lstlisting}
 
 \subsection{Diseño de dashboards}\label{diseuxf1o-de-dashboards}
 
-\label{diseno-dashboards}
+El dashboard principal se organiza en secciones claramente diferenciadas que facilitan la comprensión del estado epidemiológico desde múltiples perspectivas. El diseño sigue principios de jerarquía visual, presentando primero los indicadores agregados más relevantes y posteriormente los análisis detallados.
 
-Los dashboards se diseñan con el objetivo de ofrecer una visión clara, sintética y dinámica del estado epidemiológico, facilitando tanto el análisis descriptivo como el seguimiento continuo de indicadores relevantes. Su función principal es transformar los resultados generados por el pipeline de procesamiento en información visual comprensible, accesible y útil para la toma de decisiones en tiempo real.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{images/dashboard-general.png}
+\caption{Vista general del dashboard COVID-19 con indicadores en tiempo real}
+\label{fig:dashboard-general}
+\end{figure}
 
-El diseño de los dashboards se basa en principios de visualización de datos orientados a la claridad, la coherencia y la eficiencia cognitiva, evitando la sobrecarga visual y priorizando la presentación de indicadores clave. De este modo, se busca que los usuarios puedan interpretar rápidamente la situación epidemiológica y detectar cambios significativos sin necesidad de realizar análisis complejos.
+\subsubsection{Panel de indicadores clave (KPIs)}
 
-\subsubsection{Objetivos del diseño}
-
-El diseño de los dashboards persigue los siguientes objetivos fundamentales:
-
-\begin{itemize}
-      \item Proporcionar una visión global y actualizada del estado epidemiológico.
-      \item Facilitar el seguimiento continuo de la evolución temporal de los indicadores.
-      \item Permitir la comparación entre distintos periodos y áreas geográficas.
-      \item Apoyar la detección temprana de comportamientos anómalos o picos relevantes.
-      \item Servir como herramienta de apoyo para la toma de decisiones informadas.
-\end{itemize}
-
-Estos objetivos se alinean con las necesidades propias de los sistemas de vigilancia epidemiológica, donde la rapidez de interpretación y la fiabilidad de la información son factores críticos.
-
-\subsubsection{Estructura y organización visual}
-
-Los dashboards se organizan en bloques visuales claramente diferenciados, cada uno orientado a un conjunto específico de indicadores. Esta organización facilita la lectura secuencial de la información y permite al usuario centrarse en los aspectos más relevantes según el contexto de análisis.
-
-Entre los elementos visuales empleados se incluyen:
+En la parte superior del dashboard se presenta un panel con tarjetas de resumen que muestran los indicadores más relevantes:
 
 \begin{itemize}
-      \item Gráficos de series temporales para representar la evolución de casos, hospitalizaciones o fallecimientos.
-      \item Indicadores numéricos (KPIs) que muestran valores agregados y métricas clave en tiempo real.
-      \item Visualizaciones geográficas que permiten analizar la distribución espacial de los eventos.
-      \item Gráficos comparativos que facilitan el análisis entre periodos o regiones.
+    \item \textbf{Total de Casos}: Número acumulado de casos registrados en el sistema.
+    \item \textbf{Casos Positivos}: Total de casos confirmados con resultado positivo.
+    \item \textbf{Hospitalizaciones}: Número de pacientes hospitalizados.
+    \item \textbf{Fallecidos}: Total de decesos registrados.
+    \item \textbf{Última Actualización}: Marca temporal de la última sincronización de datos.
 \end{itemize}
 
-La disposición de estos elementos prioriza la jerarquía visual, destacando los indicadores más críticos y relegando la información secundaria a niveles de detalle accesibles mediante interacción.
+Cada tarjeta incluye indicadores visuales que muestran la tendencia (incremento o decremento) respecto al período anterior, facilitando la interpretación rápida de la evolución de cada métrica.
 
-\subsubsection{Actualización y latencia}
+\subsubsection{Panel de filtros interactivos}
 
-Los dashboards se actualizan de forma continua a medida que el pipeline Dataflow procesa nuevos eventos. Gracias al uso de agregaciones incrementales y ventanas temporales, los indicadores reflejan el estado más reciente de los datos con una latencia reducida.
-
-Esta capacidad de actualización casi en tiempo real resulta especialmente relevante en escenarios de emergencia sanitaria, donde la disponibilidad inmediata de información puede influir directamente en la eficacia de las decisiones adoptadas.
-
-\subsubsection{Interacción y exploración de datos}
-
-El diseño incorpora funcionalidades interactivas que permiten a los usuarios explorar los datos de manera flexible y adaptada a sus necesidades analíticas. Entre estas funcionalidades se incluyen:
+El sistema implementa un panel lateral de filtros que permite segmentar los datos según diferentes criterios:
 
 \begin{itemize}
-      \item Filtros por periodo temporal, región o tipo de evento.
-      \item Selección dinámica de intervalos de análisis.
-      \item Posibilidad de comparar múltiples indicadores de forma simultánea.
-      \item Exploración detallada de series temporales mediante zoom y resaltado de eventos.
+    \item \textbf{Filtro por Sexo}: Permite visualizar datos segmentados por género (Masculino, Femenino, Todos).
+    \item \textbf{Filtro por Departamento}: Lista desplegable con todos los departamentos del Perú, incluyendo contadores de casos por cada región.
+    \item \textbf{Búsqueda de Departamento}: Campo de texto para filtrar rápidamente la lista de departamentos.
 \end{itemize}
 
-Estas capacidades de interacción mejoran la comprensión de los resultados y facilitan la identificación de patrones y tendencias relevantes.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.3\textwidth]{images/filtros-laterales.png}
+\caption{Panel de filtros interactivos para segmentación de datos}
+\label{fig:filtros-laterales}
+\end{figure}
 
-\subsubsection{Integración con alertas y monitorización}
+La aplicación de filtros actualiza dinámicamente todas las visualizaciones del dashboard, solicitando datos filtrados al servidor mediante WebSocket y renderizando las nuevas gráficas sin necesidad de recargar la página.
 
-Los dashboards no se limitan a la visualización pasiva de información, sino que se integran con el sistema de alertas del proyecto. De este modo, cuando determinados indicadores superan umbrales predefinidos o se detectan comportamientos anómalos, la interfaz visual refleja estas situaciones de forma inmediata.
+\subsection{Reportes y visualizaciones implementadas}\label{reportes-visualizaciones}
 
-Esta integración refuerza el papel de los dashboards como herramienta central de monitorización continua, permitiendo una supervisión proactiva del sistema y apoyando la detección temprana de eventos críticos.
+El sistema implementa un conjunto completo de visualizaciones que cubren las principales dimensiones de análisis epidemiológico: distribución geográfica, temporal, demográfica y por severidad. Cada reporte se alimenta de consultas optimizadas a MongoDB utilizando el \emph{Aggregation Framework}, lo que permite procesar grandes volúmenes de datos de manera eficiente.
 
-En conjunto, el diseño de los dashboards contribuye de manera decisiva a cerrar el ciclo analítico del sistema, conectando el procesamiento de datos en tiempo real y por lotes con la interpretación visual y la toma de decisiones basada en datos.
-\subsubsection{Indicadores clave}\label{indicadores-clave}
+\subsubsection{Catálogo de reportes}
 
-Entre los principales indicadores visualizados se incluyen:
+La Tabla \ref{tab:catalogo-reportes} presenta el catálogo completo de reportes implementados en el sistema, clasificados por categoría y tipo de visualización.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Reporte} & \textbf{Categoría} & \textbf{Visualización} & \textbf{Filtros} \\
+\hline
+Casos por Departamento & Casos & Barras horizontales & Sexo \\
+Distribución por Sexo (Casos) & Casos & Donut & Departamento \\
+Casos por Fecha & Casos & Línea temporal & Depto., Sexo \\
+Casos por Grupo de Edad & Casos & Histograma & Departamento \\
+Mapa de Calor Casos & Casos & Heatmap geográfico & Depto., Sexo \\
+\hline
+Fallecidos por Departamento & Fallecidos & Barras horizontales & Sexo \\
+Distribución por Sexo (Fallecidos) & Fallecidos & Donut & Departamento \\
+Fallecidos por Fecha & Fallecidos & Línea temporal & Depto., Sexo \\
+Mapa de Calor Fallecidos & Fallecidos & Heatmap geográfico & Depto., Sexo \\
+\hline
+Mapa de Calor Hospitalizaciones & Hospitalizaciones & Heatmap geográfico & Depto., Sexo \\
+\hline
+\end{tabular}
+\caption{Catálogo de reportes implementados en el sistema de visualización}
+\label{tab:catalogo-reportes}
+\end{table}
+
+\subsubsection{Modelo de datos y colecciones}
+
+Los reportes se alimentan de tres colecciones principales en MongoDB, cada una con un esquema específico adaptado al tipo de información epidemiológica:
 
 \begin{itemize}
-      \tightlist
-      \item
-            Número de casos confirmados en tiempo real.
-      \item
-            Evolución temporal de contagios y fallecimientos.
-      \item
-            Tasas de crecimiento diario y semanal.
-      \item
-            Resultados de los modelos predictivos y escenarios simulados.
-      \item
-            Distribución geográfica de los casos por región.
+    \item \textbf{Colección \texttt{cases}}: Almacena los registros de pruebas diagnósticas de COVID-19. Campos principales: \texttt{departamento\_paciente}, \texttt{provincia\_paciente}, \texttt{distrito\_paciente}, \texttt{sexo}, \texttt{edad}, \texttt{fecha\_muestra}, \texttt{resultado}, \texttt{latitud}, \texttt{longitud}.
+
+    \item \textbf{Colección \texttt{demises}}: Registra los fallecimientos confirmados por COVID-19. Campos principales: \texttt{departamento}, \texttt{provincia}, \texttt{distrito}, \texttt{sexo}, \texttt{edad}, \texttt{fecha\_fallecimiento}, \texttt{latitud}, \texttt{longitud}.
+
+    \item \textbf{Colección \texttt{hospitalizations}}: Contiene información de pacientes hospitalizados. Campos principales: \texttt{dep\_domicilio}, \texttt{prov\_domicilio}, \texttt{dist\_domicilio}, \texttt{sexo}, \texttt{fecha\_ingreso\_hosp}, \texttt{latitud}, \texttt{longitud}.
 \end{itemize}
 
-Estos indicadores se seleccionan por su relevancia epidemiológica y su utilidad para el análisis y la toma de decisiones.
+\subsubsection{Casos por Departamento}
 
-\subsubsection{Actualización en tiempo real}\label{actualizaciuxf3n-en-tiempo-real}
+Este reporte presenta un gráfico de barras horizontales que muestra la distribución de casos confirmados por departamento. Los datos se ordenan de mayor a menor número de casos, facilitando la identificación rápida de las regiones más afectadas. El reporte muestra los 25 departamentos con mayor cantidad de casos.
 
-Los dashboards se actualizan de forma continua a medida que el pipeline Dataflow procesa nuevos eventos. Gracias al uso de ventanas temporales y agregaciones incrementales, los indicadores reflejan el estado más reciente de los datos con una latencia reducida.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{images/casos-departamento.png}
+\caption{Distribución de casos positivos por departamento}
+\label{fig:casos-departamento}
+\end{figure}
 
-Esta capacidad de actualización en tiempo real resulta especialmente relevante en escenarios de crisis sanitaria, donde la inmediatez de la información es un factor crítico.
+La consulta utiliza el \emph{Aggregation Framework} de MongoDB para agrupar, contar y ordenar los resultados:
 
-\subsubsection{Interacción del usuario}\label{interacciuxf3n-del-usuario}
+\begin{lstlisting}[language=Python, caption={Consulta MongoDB para casos por departamento}, label={lst:cases-dept-query}]
+def get_cases_by_department():
+    pipeline = [
+        {"$match": {"sexo": {"$nin": [None, "", "Sin especificar"]}}},
+        {
+            "$group": {
+                "_id": "$departamento_paciente",
+                "total": {"$sum": 1},
+                "positivos": {
+                    "$sum": {"$cond": [{"$eq": ["$resultado", "POSITIVO"]}, 1, 0]}
+                }
+            }
+        },
+        {"$sort": {"total": -1}},
+        {"$limit": 25}
+    ]
 
-La visualización incorpora funcionalidades interactivas que permiten:
+    results = []
+    for r in db.cases.aggregate(pipeline):
+        dept = r["_id"] or "Sin especificar"
+        coords = DEPARTAMENTO_COORDS.get(dept.upper(), {"lat": None, "lon": None})
+        results.append({
+            "departamento": dept,
+            "total": r["total"],
+            "positivos": r["positivos"],
+            "lat": coords["lat"],
+            "lon": coords["lon"]
+        })
+    return results
+\end{lstlisting}
 
+La implementación del frontend utiliza D3.js para crear barras con transiciones animadas que reflejan los cambios en los datos:
+
+\begin{lstlisting}[language=JavaScript, caption={Renderizado del gráfico de casos por departamento con D3.js}, label={lst:dept-chart}]
+export function renderDepartmentChart(data) {
+    const container = d3.select('#chart-department');
+    container.selectAll('*').remove();
+
+    const margin = { top: 20, right: 30, bottom: 40, left: 120 };
+    const width = container.node().clientWidth - margin.left - margin.right;
+    const height = Math.max(300, data.length * 25);
+
+    const svg = container.append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.positivos)])
+        .range([0, width]);
+
+    const y = d3.scaleBand()
+        .domain(data.map(d => d.departamento))
+        .range([0, height])
+        .padding(0.1);
+
+    svg.selectAll('.bar')
+        .data(data)
+        .join('rect')
+        .attr('class', 'bar')
+        .attr('y', d => y(d.departamento))
+        .attr('height', y.bandwidth())
+        .attr('fill', COLORS.primary)
+        .attr('x', 0)
+        .attr('width', 0)
+        .transition()
+        .duration(750)
+        .delay((d, i) => i * 30)
+        .attr('width', d => x(d.positivos));
+}
+\end{lstlisting}
+
+\subsubsection{Distribución por Sexo}
+
+Se implementan dos gráficos de tipo \emph{donut} (anillo) que muestran la distribución porcentual de casos confirmados y fallecimientos según el sexo del paciente. Esta visualización permite identificar rápidamente disparidades de género en la afectación de la enfermedad.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{images/distribucion-sexo.png}
+\caption{Distribución de casos confirmados y fallecidos por sexo}
+\label{fig:distribucion-sexo}
+\end{figure}
+
+La consulta para distribución por sexo filtra solo casos positivos y acepta filtrado por departamento:
+
+\begin{lstlisting}[language=Python, caption={Consulta MongoDB para distribución por sexo}, label={lst:sex-query}]
+def get_cases_by_sex(departamento: str = None):
+    match_filter = {
+        "sexo": {"$nin": [None, "", "Sin especificar"]},
+        "resultado": "POSITIVO"
+    }
+
+    if departamento and departamento != "TODOS":
+        match_filter["departamento_paciente"] = departamento
+
+    pipeline = [
+        {"$match": match_filter},
+        {"$group": {"_id": "$sexo", "total": {"$sum": 1}}},
+        {"$sort": {"total": -1}}
+    ]
+    return [{"sexo": r["_id"], "total": r["total"]}
+            for r in db.cases.aggregate(pipeline)]
+\end{lstlisting}
+
+\subsubsection{Evolución Temporal de Casos}
+
+El gráfico de línea temporal muestra la evolución de casos confirmados a lo largo del tiempo. Esta visualización resulta fundamental para identificar tendencias, picos epidémicos y el impacto de medidas de control. Los datos se limitan a los últimos 100 registros temporales para mantener la legibilidad.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{images/casos-fecha.png}
+\caption{Serie temporal de casos confirmados por fecha de muestra}
+\label{fig:casos-fecha}
+\end{figure}
+
+\begin{lstlisting}[language=Python, caption={Consulta MongoDB para evolución temporal de casos}, label={lst:timeline-query}]
+def get_cases_by_date(departamento: str = None, sexo: str = None):
+    match_filter = {
+        "sexo": {"$nin": [None, "", "Sin especificar"]},
+        "resultado": "POSITIVO"
+    }
+
+    if departamento and departamento != "TODOS":
+        match_filter["departamento_paciente"] = departamento
+
+    if sexo and sexo != "TODOS":
+        match_filter["sexo"] = sexo
+
+    pipeline = [
+        {"$match": match_filter},
+        {"$group": {"_id": "$fecha_muestra", "total": {"$sum": 1}}},
+        {"$sort": {"_id": 1}},
+        {"$limit": 100}
+    ]
+    return [{"fecha": r["_id"], "total": r["total"], "positivos": r["total"]}
+            for r in db.cases.aggregate(pipeline) if r["_id"]]
+\end{lstlisting}
+
+El gráfico incluye las siguientes funcionalidades interactivas implementadas con D3.js:
 \begin{itemize}
-      \tightlist
-      \item
-            Filtrar datos por periodo temporal y región.
-      \item
-            Comparar indicadores entre distintos intervalos.
-      \item
-            Explorar series temporales de manera detallada.
-      \item
-            Analizar escenarios predictivos de forma dinámica.
+    \item \textbf{Tooltip dinámico}: Al pasar el cursor sobre cada punto de la línea, se muestra un tooltip con la fecha exacta y el número de casos registrados.
+    \item \textbf{Área sombreada}: Se renderiza un área con gradiente bajo la línea para mejorar la percepción visual de la magnitud y tendencia.
+    \item \textbf{Ejes adaptativos}: El eje X formatea las fechas de manera inteligente según el rango temporal visualizado.
+    \item \textbf{Transiciones animadas}: Los cambios en los datos se reflejan mediante transiciones suaves de 750ms.
 \end{itemize}
 
-Estas capacidades facilitan la exploración de los datos y mejoran la comprensión de los resultados analíticos.
+\subsubsection{Casos por Grupo de Edad}
 
-\subsection{Herramientas de visualización}\label{herramientas-de-visualizaciuxf3n}
+Este reporte presenta un histograma que agrupa los casos positivos por rangos etarios de 10 años (0-9, 10-19, 20-29, hasta 100+). La visualización permite identificar los grupos poblacionales más afectados por la enfermedad y analizar patrones demográficos.
 
-Para la implementación de los dashboards y la monitorización del sistema, se consideran herramientas de visualización ampliamente utilizadas en entornos Big Data, capaces de integrarse con sistemas de almacenamiento analítico y de actualizar la información de forma continua. La selección de estas herramientas se realiza atendiendo a criterios de interoperabilidad, escalabilidad, capacidad de actualización en tiempo real y facilidad de uso.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{images/casos-edad.png}
+\caption{Distribución de casos positivos por grupo de edad}
+\label{fig:casos-edad}
+\end{figure}
 
-El objetivo principal es disponer de una plataforma de visualización que permita explotar los resultados generados por el pipeline de procesamiento, transformando métricas y agregaciones en representaciones visuales comprensibles y orientadas a la toma de decisiones.
+Este gráfico se actualiza dinámicamente cuando se aplican filtros por departamento, mostrando únicamente los casos positivos de la región seleccionada. La consulta al backend utiliza el operador \texttt{\$bucket} del \emph{Aggregation Framework} para crear los rangos etarios:
 
-\subsubsection{Criterios de selección}
+\begin{lstlisting}[language=Python, caption={Consulta de casos por grupo de edad con operador \$bucket}, label={lst:age-query}]
+def get_cases_by_age(departamento: str = None):
+    match_filter = {
+        "sexo": {"$nin": [None, "", "Sin especificar"]},
+        "resultado": "POSITIVO"
+    }
 
-Las herramientas de visualización empleadas en el proyecto se seleccionan considerando los siguientes criterios:
+    if departamento and departamento != "TODOS":
+        match_filter["departamento_paciente"] = departamento
 
-\begin{itemize}
-      \item Capacidad de integración con múltiples fuentes de datos, tanto en tiempo real como históricas.
-      \item Soporte para actualización continua de métricas con baja latencia.
-      \item Escalabilidad para manejar un número elevado de indicadores y series temporales.
-      \item Posibilidad de definir dashboards interactivos y reutilizables.
-      \item Soporte para la configuración de alertas visuales y notificaciones.
-\end{itemize}
+    pipeline = [
+        {"$match": match_filter},
+        {
+            "$bucket": {
+                "groupBy": "$edad",
+                "boundaries": [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+                "default": "100+",
+                "output": {"total": {"$sum": 1}}
+            }
+        }
+    ]
 
-Estos criterios garantizan que la herramienta de visualización no actúe únicamente como un componente estético, sino como una pieza funcional integrada en el ciclo analítico del sistema.
+    def label(r):
+        return f"{r['_id']}-{r['_id']+9}" if isinstance(r["_id"], int) else r["_id"]
 
-\subsubsection{Visualización de métricas en tiempo real}
+    return [{"grupo": label(r), "total": r["total"]}
+            for r in db.cases.aggregate(pipeline)]
+\end{lstlisting}
 
-Las herramientas seleccionadas permiten representar métricas agregadas en tiempo real mediante gráficos de series temporales, indicadores numéricos y visualizaciones comparativas. Esta capacidad resulta fundamental para reflejar de forma inmediata la evolución de los indicadores epidemiológicos procesados por el pipeline Dataflow.
+\subsubsection{Reportes de Fallecidos}
 
-La visualización en tiempo real facilita la detección temprana de cambios relevantes, picos o comportamientos anómalos, reforzando el carácter operativo del sistema de análisis.
+De manera análoga a los casos, se implementan visualizaciones específicas para el análisis de fallecimientos, utilizando la colección \texttt{demises}:
 
-\subsubsection{Soporte para series temporales}
+\paragraph{Fallecidos por Departamento}
+Gráfico de barras horizontales con la distribución geográfica de decesos. Incluye coordenadas geográficas para integración con mapas.
 
-Dado que el análisis epidemiológico se basa en la evolución temporal de los datos, las herramientas de visualización ofrecen un soporte avanzado para series temporales, permitiendo:
+\begin{lstlisting}[language=Python, caption={Consulta MongoDB para fallecidos por departamento}, label={lst:demises-dept}]
+def get_demises_by_department():
+    pipeline = [
+        {"$match": {"sexo": {"$nin": [None, "", "Sin especificar"]}}},
+        {
+            "$group": {
+                "_id": "$departamento",
+                "total": {"$sum": 1},
+                "lat": {"$max": "$latitud"},
+                "lon": {"$max": "$longitud"}
+            }
+        },
+        {"$sort": {"total": -1}},
+        {"$limit": 25}
+    ]
+    # Enriquecimiento con coordenadas de respaldo
+    for r in db.demises.aggregate(pipeline):
+        if r.get("lat") is None:
+            coords = DEPARTAMENTO_COORDS.get(r["_id"].upper())
+            # Asignar coordenadas del diccionario de respaldo
+\end{lstlisting}
 
-\begin{itemize}
-      \item Representar tendencias a corto y largo plazo.
-      \item Comparar distintos intervalos temporales.
-      \item Analizar patrones estacionales o recurrentes.
-      \item Explorar el impacto de eventos específicos en la evolución de los indicadores.
-\end{itemize}
+\paragraph{Fallecidos por Fecha}
+Serie temporal que muestra la evolución de la mortalidad diaria, permitiendo identificar picos de fallecimientos y correlacionarlos con olas epidémicas.
 
-Este soporte resulta clave para interpretar correctamente la dinámica de los datos y contextualizar los resultados analíticos.
+\paragraph{Fallecidos por Sexo}
+Gráfico de anillo con la distribución por género, útil para análisis de mortalidad diferencial.
 
-\subsubsection{Interactividad y exploración}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{images/fallecidos-fecha.png}
+\caption{Serie temporal de fallecidos por fecha de fallecimiento}
+\label{fig:fallecidos-fecha}
+\end{figure}
 
-Las herramientas de visualización incorporan funcionalidades interactivas que permiten al usuario explorar los datos de forma flexible, mediante filtros, selección de rangos temporales y desagregación por dimensiones geográficas u otras variables relevantes. Esta interactividad mejora la comprensión de los resultados y permite adaptar el análisis a distintos niveles de detalle según las necesidades del usuario.
+\subsubsection{Mapas de Calor Georreferenciados}
 
-\subsubsection{Integración con la monitorización y alertas}
+El sistema implementa tres mapas de calor interactivos que permiten visualizar la distribución espacial de los eventos epidemiológicos a nivel de distrito. Cada mapa utiliza un gradiente de colores que representa la intensidad: azul para baja concentración, pasando por verde y amarillo, hasta rojo para alta concentración.
 
-Además de la visualización de métricas, las herramientas empleadas permiten integrarse con el sistema de monitorización y alertas del proyecto. De este modo, cuando se detectan valores que superan determinados umbrales o se producen comportamientos anómalos, la información se refleja de forma inmediata en los dashboards.
+\begin{enumerate}
+    \item \textbf{Mapa de Calor de Casos}: Muestra la concentración geográfica de casos positivos, agregando datos a nivel de departamento, provincia y distrito.
 
-Esta integración refuerza el papel de la visualización como elemento central de supervisión continua, cerrando el ciclo entre procesamiento de datos, análisis y toma de decisiones.
+    \item \textbf{Mapa de Calor de Fallecidos}: Visualiza la distribución espacial de decesos, permitiendo identificar zonas con mayor mortalidad.
 
-En conjunto, la elección y uso de herramientas de visualización adecuadas permite convertir los resultados generados por la arquitectura Dataflow en información accionable, facilitando la interpretación de los datos epidemiológicos y apoyando la gestión eficiente de situaciones de emergencia sanitaria.
-\subsubsection{Plataformas de visualización}\label{plataformas-de-visualizaciuxf3n}
+    \item \textbf{Mapa de Calor de Hospitalizaciones}: Representa la ubicación de pacientes hospitalizados, útil para análisis de capacidad hospitalaria por región.
+\end{enumerate}
 
-La plataforma de visualización seleccionada para la implementación de los dashboards y la monitorización del sistema es \textbf{Grafana}, una herramienta ampliamente utilizada en entornos de análisis de datos y monitorización en tiempo real. Su elección responde a su capacidad para integrarse de forma nativa con fuentes de datos de series temporales y a su orientación hacia la visualización continua de métricas agregadas.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{images/mapa-calor-casos.png}
+\caption{Mapa de calor de casos COVID-19 en Perú}
+\label{fig:mapa-calor-casos}
+\end{figure}
 
-Grafana permite construir dashboards interactivos que se actualizan de manera automática a medida que el pipeline de procesamiento genera nuevos resultados. Esta característica resulta especialmente adecuada para el contexto del proyecto, donde se requiere una visualización dinámica de indicadores epidemiológicos procesados en tiempo real y por lotes.
+La consulta para el mapa de calor agrupa los datos a nivel de distrito y enriquece con coordenadas geográficas:
 
-Entre las principales ventajas de Grafana en el marco de esta arquitectura se destacan:
+\begin{lstlisting}[language=Python, caption={Consulta MongoDB para datos del mapa de calor}, label={lst:heatmap-query}]
+def get_heatmap_data():
+    pipeline = [
+        {"$match": {"sexo": {"$nin": [None, "", "Sin especificar"]}}},
+        {
+            "$group": {
+                "_id": {
+                    "departamento": "$departamento_muestra",
+                    "provincia": "$provincia_muestra",
+                    "distrito": "$distrito_muestra"
+                },
+                "total": {"$sum": 1},
+                "positivos": {
+                    "$sum": {"$cond": [{"$eq": ["$resultado", "POSITIVO"]}, 1, 0]}
+                },
+                "lat": {"$max": "$latitud"},
+                "lon": {"$max": "$longitud"}
+            }
+        },
+        {"$sort": {"total": -1}},
+        {"$limit": 200}
+    ]
 
-\begin{itemize}
-      \item Soporte nativo para la visualización de series temporales, facilitando el análisis de la evolución de los indicadores epidemiológicos.
-      \item Capacidad de integración con múltiples fuentes de datos analíticos, lo que permite centralizar la visualización de resultados procedentes del pipeline Dataflow.
-      \item Actualización continua de métricas con baja latencia, adecuada para escenarios de monitorización en tiempo real.
-      \item Definición de dashboards personalizables, adaptables a distintos perfiles de usuario y niveles de análisis.
-      \item Integración con mecanismos de alertas visuales y notificaciones basadas en umbrales.
-\end{itemize}
+    results = []
+    for r in db.cases.aggregate(pipeline):
+        lat, lon = r.get("lat"), r.get("lon")
+        # Respaldo: obtener coordenadas del diccionario de ubigeos
+        if lat is None or lon is None:
+            coords = get_coords_from_ubigeo(
+                r["_id"]["departamento"],
+                r["_id"]["provincia"],
+                r["_id"]["distrito"]
+            )
+            if coords:
+                lat, lon = coords["lat"], coords["lon"]
 
-En el contexto de este trabajo, Grafana se utiliza como la capa final de presentación del sistema, encargada de transformar los resultados analíticos generados por el pipeline en representaciones visuales claras e interpretables. Los dashboards diseñados permiten supervisar la evolución de métricas clave, identificar tendencias emergentes y detectar posibles anomalías de forma temprana.
+        if lat and lon:
+            results.append({...})
+    return results
+\end{lstlisting}
 
-Asimismo, el uso de Grafana refuerza el carácter operativo de la arquitectura propuesta, al proporcionar una herramienta de monitorización continua que conecta directamente el procesamiento de datos en tiempo real con la interpretación visual y la toma de decisiones. De este modo, la plataforma de visualización no se limita a un papel informativo, sino que actúa como un componente activo dentro del sistema de vigilancia epidemiológica.
+Los mapas se implementan utilizando \textbf{Leaflet.js} con la extensión \textbf{Leaflet.heat} para visualización de densidad:
 
-\subsubsection{Integración con el almacenamiento}\label{integraciuxf3n-con-el-almacenamiento}
+\begin{lstlisting}[language=JavaScript, caption={Implementación del mapa de calor con Leaflet.js}, label={lst:heatmap-impl}]
+export function renderHeatmap(data) {
+    const container = document.getElementById('chart-heatmap');
 
-Las herramientas de visualización se integran con los sistemas de almacenamiento analítico generados por el pipeline, permitiendo consultas eficientes sobre datos procesados tanto en \emph{streaming} como en \emph{batch}.
+    // Limpiar mapa existente si hay uno
+    if (state.casesMap) {
+        state.casesMap.remove();
+    }
 
-Esta integración asegura que los dashboards reflejen información consistente y actualizada, sin impactar negativamente en el rendimiento del procesamiento de datos.
+    // Crear nuevo mapa centrado en Peru
+    state.casesMap = L.map('chart-heatmap').setView([-9.19, -75.0152], 5);
+
+    // Capa base de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(state.casesMap);
+
+    // Preparar datos para heatmap: [lat, lon, intensidad]
+    const heatData = data
+        .filter(d => d.lat && d.lon)
+        .map(d => [d.lat, d.lon, d.positivos || d.total]);
+
+    // Crear capa de calor con gradiente personalizado
+    L.heatLayer(heatData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 10,
+        max: Math.max(...heatData.map(d => d[2])),
+        gradient: {
+            0.4: 'blue',
+            0.6: 'lime',
+            0.8: 'yellow',
+            1.0: 'red'
+        }
+    }).addTo(state.casesMap);
+}
+\end{lstlisting}
+
+\subsubsection{Sistema de coordenadas geográficas}
+
+Las coordenadas geográficas se obtienen mediante un sistema de resolución en cascada:
+
+\begin{enumerate}
+    \item \textbf{Coordenadas del registro}: Si el documento original contiene campos \texttt{latitud} y \texttt{longitud}, se utilizan directamente.
+
+    \item \textbf{Diccionario de ubigeos}: Se consulta un diccionario precomputado con las coordenadas del centroide de cada distrito del Perú, indexado por la combinación departamento-provincia-distrito.
+
+    \item \textbf{Coordenadas de departamento}: Como último respaldo, se utilizan las coordenadas del centroide del departamento desde un diccionario de referencia.
+\end{enumerate}
+
+\begin{lstlisting}[language=Python, caption={Función de resolución de coordenadas por ubigeo}, label={lst:coords-resolution}]
+def get_coords_from_ubigeo(departamento, provincia, distrito):
+    """Obtiene coordenadas geograficas a partir del ubigeo."""
+    key = f"{departamento}|{provincia}|{distrito}".upper()
+    if key in UBIGEO_COORDS:
+        return UBIGEO_COORDS[key]
+
+    # Intentar con solo departamento y provincia
+    key_prov = f"{departamento}|{provincia}|".upper()
+    for k, v in UBIGEO_COORDS.items():
+        if k.startswith(key_prov):
+            return v
+
+    # Respaldo: coordenadas del departamento
+    return DEPARTAMENTO_COORDS.get(departamento.upper())
+\end{lstlisting}
+
+\subsection{Comunicación en tiempo real}\label{comunicacion-tiempo-real}
+
+El sistema implementa un mecanismo de actualización en tiempo real basado en WebSockets y MongoDB Change Streams que permite reflejar instantáneamente cualquier cambio en los datos.
+
+\subsubsection{Flujo de actualización de datos}
+
+El flujo de actualización sigue los siguientes pasos:
+
+\begin{enumerate}
+    \item El pipeline de procesamiento Apache Beam inserta o actualiza documentos en MongoDB.
+    \item MongoDB Change Streams detecta la modificación y notifica al servidor Flask.
+    \item El servidor procesa el cambio y emite eventos WebSocket a todos los clientes conectados.
+    \item Los clientes reciben los eventos y actualizan las visualizaciones correspondientes.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{images/flujo-realtime.png}
+\caption{Flujo de actualización en tiempo real mediante WebSockets}
+\label{fig:flujo-realtime}
+\end{figure}
+
+\subsubsection{Eventos WebSocket implementados}
+
+El sistema define un conjunto de eventos para la comunicación bidireccional:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{8cm}|}
+\hline
+\textbf{Evento} & \textbf{Descripción} \\
+\hline
+\texttt{update\_summary} & Actualiza las tarjetas de indicadores clave \\
+\texttt{update\_department} & Actualiza el gráfico de casos por departamento \\
+\texttt{update\_age} & Actualiza el histograma de grupos de edad \\
+\texttt{update\_heatmap} & Actualiza el mapa de calor de casos \\
+\texttt{filtered\_*} & Eventos para datos filtrados por departamento/sexo \\
+\texttt{threshold\_alert} & Notifica una nueva alerta por umbral superado \\
+\hline
+\end{tabular}
+\caption{Principales eventos WebSocket del sistema de visualización}
+\label{tab:websocket-events}
+\end{table}
 
 \subsection{Sistema de alertas}\label{sistema-de-alertas}
 
-Como complemento a la visualización, se implementa un sistema de alertas orientado a la detección temprana de eventos críticos. Este sistema tiene como objetivo identificar de forma automática situaciones anómalas o potencialmente relevantes en los indicadores epidemiológicos, permitiendo una respuesta rápida ante cambios significativos en la evolución de los datos.
+El sistema de alertas constituye un componente proactivo que complementa la visualización pasiva de datos, permitiendo la detección automática de situaciones críticas que requieren atención inmediata.
 
-El sistema de alertas se integra de manera natural dentro de la arquitectura analítica propuesta, aprovechando los resultados generados por el pipeline de procesamiento y los mecanismos de visualización en tiempo real. De este modo, las alertas actúan como un mecanismo proactivo que refuerza la capacidad de monitorización continua del sistema.
+\subsubsection{Arquitectura del sistema de alertas}
 
-\subsubsection{Objetivos del sistema de alertas}
+El sistema de alertas se integra directamente en el flujo de procesamiento de datos, evaluando cada actualización contra un conjunto de umbrales configurables. Cuando se detecta una condición de alerta, el sistema genera una notificación que se propaga instantáneamente a todos los clientes conectados.
 
-El sistema de alertas persigue los siguientes objetivos principales:
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{images/sistema-alertas.png}
+\caption{Panel de alertas activas y configuración de umbrales}
+\label{fig:sistema-alertas}
+\end{figure}
 
-\begin{itemize}
-      \item Detectar incrementos abruptos o comportamientos inusuales en los indicadores clave.
-      \item Reducir el tiempo de reacción ante eventos potencialmente críticos.
-      \item Complementar el análisis visual con notificaciones automáticas.
-      \item Apoyar la toma de decisiones en contextos de alta incertidumbre.
-\end{itemize}
+\subsubsection{Tipos de alertas implementadas}
 
-Estos objetivos resultan especialmente relevantes en escenarios de emergencia sanitaria, donde la anticipación y la rapidez de respuesta pueden tener un impacto significativo.
+El sistema implementa seis tipos de alertas configurables que cubren las principales métricas epidemiológicas. Cada tipo de alerta se define con un identificador único, un nombre descriptivo, un umbral por defecto y un estado de activación. La Tabla \ref{tab:tipos-alertas} presenta el detalle de cada tipo de alerta implementado.
 
-\subsubsection{Definición de umbrales}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|r|p{5.5cm}|}
+\hline
+\textbf{Identificador} & \textbf{Nombre} & \textbf{Umbral} & \textbf{Descripción} \\
+\hline
+\texttt{cases\_total} & Total de Casos & 1,000,000 & Se activa cuando el número acumulado de casos registrados en el sistema supera el umbral definido. Permite monitorear el crecimiento general de la pandemia. \\
+\hline
+\texttt{cases\_positive} & Casos Positivos & 1,000 & Detecta incrementos significativos en el número de casos con resultado positivo confirmado por prueba de laboratorio. \\
+\hline
+\texttt{demises\_total} & Total Fallecidos & 1,000 & Alerta cuando el número acumulado de fallecimientos supera el umbral, indicando una situación de alta mortalidad. \\
+\hline
+\texttt{hospitalizations\_total} & Total Hospitalizaciones & 500 & Monitorea la capacidad hospitalaria alertando cuando el número de pacientes hospitalizados excede el límite configurado. \\
+\hline
+\texttt{cases\_by\_dept} & Casos por Departamento & 2,000 & Genera alertas específicas para cada departamento cuando los casos positivos en esa región superan el umbral. \\
+\hline
+\texttt{demises\_by\_dept} & Fallecidos por Departamento & 1,000 & Similar al anterior, pero enfocado en la mortalidad por región geográfica. \\
+\hline
+\end{tabular}
+\caption{Tipos de alertas implementadas en el sistema de vigilancia epidemiológica}
+\label{tab:tipos-alertas}
+\end{table}
 
-Las alertas se basan en la definición de umbrales aplicados sobre métricas agregadas generadas por el pipeline de procesamiento. Estos umbrales permiten establecer criterios objetivos para identificar situaciones potencialmente críticas en la evolución de los indicadores epidemiológicos, facilitando la detección temprana de eventos relevantes.
+La configuración de alertas se almacena en una estructura de diccionario que permite su modificación en tiempo de ejecución:
 
-En el sistema propuesto se consideran dos tipos principales de umbrales:
+\begin{lstlisting}[language=Python, caption={Configuración de tipos de alertas en el sistema}, label={lst:alerts-config}]
+alerts_config = {
+    "cases_total": {
+        "enabled": True,
+        "threshold": 1000000,
+        "name": "Total de Casos"
+    },
+    "cases_positive": {
+        "enabled": True,
+        "threshold": 1000,
+        "name": "Casos Positivos"
+    },
+    "demises_total": {
+        "enabled": True,
+        "threshold": 1000,
+        "name": "Total Fallecidos"
+    },
+    "cases_by_dept": {
+        "enabled": True,
+        "threshold": 2000,
+        "name": "Casos Confirmados por Departamento"
+    },
+    "demises_by_dept": {
+        "enabled": True,
+        "threshold": 1000,
+        "name": "Fallecidos por Departamento"
+    },
+    "hospitalizations_total": {
+        "enabled": True,
+        "threshold": 500,
+        "name": "Total Hospitalizaciones"
+    }
+}
+\end{lstlisting}
 
-\paragraph{Umbrales estáticos}
+\subsubsection{Niveles de severidad}
 
-Los umbrales estáticos se definen a partir de valores de referencia previamente establecidos, basados en criterios epidemiológicos conocidos, recomendaciones institucionales o análisis históricos generales. Este tipo de umbral resulta especialmente útil para identificar situaciones claramente anómalas, como la superación de niveles considerados críticos para determinados indicadores.
-
-Su principal ventaja radica en su simplicidad y facilidad de interpretación, lo que permite una rápida configuración y comprensión de las alertas generadas. No obstante, su rigidez puede limitar su capacidad de adaptación a contextos cambiantes o a variaciones estacionales en los datos.
-
-\paragraph{Umbrales dinámicos}
-
-Los umbrales dinámicos se calculan en función del comportamiento histórico reciente de los datos, adaptándose de forma automática a la evolución de los indicadores. Estos umbrales se basan en técnicas analíticas simples, como el uso de medias móviles, tasas de crecimiento o desviaciones respecto a tendencias recientes.
-
-Este enfoque permite detectar cambios significativos en la dinámica de los datos, incluso cuando los valores absolutos no superan límites predefinidos. De este modo, los umbrales dinámicos resultan especialmente adecuados para la identificación temprana de patrones emergentes o incrementos sostenidos que podrían pasar desapercibidos con criterios estáticos.
-
-\paragraph{Combinación de umbrales}
-
-La combinación de umbrales estáticos y dinámicos permite al sistema adaptarse a distintos contextos de análisis, equilibrando robustez y flexibilidad. Mientras que los umbrales estáticos proporcionan una referencia clara para la detección de situaciones críticas evidentes, los umbrales dinámicos aportan sensibilidad ante cambios progresivos o comportamientos atípicos.
-
-Este enfoque híbrido contribuye a reducir la generación de falsas alarmas y mejora la fiabilidad del sistema de alertas, reforzando su utilidad como herramienta de apoyo a la monitorización continua y a la toma de decisiones en entornos de alta incertidumbre.
-\subsubsection{Detección de eventos críticos}
-
-Cuando un indicador supera los umbrales definidos o presenta una variación significativa respecto a su comportamiento esperado, el sistema identifica la situación como un evento crítico. Esta detección se realiza en tiempo real o casi en tiempo real, utilizando los resultados analíticos generados por el pipeline Dataflow.
-
-Entre los eventos críticos considerados se incluyen:
-
-\begin{itemize}
-      \item Picos repentinos en el número de casos confirmados.
-      \item Incrementos sostenidos en las tasas de crecimiento.
-      \item Desviaciones anómalas respecto a patrones históricos.
-\end{itemize}
-
-Esta detección temprana permite señalar situaciones que requieren un análisis más detallado o una intervención inmediata.
-
-\subsubsection{Notificación y visualización de alertas}
-
-Las alertas generadas se reflejan directamente en los dashboards de visualización, destacando los indicadores afectados mediante señales visuales. Esta integración permite que los usuarios identifiquen de forma inmediata la presencia de situaciones anómalas durante la supervisión del sistema.
-
-Adicionalmente, el sistema de alertas puede extenderse para incluir mecanismos de notificación externos, como mensajes automatizados o integraciones con otros sistemas de monitorización, reforzando su utilidad operativa.
-
-En conjunto, el sistema de alertas constituye un componente clave de la arquitectura propuesta, al cerrar el ciclo entre procesamiento de datos, análisis, visualización y respuesta. Su incorporación refuerza el carácter proactivo del sistema y contribuye a mejorar la eficacia del análisis epidemiológico en tiempo real.
-\subsubsection{Definición de umbrales}\label{definiciuxf3n-de-umbrales}
-
-Se definen umbrales dinámicos y estáticos sobre los indicadores clave, tales como:
-
-\begin{itemize}
-      \tightlist
-      \item
-            Incrementos bruscos en el número de casos.
-      \item
-            Superación de tasas de crecimiento predefinidas.
-      \item
-            Aparición de anomalías detectadas por los modelos analíticos.
-\end{itemize}
-
-Estos umbrales se ajustan en función del comportamiento histórico de los datos.
-
-\subsubsection{Detección de eventos críticos}\label{detecciuxf3n-de-eventos-cruxedticos}
-
-Cuando se superan los umbrales establecidos, el sistema identifica eventos críticos que requieren atención inmediata. Esta detección se realiza en tiempo real, permitiendo una respuesta rápida ante situaciones potencialmente problemáticas.
-
-\subsubsection{Notificaciones}\label{notificaciones}
-
-Las alertas generadas se notifican mediante distintos canales, como:
+El sistema implementa un mecanismo de clasificación de alertas según su severidad, permitiendo priorizar la atención de situaciones más críticas. Se definen dos niveles:
 
 \begin{itemize}
-      \tightlist
-      \item
-            Notificaciones en los dashboards.
-      \item
-            Mensajes automatizados.
-      \item
-            Integración con sistemas externos de notificación.
+    \item \textbf{Nivel Warning (Advertencia)}: Se asigna cuando el valor actual supera el umbral pero se mantiene por debajo de 1.5 veces el umbral configurado. Indica una situación que requiere monitoreo pero no necesariamente acción inmediata.
+
+    \item \textbf{Nivel Critical (Crítico)}: Se asigna cuando el valor actual supera 1.5 veces el umbral configurado. Indica una situación de emergencia que requiere atención inmediata.
 \end{itemize}
 
-Este sistema de alertas refuerza la capacidad del sistema para apoyar la vigilancia epidemiológica y la toma de decisiones informadas.
+El cálculo del nivel de severidad se realiza de forma automática en el momento de generación de la alerta:
+
+\begin{lstlisting}[language=Python, caption={Cálculo del nivel de severidad de alertas}, label={lst:severity-calc}]
+alert = {
+    "id": f"{alert_key}_{int(datetime.now().timestamp())}",
+    "metric": metric_key,
+    "name": config.get("name", metric_key),
+    "threshold": threshold,
+    "current_value": current_value,
+    "context": context,  # Departamento si aplica
+    "date": date_display,
+    "timestamp": datetime.now().isoformat(),
+    "level": "warning" if current_value < threshold * 1.5 else "critical"
+}
+\end{lstlisting}
+
+\subsubsection{Gestión thread-safe de alertas}
+
+Dado que el sistema procesa múltiples eventos de forma concurrente a través de WebSockets, la gestión de alertas implementa mecanismos de sincronización mediante \texttt{threading.Lock} para garantizar la integridad de los datos en entornos multi-hilo:
+
+\begin{lstlisting}[language=Python, caption={Implementación thread-safe del sistema de alertas}, label={lst:thread-safe}]
+import threading
+
+alerts_lock = threading.Lock()
+active_alerts = []
+alerts_history = []
+MAX_ALERTS_HISTORY = 50
+
+def check_threshold_alert(metric_key: str, current_value: int, context: str = None):
+    with alerts_lock:
+        config = alerts_config.get(metric_key)
+        if not config or not config.get("enabled"):
+            return None
+
+        threshold = config.get("threshold", 0)
+        if current_value >= threshold:
+            # Verificar si ya existe una alerta activa para evitar duplicados
+            existing = [a for a in active_alerts
+                       if a["metric"] == metric_key and a.get("context") == context]
+            if not existing:
+                active_alerts.append(alert)
+                alerts_history.insert(0, alert)
+                if len(alerts_history) > MAX_ALERTS_HISTORY:
+                    alerts_history.pop()
+                return alert
+\end{lstlisting}
+
+\subsubsection{Filtrado temporal de alertas}
+
+El sistema permite configurar una fecha global de referencia para el cálculo de alertas. Esta funcionalidad resulta especialmente útil para:
+
+\begin{itemize}
+    \item Analizar la situación epidemiológica en una fecha específica del pasado.
+    \item Simular escenarios históricos y evaluar cómo habrían funcionado los umbrales.
+    \item Comparar la evolución de métricas entre diferentes períodos.
+\end{itemize}
+
+Cuando se establece una fecha global, todas las consultas de verificación de umbrales filtran los datos por esa fecha específica:
+
+\begin{lstlisting}[language=Python, caption={Verificación de alertas con filtrado temporal}, label={lst:alerts-date-filter}]
+def check_all_thresholds(summary, dept_data=None, demises_dept=None, emit_callback=None):
+    global_date = alerts_global_date
+
+    # Total casos filtrado por fecha
+    if global_date:
+        count = get_count_by_date("cases", "fecha_muestra", global_date,
+                                   {"sexo": {"$nin": [None, "", "Sin especificar"]}})
+        alert = check_threshold_alert("cases_total", count)
+    else:
+        alert = check_threshold_alert("cases_total", summary.get("cases_total", 0))
+
+    # Casos por departamento filtrado por fecha
+    if global_date:
+        filtered_dept = get_dept_count_by_date("cases", "departamento_paciente",
+                                                "fecha_muestra", global_date,
+                                                count_field="positivos")
+        for dept in filtered_dept[:5]:
+            alert = check_threshold_alert("cases_by_dept", dept.get("positivos", 0),
+                                          context=dept.get("departamento"))
+\end{lstlisting}
+
+\subsubsection{Configuración dinámica de umbrales}
+
+El dashboard incluye un panel de configuración accesible mediante el botón de engranaje en la sección de alertas. Este panel permite ajustar los umbrales de cada alerta en tiempo real sin necesidad de reiniciar el servidor. Las modificaciones se propagan instantáneamente a todos los clientes conectados mediante WebSocket.
+
+Los usuarios pueden realizar las siguientes acciones de configuración:
+
+\begin{itemize}
+    \item \textbf{Activar/Desactivar alertas}: Cada tipo de alerta puede habilitarse o deshabilitarse individualmente mediante un interruptor (\emph{toggle}).
+
+    \item \textbf{Modificar umbrales}: El valor numérico del umbral puede ajustarse mediante un campo de entrada. Los cambios se guardan automáticamente.
+
+    \item \textbf{Establecer fecha de referencia}: Un selector de fecha permite configurar la fecha global para el cálculo de todas las alertas.
+
+    \item \textbf{Limpiar fecha}: Botón para eliminar el filtro temporal y volver al modo de alertas acumuladas.
+\end{itemize}
+
+La actualización de configuración se realiza mediante eventos WebSocket bidireccionales:
+
+\begin{lstlisting}[language=Python, caption={Manejador WebSocket para actualización de umbrales}, label={lst:update-threshold}]
+@socketio.on('update_alert_threshold')
+def handle_update_alert_threshold(data):
+    metric = data.get("metric")
+    if metric not in alerts_config:
+        emit('error', {'message': f'Metrica desconocida: {metric}'})
+        return
+
+    update_alert_config(
+        metric,
+        threshold=int(data["threshold"]) if "threshold" in data else None,
+        enabled=bool(data["enabled"]) if "enabled" in data else None
+    )
+
+    config_data = {
+        "config": get_alerts_config(),
+        "global_date": get_alerts_global_date()
+    }
+    emit('alerts_config', config_data)
+    socketio.emit('alerts_config_updated', config_data)
+\end{lstlisting}
+
+\subsubsection{Historial de alertas}
+
+El sistema mantiene un historial de las últimas 50 alertas generadas, permitiendo revisar eventos pasados incluso después de que hayan sido descartados de la lista de alertas activas. Este historial incluye:
+
+\begin{itemize}
+    \item Marca temporal de generación de la alerta.
+    \item Métrica y contexto (departamento) asociado.
+    \item Valor que disparó la alerta y umbral configurado en ese momento.
+    \item Nivel de severidad asignado.
+\end{itemize}
+
+\subsubsection{Visualización de alertas}
+
+Las alertas activas se muestran en un panel dedicado en la parte superior del dashboard, con indicadores visuales que destacan su severidad. El panel de alertas incluye:
+
+\begin{itemize}
+    \item \textbf{Indicador de color}: Las alertas de nivel \texttt{critical} se muestran con borde rojo y fondo rosado. Las alertas de nivel \texttt{warning} utilizan borde amarillo y fondo amarillo claro.
+
+    \item \textbf{Información contextual}: Cada alerta muestra el nombre de la métrica, el valor actual, el umbral superado y, en caso de alertas por departamento, el nombre de la región afectada.
+
+    \item \textbf{Marca temporal}: Se muestra la hora exacta en que se generó la alerta, facilitando el seguimiento cronológico de eventos.
+
+    \item \textbf{Fecha de referencia}: Si se configuró una fecha global, se muestra junto a la alerta para contextualizar el período analizado.
+
+    \item \textbf{Botón de descarte}: Permite al usuario marcar la alerta como revisada y eliminarla de la lista de alertas activas.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{images/alertas-panel-detalle.png}
+\caption{Panel de alertas activas mostrando diferentes niveles de severidad}
+\label{fig:alertas-panel-detalle}
+\end{figure}
+
+\subsubsection{Notificaciones en tiempo real}
+
+Cuando se genera una nueva alerta, el sistema implementa múltiples mecanismos de notificación para asegurar que las situaciones críticas no pasen desapercibidas:
+
+\begin{enumerate}
+    \item \textbf{Notificación emergente (Toast)}: Se muestra una notificación en la esquina superior derecha de la pantalla durante 5 segundos, con el resumen de la alerta generada.
+
+    \item \textbf{Actualización del panel de alertas}: La nueva alerta se añade automáticamente al panel de alertas activas con una animación de entrada.
+
+    \item \textbf{Indicador visual en el header}: El contador de alertas activas se actualiza y muestra un badge con el número de alertas pendientes de revisión.
+
+    \item \textbf{Emisión broadcast}: La alerta se propaga a todos los clientes conectados simultáneamente mediante el evento \texttt{threshold\_alert}.
+\end{enumerate}
+
+\begin{lstlisting}[language=JavaScript, caption={Manejo de notificaciones de alerta en el cliente}, label={lst:alert-notification}]
+socket.on('threshold_alert', (alert) => {
+    console.log('[WebSocket] Nueva alerta:', alert);
+    state.activeAlerts.push(alert);
+    renderActiveAlerts();
+    showAlertNotification(alert);
+});
+
+function showAlertNotification(alert) {
+    const levelClass = alert.level === 'critical' ? 'toast-critical' : 'toast-warning';
+    const toast = document.createElement('div');
+    toast.className = `toast ${levelClass}`;
+    toast.innerHTML = `
+        <strong>${alert.name}</strong>
+        <p>Valor: ${alert.current_value} (Umbral: ${alert.threshold})</p>
+        ${alert.context ? `<p>Departamento: ${alert.context}</p>` : ''}
+    `;
+    document.getElementById('notifications').appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+}
+\end{lstlisting}
+
+\subsubsection{Gestión de alertas activas}
+
+El sistema proporciona funcionalidades para la gestión del ciclo de vida de las alertas:
+
+\begin{itemize}
+    \item \textbf{Descarte individual}: Cada alerta puede descartarse individualmente mediante el botón de cierre, indicando que ha sido revisada por el usuario.
+
+    \item \textbf{Limpieza masiva}: El botón ``Limpiar todo'' permite eliminar todas las alertas activas de una vez.
+
+    \item \textbf{Actualización automática}: Cuando una métrica que previamente superaba el umbral vuelve a valores normales, la alerta correspondiente puede actualizarse o eliminarse automáticamente.
+
+    \item \textbf{Prevención de duplicados}: El sistema verifica la existencia de alertas activas para la misma métrica y contexto antes de crear una nueva, actualizando el valor en lugar de generar duplicados.
+\end{itemize}
+
+En conjunto, el sistema de alertas refuerza el carácter proactivo de la plataforma de visualización, transformándola de una herramienta de consulta pasiva a un sistema de vigilancia activa que apoya la detección temprana de situaciones críticas. La combinación de umbrales configurables, niveles de severidad, filtrado temporal y notificaciones en tiempo real proporciona una solución completa para el monitoreo epidemiológico.
+
+\subsection{Stack tecnológico del sistema de visualización}\label{stack-tecnologico-completo}
+
+El sistema de visualización se construye sobre un conjunto de tecnologías modernas seleccionadas por su capacidad de integración, rendimiento y soporte para comunicación en tiempo real. La Tabla \ref{tab:stack-tecnologico} presenta el inventario completo de tecnologías utilizadas, clasificadas por capa arquitectónica.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|l|l|p{5cm}|}
+\hline
+\textbf{Capa} & \textbf{Tecnología} & \textbf{Versión} & \textbf{Propósito} \\
+\hline
+\multirow{4}{*}{Backend} & Python & 3.11+ & Lenguaje de programación principal \\
+& Flask & 2.3+ & Framework web para API REST \\
+& Flask-SocketIO & 5.3+ & Extensión para WebSockets \\
+& PyMongo & 4.5+ & Driver de MongoDB para Python \\
+\hline
+\multirow{4}{*}{Frontend} & HTML5/CSS3 & - & Estructura y estilos \\
+& JavaScript ES6+ & - & Lógica de cliente \\
+& D3.js & 7.x & Visualización de datos \\
+& Leaflet.js & 1.9+ & Mapas interactivos \\
+& Socket.IO Client & 4.7+ & Cliente WebSocket \\
+\hline
+\multirow{2}{*}{Base de Datos} & MongoDB & 6.0+ & Almacenamiento NoSQL \\
+& Change Streams & - & Detección de cambios en tiempo real \\
+\hline
+\multirow{2}{*}{Comunicación} & WebSocket & RFC 6455 & Protocolo bidireccional \\
+& REST API & HTTP/1.1 & Endpoints de consulta \\
+\hline
+\end{tabular}
+\caption{Stack tecnológico completo del sistema de visualización}
+\label{tab:stack-tecnologico}
+\end{table}
+
+\subsubsection{Justificación de las tecnologías seleccionadas}
+
+\paragraph{Flask como framework web}
+Se selecciona Flask por su naturaleza minimalista y su filosofía de microframework, lo que permite integrar únicamente los componentes necesarios sin la sobrecarga de frameworks más completos. Flask proporciona:
+\begin{itemize}
+    \item Routing flexible para definir endpoints REST.
+    \item Sistema de plantillas Jinja2 para renderizado de HTML.
+    \item Extensibilidad mediante blueprints para organización modular.
+    \item Compatibilidad nativa con WSGI para despliegue en producción.
+\end{itemize}
+
+\paragraph{WebSockets para comunicación en tiempo real}
+La elección de WebSockets sobre alternativas como Server-Sent Events (SSE) o Long Polling responde a la necesidad de comunicación bidireccional. WebSocket permite:
+\begin{itemize}
+    \item Conexión persistente con menor overhead que HTTP.
+    \item Comunicación bidireccional (servidor $\leftrightarrow$ cliente).
+    \item Latencia reducida para actualizaciones en tiempo real.
+    \item Soporte para múltiples canales de eventos.
+\end{itemize}
+
+\paragraph{D3.js para visualización}
+D3.js se selecciona por su control granular sobre los elementos SVG, permitiendo crear visualizaciones personalizadas que no serían posibles con bibliotecas de alto nivel. Sus ventajas incluyen:
+\begin{itemize}
+    \item Bindeo de datos a elementos del DOM (\emph{data binding}).
+    \item Sistema de transiciones para animaciones fluidas.
+    \item Escalas y ejes configurables para cualquier tipo de dato.
+    \item Soporte para múltiples tipos de gráficos (barras, líneas, áreas, donut).
+\end{itemize}
+
+\paragraph{MongoDB como base de datos}
+MongoDB se integra naturalmente con el pipeline de procesamiento Apache Beam y ofrece:
+\begin{itemize}
+    \item Esquema flexible para datos epidemiológicos heterogéneos.
+    \item Aggregation Framework para consultas analíticas complejas.
+    \item Change Streams para detección de cambios en tiempo real.
+    \item Escalabilidad horizontal mediante sharding.
+\end{itemize}
+
+\subsection{Arquitectura de módulos del sistema}\label{arquitectura-modulos}
+
+El sistema de visualización se organiza en una arquitectura modular que separa responsabilidades y facilita el mantenimiento. La Figura \ref{fig:arquitectura-modulos} ilustra la organización de los principales módulos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/arquitectura-modulos.png}
+\caption{Arquitectura de módulos del sistema de visualización}
+\label{fig:arquitectura-modulos}
+\end{figure}
+
+\subsubsection{Módulos del backend}
+
+El backend se estructura en los siguientes módulos principales:
+
+\paragraph{Módulo de Servicios (\texttt{services/})}
+Contiene la lógica de conexión y configuración de servicios externos:
+\begin{itemize}
+    \item \texttt{database.py}: Gestiona la conexión a MongoDB mediante PyMongo, implementando el patrón Singleton para reutilizar la conexión.
+\end{itemize}
+
+\begin{lstlisting}[language=Python, caption={Módulo de conexión a base de datos}, label={lst:db-service}]
+# services/database.py
+from pymongo import MongoClient
+from config import MONGO_URI, DATABASE
+
+mongo_client = None
+db = None
+
+try:
+    mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=1000)
+    mongo_client.admin.command("ping")
+    db = mongo_client[DATABASE]
+    print(f"[Mongo] Conectado a {MONGO_URI}")
+except Exception as e:
+    print(f"[Mongo] No se pudo conectar: {e}")
+\end{lstlisting}
+
+\paragraph{Módulo de Consultas (\texttt{handlers/queries/})}
+Implementa las funciones de acceso a datos organizadas por dominio:
+\begin{itemize}
+    \item \texttt{summary.py}: Consultas de indicadores agregados (KPIs).
+    \item \texttt{cases.py}: Consultas relacionadas con casos COVID-19.
+    \item \texttt{demises.py}: Consultas de datos de fallecimientos.
+    \item \texttt{hospitalizations.py}: Consultas de hospitalizaciones.
+\end{itemize}
+
+\paragraph{Módulo de Alertas (\texttt{handlers/alerts.py})}
+Centraliza toda la lógica del sistema de alertas:
+\begin{itemize}
+    \item Configuración y gestión de umbrales.
+    \item Verificación de condiciones de alerta.
+    \item Gestión del ciclo de vida de alertas activas.
+    \item Historial de alertas generadas.
+\end{itemize}
+
+\paragraph{Módulo de WebSocket (\texttt{handlers/websocket/})}
+Gestiona los eventos de comunicación en tiempo real:
+\begin{itemize}
+    \item \texttt{events.py}: Registra los manejadores de eventos WebSocket.
+    \item Maneja conexiones, desconexiones y solicitudes de datos.
+    \item Emite actualizaciones a clientes conectados.
+\end{itemize}
+
+\paragraph{Módulo de Rutas (\texttt{routes/})}
+Define los endpoints REST de la API:
+\begin{itemize}
+    \item \texttt{api.py}: Blueprint con rutas para consultas HTTP.
+    \item Endpoints para datos iniciales y configuración.
+\end{itemize}
+
+\subsubsection{Módulos del frontend}
+
+El frontend se organiza en módulos ES6 que facilitan la separación de responsabilidades:
+
+\paragraph{Módulo de Configuración (\texttt{modules/config.js})}
+Define constantes globales, paleta de colores y estado de la aplicación:
+
+\begin{lstlisting}[language=JavaScript, caption={Módulo de configuración del frontend}, label={lst:config-module}]
+// modules/config.js
+export const COLORS = {
+    primary: '#3498db',
+    secondary: '#2ecc71',
+    danger: '#e74c3c',
+    warning: '#f39c12',
+    info: '#9b59b6'
+};
+
+export const state = {
+    isConnected: false,
+    selectedDepartment: 'TODOS',
+    selectedSex: 'TODOS',
+    allDepartmentsData: [],
+    allSexData: [],
+    allAgeData: [],
+    allTimelineData: [],
+    allHeatmapData: [],
+    activeAlerts: [],
+    alertsConfig: {}
+};
+\end{lstlisting}
+
+\paragraph{Módulo de Utilidades (\texttt{modules/utils.js})}
+Funciones auxiliares reutilizables:
+\begin{itemize}
+    \item \texttt{formatNumber()}: Formato de números con separadores de miles.
+    \item \texttt{showConnectionStatus()}: Actualiza indicador de conexión.
+    \item \texttt{showNotification()}: Muestra notificaciones toast.
+    \item \texttt{filterValidDepts()}: Filtra departamentos válidos.
+\end{itemize}
+
+\paragraph{Módulo de Filtros (\texttt{modules/filters.js})}
+Gestiona la lógica de filtrado interactivo:
+\begin{itemize}
+    \item Renderizado de listas de filtros.
+    \item Aplicación de filtros a visualizaciones.
+    \item Actualización de indicadores de filtro activo.
+    \item Comunicación con servidor para datos filtrados.
+\end{itemize}
+
+\paragraph{Módulo de Alertas (\texttt{modules/alerts.js})}
+Implementa la interfaz de usuario del sistema de alertas:
+\begin{itemize}
+    \item Renderizado del panel de alertas activas.
+    \item Configuración de umbrales mediante formularios.
+    \item Notificaciones visuales de nuevas alertas.
+    \item Gestión de descarte y limpieza de alertas.
+\end{itemize}
+
+\paragraph{Módulos de Gráficos (\texttt{charts/})}
+Cada tipo de visualización se implementa en un módulo independiente:
+\begin{itemize}
+    \item \texttt{department.js}: Gráficos de barras por departamento.
+    \item \texttt{sex.js}: Gráficos donut de distribución por sexo.
+    \item \texttt{timeline.js}: Series temporales de evolución.
+    \item \texttt{age.js}: Histogramas de grupos de edad.
+    \item \texttt{heatmaps.js}: Mapas de calor georreferenciados.
+\end{itemize}
+
+\subsection{Flujo de datos end-to-end}\label{flujo-datos-end-to-end}
+
+El flujo de datos del sistema de visualización se integra con el pipeline de procesamiento de datos, formando un ciclo completo desde la ingesta de datos brutos hasta su presentación visual al usuario final.
+
+\subsubsection{Diagrama de flujo completo}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.98\textwidth]{images/flujo-datos-completo.png}
+\caption{Flujo de datos end-to-end del sistema de vigilancia epidemiológica}
+\label{fig:flujo-datos-completo}
+\end{figure}
+
+\subsubsection{Etapas del flujo de datos}
+
+\paragraph{1. Ingesta de datos}
+Los datos epidemiológicos se obtienen de fuentes oficiales (Ministerio de Salud del Perú) en formato CSV. El sistema de ingesta:
+\begin{itemize}
+    \item Lee archivos de casos, fallecimientos y hospitalizaciones.
+    \item Valida la estructura y calidad de los datos.
+    \item Publica los registros en topics de Apache Kafka.
+\end{itemize}
+
+\paragraph{2. Procesamiento con Apache Beam}
+El pipeline de procesamiento implementa transformaciones sobre los datos:
+\begin{itemize}
+    \item Limpieza y normalización de campos.
+    \item Enriquecimiento con coordenadas geográficas.
+    \item Cálculo de métricas agregadas.
+    \item Escritura en colecciones de MongoDB.
+\end{itemize}
+
+\paragraph{3. Almacenamiento en MongoDB}
+Los datos procesados se almacenan en tres colecciones principales:
+\begin{itemize}
+    \item \texttt{cases}: Registros de pruebas diagnósticas.
+    \item \texttt{demises}: Registros de fallecimientos.
+    \item \texttt{hospitalizations}: Registros de hospitalizaciones.
+\end{itemize}
+
+\paragraph{4. Detección de cambios}
+MongoDB Change Streams monitorea las colecciones y notifica al servidor Flask cuando se detectan inserciones o actualizaciones:
+
+\begin{lstlisting}[language=Python, caption={Monitoreo de cambios con Change Streams}, label={lst:change-streams}]
+def watch_collection_changes(collection_name, callback):
+    """Monitorea cambios en una coleccion de MongoDB."""
+    collection = db[collection_name]
+    with collection.watch() as stream:
+        for change in stream:
+            operation = change['operationType']
+            if operation in ['insert', 'update', 'replace']:
+                callback(collection_name, operation, change)
+\end{lstlisting}
+
+\paragraph{5. Propagación mediante WebSocket}
+El servidor Flask procesa los cambios detectados y emite eventos WebSocket a todos los clientes conectados:
+
+\begin{lstlisting}[language=Python, caption={Propagación de cambios a clientes}, label={lst:broadcast-changes}]
+def on_data_change(collection, operation, change):
+    """Callback ejecutado cuando se detecta un cambio en MongoDB."""
+    socketio.emit('data_changed', {
+        'collection': collection,
+        'operation': operation,
+        'timestamp': datetime.now().isoformat()
+    })
+    # Recalcular y emitir datos actualizados
+    emit_updated_data(collection)
+\end{lstlisting}
+
+\paragraph{6. Actualización de visualizaciones}
+Los clientes reciben los eventos y actualizan las visualizaciones correspondientes sin necesidad de recargar la página:
+
+\begin{lstlisting}[language=JavaScript, caption={Actualización reactiva en el cliente}, label={lst:reactive-update}]
+socket.on('data_changed', (data) => {
+    console.log(`[WebSocket] Cambio: ${data.collection} - ${data.operation}`);
+    showNotification(`Nuevo ${data.operation} en ${data.collection}`);
+    socket.emit('request_refresh');
+});
+
+socket.on('update_summary', (data) => {
+    updateSummaryCards(data);
+});
+
+socket.on('update_department', (data) => {
+    state.allDepartmentsData = data;
+    renderDepartmentChart(filterValidDepts(data));
+});
+\end{lstlisting}
+
+\subsubsection{Latencia del sistema}
+
+El sistema está diseñado para minimizar la latencia entre la llegada de nuevos datos y su visualización. Los principales factores que influyen en la latencia son:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Etapa} & \textbf{Latencia típica} & \textbf{Factores} \\
+\hline
+Ingesta Kafka & $<$ 100ms & Tamaño del batch, red \\
+Procesamiento Beam & 1-5s & Complejidad de transformaciones \\
+Escritura MongoDB & $<$ 50ms & Índices, tamaño del documento \\
+Change Stream & $<$ 10ms & Configuración de MongoDB \\
+WebSocket broadcast & $<$ 20ms & Número de clientes, red \\
+Renderizado D3.js & 100-750ms & Complejidad del gráfico \\
+\hline
+\textbf{Total end-to-end} & \textbf{2-7s} & Caso típico \\
+\hline
+\end{tabular}
+\caption{Latencia por etapa del flujo de datos}
+\label{tab:latencia-etapas}
+\end{table}
+
+\subsection{Integración con el pipeline de procesamiento}\label{integracion-pipeline}
+
+El sistema de visualización se integra de manera transparente con el pipeline de procesamiento Apache Beam, actuando como la capa de presentación del sistema de vigilancia epidemiológica.
+
+\subsubsection{Puntos de integración}
+
+\begin{enumerate}
+    \item \textbf{MongoDB como punto de encuentro}: Ambos sistemas (pipeline y visualización) utilizan MongoDB como almacén común de datos, garantizando consistencia.
+
+    \item \textbf{Esquema de datos compartido}: Las colecciones de MongoDB siguen un esquema definido que es consumido tanto por el pipeline de escritura como por las consultas de visualización.
+
+    \item \textbf{Change Streams como mecanismo de sincronización}: El sistema de visualización no necesita conocer los detalles del pipeline; simplemente reacciona a los cambios detectados en la base de datos.
+\end{enumerate}
+
+\subsubsection{Diagrama de integración}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{images/integracion-pipeline.png}
+\caption{Integración del sistema de visualización con el pipeline de procesamiento}
+\label{fig:integracion-pipeline}
+\end{figure}
+
+\subsubsection{Beneficios de la arquitectura de integración}
+
+\begin{itemize}
+    \item \textbf{Desacoplamiento}: El sistema de visualización es independiente del pipeline de procesamiento, permitiendo evolucionar cada componente por separado.
+
+    \item \textbf{Escalabilidad}: Múltiples instancias del servidor de visualización pueden conectarse a la misma base de datos sin conflictos.
+
+    \item \textbf{Tolerancia a fallos}: Si el pipeline de procesamiento falla, el sistema de visualización continúa funcionando con los últimos datos disponibles.
+
+    \item \textbf{Flexibilidad}: Es posible agregar nuevas fuentes de datos al pipeline sin modificar el sistema de visualización, siempre que se mantenga el esquema de las colecciones.
+\end{itemize}
+
+\subsection{Resumen de funcionalidades implementadas}\label{resumen-funcionalidades}
+
+La Tabla \ref{tab:resumen-funcionalidades} presenta un resumen consolidado de todas las funcionalidades implementadas en el sistema de visualización y monitorización.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|l|p{7cm}|l|}
+\hline
+\textbf{Categoría} & \textbf{Funcionalidad} & \textbf{Estado} \\
+\hline
+\multirow{5}{*}{Visualizaciones} & Gráfico de casos por departamento & Implementado \\
+& Distribución por sexo (casos y fallecidos) & Implementado \\
+& Series temporales (casos y fallecidos) & Implementado \\
+& Histograma de grupos de edad & Implementado \\
+& Mapas de calor (casos, fallecidos, hospitalizaciones) & Implementado \\
+\hline
+\multirow{3}{*}{Filtros} & Filtro por departamento & Implementado \\
+& Filtro por sexo & Implementado \\
+& Búsqueda de departamento & Implementado \\
+\hline
+\multirow{4}{*}{Indicadores} & Total de casos & Implementado \\
+& Casos positivos & Implementado \\
+& Hospitalizaciones & Implementado \\
+& Fallecidos & Implementado \\
+\hline
+\multirow{6}{*}{Alertas} & Alerta por total de casos & Implementado \\
+& Alerta por casos positivos & Implementado \\
+& Alerta por fallecidos & Implementado \\
+& Alerta por hospitalizaciones & Implementado \\
+& Alerta por casos por departamento & Implementado \\
+& Alerta por fallecidos por departamento & Implementado \\
+\hline
+\multirow{4}{*}{Tiempo Real} & Actualización automática de gráficos & Implementado \\
+& Notificaciones de cambios & Implementado \\
+& Indicador de conexión & Implementado \\
+& Propagación de alertas & Implementado \\
+\hline
+\end{tabular}
+\caption{Resumen de funcionalidades implementadas en el sistema}
+\label{tab:resumen-funcionalidades}
+\end{table}
 
 \subsection{Evaluación del sistema y resultados}\label{evaluaciuxf3n-del-sistema-y-resultados}
 

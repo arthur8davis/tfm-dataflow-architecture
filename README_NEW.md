@@ -1,78 +1,96 @@
 # Pipeline de Procesamiento Multi-Schema con Apache Beam
 
-Arquitectura de procesamiento de datos en tiempo real usando Apache Beam, Confluent Kafka y MongoDB con time series collections. **Cada schema se procesa de manera completamente independiente.**
+Arquitectura de procesamiento de datos en tiempo real usando Apache Beam, Confluent Kafka (KRaft) y MongoDB con time series collections. **Cada schema se procesa de manera completamente independiente.**
 
 ## Arquitectura
 
 ```mermaid
 flowchart TB
     subgraph Cases["SCHEMA: CASES"]
-        CSV1["CSV Files"] --> Kafka1["Kafka Topic\ncases"]
+        CSV1["CSV Files<br/>13 archivos"] --> Kafka1["Kafka Topic\ncases"]
         Kafka1 --> Beam1["Apache Beam Pipeline"]
         Beam1 --> Mongo1["MongoDB Collection\ncases (Time-Series)"]
     end
 
     subgraph Demises["SCHEMA: DEMISES"]
-        CSV2["CSV Files"] --> Kafka2["Kafka Topic\ndemises"]
+        CSV2["CSV Files<br/>13 archivos"] --> Kafka2["Kafka Topic\ndemises"]
         Kafka2 --> Beam2["Apache Beam Pipeline"]
         Beam2 --> Mongo2["MongoDB Collection\ndemises (Time-Series)"]
     end
 
-    subgraph NewSchema["SCHEMA: [TU SCHEMA]"]
-        CSV3["CSV Files"] --> Kafka3["Kafka Topic\nmi_schema"]
+    subgraph Hospitalizations["SCHEMA: HOSPITALIZATIONS"]
+        CSV3["CSV Files<br/>13 archivos"] --> Kafka3["Kafka Topic\nhospitalizations"]
         Kafka3 --> Beam3["Apache Beam Pipeline"]
-        Beam3 --> Mongo3["MongoDB Collection\nmi_schema (Time-Series)"]
+        Beam3 --> Mongo3["MongoDB Collection\nhospitalizations (Time-Series)"]
+    end
+
+    subgraph NewSchema["SCHEMA: [TU SCHEMA]"]
+        CSV4["CSV Files"] --> Kafka4["Kafka Topic\nmi_schema"]
+        Kafka4 --> Beam4["Apache Beam Pipeline"]
+        Beam4 --> Mongo4["MongoDB Collection\nmi_schema (Time-Series)"]
     end
 
     style Cases fill:#e3f2fd
     style Demises fill:#e8f5e9
-    style NewSchema fill:#fff3e0
+    style Hospitalizations fill:#fff3e0
+    style NewSchema fill:#f3e5f5
 ```
 
-### Caractersticas Clave
+### Caracteristicas Clave
 
-- **Independencia por Schema**: Cada schema tiene su propio pipeline, configuracin y proceso
-- **Ejecucin Paralela**: Mltiples schemas pueden procesarse simultneamente
-- **Configuracin Aislada**: Cada schema puede tener diferentes ventanas, batching, etc.
+- **Independencia por Schema**: Cada schema tiene su propio pipeline, configuracion y proceso
+- **Ejecucion Paralela**: Multiples schemas pueden procesarse simultaneamente
+- **Configuracion Aislada**: Cada schema puede tener diferentes ventanas, batching, etc.
 - **Escalabilidad**: Agregar nuevos schemas es trivial
+- **Enriquecimiento Geografico**: Coordenadas lat/lon desde codigos UBIGEO peruanos
+- **Dashboard en Tiempo Real**: Visualizaciones D3.js + Leaflet en `visualization/`
 
 ## Estructura del Proyecto
 
 ```mermaid
 flowchart TB
-    Root["tfm/"] --> Pipelines["pipelines/"]
+    Root["tfm-dataflow-architecture/"] --> Pipelines["pipelines/"]
     Root --> Src["src/"]
     Root --> Datasets["datasets/"]
+    Root --> Viz["visualization/"]
     Root --> Orch["orchestrator.py"]
     Root --> Docker["docker-compose.yaml"]
 
     subgraph PipelinesDetail["Pipelines por Schema"]
-        Pipelines --> Cases["cases/\nconfig.yaml, schema.json\npipeline.py, ingestion.py"]
-        Pipelines --> Demises["demises/\nconfig.yaml, schema.json\npipeline.py, ingestion.py"]
+        Pipelines --> Cases["cases/\nconfig.yaml, cases.json\npipeline.py, ingestion.py"]
+        Pipelines --> Demises["demises/\nconfig.yaml, demises.json\npipeline.py, ingestion.py"]
+        Pipelines --> Hospitals["hospitalizations/\nconfig.yaml, hospitalizations.json\npipeline.py, ingestion.py"]
     end
 
-    subgraph SrcDetail["Cdigo Fuente"]
+    subgraph SrcDetail["Codigo Fuente"]
         Src --> Common["common/"]
-        Common --> Sources["sources/\nkafka_source.py\nstorage_source.py"]
-        Common --> Transforms["transforms/\nnormalize, validate\ntimestamp, windowing\nmetadata"]
+        Common --> Sources["sources/\nkafka_source_native.py\nstorage_source.py"]
+        Common --> Transforms["transforms/\nnormalize, validate\ntimestamp, windowing\nmetadata, enrich_geo"]
         Common --> Batching["batching/\nnative_batch.py\nmanual_batch.py"]
         Common --> Sinks["sinks/\nmongo_sink.py\ndlq_sink.py"]
         Common --> Utils["utils/\nconfig_loader.py\nschema_loader.py"]
+        Common --> Data["data/\nubigeo_coords.py"]
         Src --> Ingestion["ingestion/\nkafka_processor.py"]
     end
 
     subgraph DatasetsDetail["Datos"]
-        Datasets --> DCases["cases/\nsample_data.csv"]
-        Datasets --> DDemises["demises/\nsample_data.csv"]
+        Datasets --> DCases["cases/\n13 archivos CSV"]
+        Datasets --> DDemises["demises/\n13 archivos CSV"]
+        Datasets --> DHospital["hospitalizations/\n13 archivos CSV"]
+    end
+
+    subgraph VizDetail["Visualizacion"]
+        Viz --> VizApp["Flask + Socket.IO\nD3.js + Leaflet\nPort: 5006"]
     end
 
     style Root fill:#e3f2fd
     style Pipelines fill:#fff3e0
     style Src fill:#f3e5f5
     style Datasets fill:#e8f5e9
+    style Viz fill:#e0f7fa
 ```
 
-## Instalacin
+## Instalacion
 
 ### 1. Instalar dependencias
 
@@ -89,8 +107,8 @@ docker-compose up -d
 ```mermaid
 flowchart LR
     subgraph Docker["Docker Compose"]
-        Kafka["Kafka\n:9092"]
-        MongoDB["MongoDB\n:27017"]
+        Kafka["Kafka KRaft\n:9092"]
+        MongoDB["MongoDB 8.0\n:27017"]
         KafkaUI["Kafka UI\n:8080"]
         MongoExpress["Mongo Express\n:8083"]
     end
@@ -104,17 +122,19 @@ flowchart LR
     style MongoExpress fill:#f1f8e9
 ```
 
+> **Nota**: Kafka usa modo KRaft (sin Zookeeper). El cluster se auto-configura.
+
 ## Uso
 
-### Opciones de Ejecucin
+### Opciones de Ejecucion
 
 ```mermaid
 flowchart TD
-    Start(["Ejecutar"]) --> Choice{"Mtodo?"}
+    Start(["Ejecutar"]) --> Choice{"Metodo?"}
 
-    Choice --> |"Opcin 1"| Scripts["Scripts Individuales\nrun_cases.sh\nrun_demises.sh"]
-    Choice --> |"Opcin 2"| Direct["Ejecucin Directa\npython pipelines/X/..."]
-    Choice --> |"Opcin 3"| Orchestrator["Orquestador\norchestrator.py"]
+    Choice --> |"Opcion 1"| Scripts["Scripts Individuales\nrun_cases.sh\nrun_deaths.sh"]
+    Choice --> |"Opcion 2"| Direct["Ejecucion Directa\npython pipelines/X/..."]
+    Choice --> |"Opcion 3"| Orchestrator["Orquestador\norchestrator.py"]
 
     Scripts --> S1["./run_cases.sh ingest"]
     Scripts --> S2["./run_cases.sh pipeline"]
@@ -124,7 +144,7 @@ flowchart TD
     Direct --> D2["python pipelines/cases/pipeline.py --mode streaming"]
 
     Orchestrator --> O1["--ingest cases"]
-    Orchestrator --> O2["--pipeline cases demises --parallel"]
+    Orchestrator --> O2["--pipeline cases demises hospitalizations --parallel"]
     Orchestrator --> O3["--pipeline-all --parallel"]
 
     style Start fill:#e3f2fd
@@ -133,7 +153,7 @@ flowchart TD
     style Orchestrator fill:#e8f5e9
 ```
 
-### Opcin 1: Scripts Individuales por Schema
+### Opcion 1: Scripts Individuales por Schema
 
 ```bash
 # CASES
@@ -142,12 +162,12 @@ flowchart TD
 ./run_cases.sh both        # Ingesta + pipeline
 
 # DEMISES
-./run_demises.sh ingest
-./run_demises.sh pipeline
-./run_demises.sh both
+./run_deaths.sh ingest
+./run_deaths.sh pipeline
+./run_deaths.sh both
 ```
 
-### Opcin 2: Ejecucin Directa
+### Opcion 2: Ejecucion Directa
 
 ```bash
 # Ejecutar ingesta de cases
@@ -164,9 +184,15 @@ python pipelines/demises/ingestion.py
 
 # Ejecutar pipeline de demises
 python pipelines/demises/pipeline.py --mode streaming
+
+# Ejecutar ingesta de hospitalizations
+python pipelines/hospitalizations/ingestion.py
+
+# Ejecutar pipeline de hospitalizations
+python pipelines/hospitalizations/pipeline.py --mode streaming
 ```
 
-### Opcin 3: Orquestador (Recomendado para mltiples schemas)
+### Opcion 3: Orquestador (Recomendado para multiples schemas)
 
 ```bash
 # Listar schemas disponibles
@@ -178,8 +204,8 @@ python orchestrator.py --pipeline cases
 # Ejecutar ingesta de un schema
 python orchestrator.py --ingest cases
 
-# Ejecutar mltiples pipelines EN PARALELO
-python orchestrator.py --pipeline cases demises --parallel
+# Ejecutar multiples pipelines EN PARALELO
+python orchestrator.py --pipeline cases demises hospitalizations --parallel
 
 # Ejecutar TODOS los pipelines en paralelo
 python orchestrator.py --pipeline-all --parallel
@@ -187,8 +213,8 @@ python orchestrator.py --pipeline-all --parallel
 # Ejecutar TODAS las ingests en paralelo
 python orchestrator.py --ingest-all --parallel
 
-# Ingestar archivo especfico
-python orchestrator.py --ingest cases --file datasets/cases/data.csv
+# Ingestar archivo especifico
+python orchestrator.py --ingest cases --file datasets/cases/file_0_cases.csv
 ```
 
 ## Agregar un Nuevo Schema
@@ -211,7 +237,7 @@ flowchart TD
     style End fill:#c8e6c9
 ```
 
-### Opcin 1: Manual
+### Pasos Detallados
 
 1. **Crear directorio del schema**
 
@@ -224,7 +250,7 @@ mkdir -p datasets/mi_schema
 
 ```bash
 cp pipelines/cases/config.yaml pipelines/mi_schema/
-cp pipelines/cases/schema.json pipelines/mi_schema/
+cp pipelines/cases/cases.json pipelines/mi_schema/mi_schema.json
 cp pipelines/cases/pipeline.py pipelines/mi_schema/
 cp pipelines/cases/ingestion.py pipelines/mi_schema/
 ```
@@ -245,11 +271,9 @@ source:
       group.id: "beam-pipeline-mi_schema"
   storage:
     file_pattern: "datasets/mi_schema/*.csv"
-
-# ... resto de configuracin
 ```
 
-`pipelines/mi_schema/schema.json`:
+`pipelines/mi_schema/mi_schema.json`:
 ```json
 {
   "schema_name": "mi_schema",
@@ -275,31 +299,17 @@ class MiSchemaIngestion:
     ...
 ```
 
-5. **Crear script de ejecucin (opcional)**
+5. **Agregar datos y ejecutar**
 
 ```bash
-cp run_cases.sh run_mi_schema.sh
-# Editar y cambiar referencias de CASES a MI_SCHEMA
-chmod +x run_mi_schema.sh
-```
-
-6. **Agregar datos**
-
-```bash
-# Colocar archivos CSV/Parquet en datasets/mi_schema/
-cp mi_data.csv datasets/mi_schema/
-```
-
-7. **Ejecutar**
-
-```bash
+cp tus_datos.csv datasets/mi_schema/
 python orchestrator.py --ingest mi_schema
 python orchestrator.py --pipeline mi_schema
 ```
 
-## Configuracin Independiente por Schema
+## Configuracion Independiente por Schema
 
-Cada schema puede tener configuracin completamente diferente:
+Cada schema puede tener configuracion completamente diferente:
 
 ```mermaid
 flowchart LR
@@ -307,65 +317,52 @@ flowchart LR
         C1["window: 60s"]
         C2["batch: native, 100"]
         C3["topic: cases"]
+        C4["timestamp: fecha_muestra"]
     end
 
     subgraph DemisesConfig["demises/config.yaml"]
-        D1["window: 120s"]
-        D2["batch: manual, 50"]
+        D1["window: 60s"]
+        D2["batch: native, 100"]
         D3["topic: demises"]
+        D4["timestamp: fecha_fallecimiento"]
+    end
+
+    subgraph HospConfig["hospitalizations/config.yaml"]
+        H1["window: 60s"]
+        H2["batch: native, 100"]
+        H3["topic: hospitalizations"]
+        H4["timestamp: fecha_ingreso_hosp"]
     end
 
     style CasesConfig fill:#e3f2fd
     style DemisesConfig fill:#e8f5e9
+    style HospConfig fill:#fff3e0
 ```
 
-**Ejemplo: cases/config.yaml**
-```yaml
-windowing:
-  window_size_seconds: 60      # Ventanas de 1 minuto
-batching:
-  strategy: "native"           # Batching nativo
-  batch_size: 100
-```
-
-**Ejemplo: demises/config.yaml**
-```yaml
-windowing:
-  window_size_seconds: 120     # Ventanas de 2 minutos (diferente!)
-batching:
-  strategy: "manual"           # Batching manual (diferente!)
-  batch_size: 50               # Batches ms pequeos (diferente!)
-```
-
-## Ejecucin en Paralelo
+## Ejecucion en Paralelo
 
 ```mermaid
 flowchart LR
-    Orch["orchestrator.py\n--parallel"] --> Cases["Pipeline CASES\nTopic: cases\nGroup: beam-pipeline-cases"]
-    Orch --> Demises["Pipeline DEMISES\nTopic: demises\nGroup: beam-pipeline-demises"]
+    Orch["orchestrator.py\n--parallel"] --> Cases["Pipeline CASES\nTopic: cases"]
+    Orch --> Demises["Pipeline DEMISES\nTopic: demises"]
+    Orch --> Hospitals["Pipeline HOSPITALIZATIONS\nTopic: hospitalizations"]
 
     Cases --> MongoDB1["MongoDB\ncases collection"]
     Demises --> MongoDB2["MongoDB\ndemises collection"]
+    Hospitals --> MongoDB3["MongoDB\nhospitalizations collection"]
 
     style Orch fill:#e3f2fd
     style Cases fill:#fff3e0
     style Demises fill:#e8f5e9
+    style Hospitals fill:#f3e5f5
 ```
 
-Para procesar mltiples schemas simultneamente:
-
 ```bash
-# Terminal 1: Ingestar todos los schemas en paralelo
+# Ingestar todos los schemas en paralelo
 python orchestrator.py --ingest-all --parallel
 
-# Terminal 2: Ejecutar todos los pipelines en paralelo
+# Ejecutar todos los pipelines en paralelo
 python orchestrator.py --pipeline-all --parallel
-```
-
-O ejecutar schemas especficos en paralelo:
-
-```bash
-python orchestrator.py --pipeline cases demises --parallel
 ```
 
 ## Monitoreo
@@ -375,24 +372,30 @@ flowchart TB
     subgraph Monitoring["Herramientas de Monitoreo"]
         KafkaUI["Kafka UI\nhttp://localhost:8080\nTopics, mensajes, consumer lag"]
         MongoExpress["Mongo Express\nhttp://localhost:8083\nColecciones, queries, DLQ"]
+        Dashboard["Dashboard D3.js\nhttp://localhost:5006\nVisualizaciones en tiempo real"]
     end
 
-    KafkaUI -.-> Kafka["Kafka\nTopics: cases, demises"]
-    MongoExpress -.-> MongoDB["MongoDB\nCollections: cases, demises,\ndead_letter_queue"]
+    KafkaUI -.-> Kafka["Kafka\nTopics: cases, demises, hospitalizations"]
+    MongoExpress -.-> MongoDB["MongoDB\nCollections: cases, demises,\nhospitalizations, dead_letter_queue"]
+    Dashboard -.-> MongoDB
 
     style KafkaUI fill:#fff3e0
     style MongoExpress fill:#f3e5f5
+    style Dashboard fill:#e0f7fa
 ```
 
 ### Kafka UI
 - URL: http://localhost:8080
-- Ver topics por schema: `cases`, `demises`, etc.
+- Ver topics por schema: `cases`, `demises`, `hospitalizations`
 
 ### Mongo Express
 - URL: http://localhost:8083
-- Usuario: admin
-- Password: admin123
-- Colecciones: `cases`, `demises`, `dead_letter_queue`
+- Colecciones: `cases`, `demises`, `hospitalizations`, `dead_letter_queue`
+
+### Dashboard D3.js
+- URL: http://localhost:5006
+- Visualizaciones en tiempo real con WebSockets
+- Mapas de calor geograficos con Leaflet
 
 ### Consultas MongoDB
 
@@ -405,38 +408,14 @@ db.cases.find().limit(10);
 // Datos de demises
 db.demises.find().limit(10);
 
+// Datos de hospitalizations
+db.hospitalizations.find().limit(10);
+
 // Errores en DLQ por schema
 db.dead_letter_queue.aggregate([
   {$group: {_id: "$schema", count: {$sum: 1}}}
 ]);
 ```
-
-## Ventajas de esta Arquitectura
-
-```mermaid
-mindmap
-  root((Arquitectura\nMulti-Schema))
-    Aislamiento
-      Un error en un schema no afecta a otros
-      Testing independiente
-    Configuracin
-      Ventanas diferentes por schema
-      Batching personalizado
-      Topics exclusivos
-    Escalabilidad
-      Agregar schemas sin afectar existentes
-      Workers independientes por schema
-    Desarrollo
-      Equipos paralelos
-      Despliegue granular
-```
-
-1. **Aislamiento Total**: Un error en un schema no afecta a otros
-2. **Configuracin Flexible**: Cada schema puede tener diferentes ventanas, batching, etc.
-3. **Escalabilidad Horizontal**: Agregar schemas no afecta a los existentes
-4. **Desarrollo Paralelo**: Mltiples equipos pueden trabajar en diferentes schemas
-5. **Testing Independiente**: Probar un schema no requiere los dems
-6. **Despliegue Granular**: Actualizar un schema sin tocar otros
 
 ## Ejemplo de Flujo Completo
 
@@ -449,22 +428,24 @@ sequenceDiagram
     participant MongoDB
 
     Usuario->>Orch: --list
-    Orch-->>Usuario: cases, demises
+    Orch-->>Usuario: cases, demises, hospitalizations
 
-    Usuario->>Orch: --ingest cases demises --parallel
-    Orch->>Kafka: Ingestar cases
-    Orch->>Kafka: Ingestar demises
+    Usuario->>Orch: --ingest cases demises hospitalizations --parallel
+    Orch->>Kafka: Ingestar cases (13 CSVs)
+    Orch->>Kafka: Ingestar demises (13 CSVs)
+    Orch->>Kafka: Ingestar hospitalizations (13 CSVs)
     Kafka-->>Orch: Datos en topics
 
-    Usuario->>Orch: --pipeline cases demises --parallel
+    Usuario->>Orch: --pipeline cases demises hospitalizations --parallel
     Orch->>Pipeline: Pipeline cases
     Orch->>Pipeline: Pipeline demises
+    Orch->>Pipeline: Pipeline hospitalizations
 
     Pipeline->>Kafka: Consumir mensajes
-    Pipeline->>Pipeline: Transformaciones
+    Pipeline->>Pipeline: Transformaciones + Enrich Geo
     Pipeline->>MongoDB: Escribir datos
 
-    Usuario->>MongoDB: Verificar en Mongo Express
+    Usuario->>MongoDB: Verificar en Mongo Express / Dashboard
     MongoDB-->>Usuario: Datos disponibles
 ```
 
@@ -472,42 +453,21 @@ sequenceDiagram
 # 1. Ver schemas disponibles
 python orchestrator.py --list
 
-# 2. Ingestar datos de cases y demises en paralelo
-python orchestrator.py --ingest cases demises --parallel
+# 2. Ingestar datos en paralelo
+python orchestrator.py --ingest-all --parallel
 
-# 3. En otra terminal, ejecutar los pipelines en paralelo
-python orchestrator.py --pipeline cases demises --parallel
+# 3. Ejecutar pipelines en paralelo
+python orchestrator.py --pipeline-all --parallel
 
 # 4. Monitorear en Mongo Express
 # Abrir http://localhost:8083
 
-# 5. Agregar un nuevo schema
-mkdir -p pipelines/recovered datasets/recovered
-cp -r pipelines/cases/* pipelines/recovered/
-# Editar pipelines/recovered/*
-
-# 6. Ejecutar el nuevo schema
-python orchestrator.py --ingest recovered
-python orchestrator.py --pipeline recovered
+# 5. Ver dashboard en tiempo real
+cd visualization && python app.py
+# Abrir http://localhost:5006
 ```
 
 ## Troubleshooting
-
-```mermaid
-flowchart TD
-    Problem(["Problema"]) --> Type{"Tipo?"}
-
-    Type --> |"Schema no encontrado"| S1["Verificar:\nls pipelines/mi_schema/\nDebe tener: config.yaml,\nschema.json, pipeline.py,\ningestion.py"]
-
-    Type --> |"Kafka conexin"| S2["docker-compose ps\ndocker-compose restart kafka"]
-
-    Type --> |"Logs"| S3["python orchestrator.py\n--pipeline cases 2>&1\n| tee cases.log"]
-
-    style Problem fill:#ffcdd2
-    style S1 fill:#c8e6c9
-    style S2 fill:#c8e6c9
-    style S3 fill:#c8e6c9
-```
 
 ### Error: Schema no encontrado
 
@@ -517,29 +477,24 @@ ls pipelines/
 
 # Verificar que tiene los archivos necesarios
 ls pipelines/mi_schema/
-# Debe tener: config.yaml, schema.json, pipeline.py, ingestion.py
+# Debe tener: config.yaml, {schema}.json, pipeline.py, ingestion.py
 ```
 
 ### Error: No se puede conectar a Kafka
 
 ```bash
-# Verificar servicios
 docker-compose ps
-
-# Reiniciar servicios
 docker-compose restart kafka
+docker-compose logs kafka
 ```
 
-### Ver logs de un schema especfico
+### Ver logs de un schema especifico
 
 ```bash
 python orchestrator.py --pipeline cases 2>&1 | tee cases.log
 ```
 
-## Prximos Pasos
+---
 
-- Configurar alertas por schema
-- Agregar mtricas con Prometheus
-- Implementar retry policies personalizadas
-- Escalar con DataflowRunner en GCP
-- Agregar tests por schema
+**Ultima actualizacion:** 2026-02-10
+**Version:** 2.0.0

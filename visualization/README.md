@@ -48,7 +48,7 @@ Dashboard interactivo para visualizacion de datos COVID-19 usando **D3.js**, **L
 │  │  └─────────────┘    ┌───────────────┐    │  │  - hospital.py  │    │  │  │
 │  │                     │  websocket/   │    │  │  - summary.py   │    │  │  │
 │  │                     │  events.py    │───▶│  └─────────────────┘    │  │  │
-│  │                     │ (30+ eventos) │    │  ┌─────────────────┐    │  │  │
+│  │                     │ (15+ eventos) │    │  ┌─────────────────┐    │  │  │
 │  │                     └───────────────┘    │  │   alerts.py     │    │  │  │
 │  │                                          │  │  (Umbrales)     │    │  │  │
 │  │                                          │  └─────────────────┘    │  │  │
@@ -71,9 +71,9 @@ Dashboard interactivo para visualizacion de datos COVID-19 usando **D3.js**, **L
 │                                                         ▼                   │
 │   ┌─────────────────┐                         ┌─────────────────┐           │
 │   │  Apache Kafka   │────Pipeline────────────▶│    MongoDB      │           │
-│   │  + Apache Beam  │    (ETL)                │  (standalone)   │           │
-│   └─────────────────┘                         │                 │           │
-│                                               │  Colecciones:   │           │
+│   │  (KRaft mode)   │   (Apache Beam)         │   (mongo:8.0)   │           │
+│   │  + Apache Beam  │                         │                 │           │
+│   └─────────────────┘                         │  Colecciones:   │           │
 │                                               │  - cases        │           │
 │                                               │  - demises      │           │
 │                                               │  - hospitaliz.  │           │
@@ -86,50 +86,50 @@ Dashboard interactivo para visualizacion de datos COVID-19 usando **D3.js**, **L
 
 ```
 visualization/
-├── app.py                        # Servidor Flask + SocketIO + Polling
-├── config.py                     # Configuracion (MongoDB, puertos, coords)
-│
-├── services/
-│   ├── __init__.py
-│   └── database.py               # Cliente PyMongo
-│
-├── routes/
-│   ├── __init__.py
-│   └── api.py                    # 14 endpoints REST
-│
-├── handlers/
-│   ├── __init__.py
-│   ├── alerts.py                 # Sistema de alertas por umbral
-│   ├── queries/
-│   │   ├── __init__.py
-│   │   ├── cases.py              # Queries: casos, heatmap, filtros
-│   │   ├── demises.py            # Queries: fallecidos, heatmap
-│   │   ├── hospitalizations.py   # Queries: hospitalizaciones
-│   │   └── summary.py            # Queries: totales, conteos
-│   └── websocket/
-│       ├── __init__.py
-│       └── events.py             # 15+ handlers WebSocket
-│
-├── static/
-│   ├── css/
-│   │   └── style.css             # Tema oscuro responsive
-│   └── js/
-│       ├── main.js               # Entry point, conexion SocketIO
-│       ├── charts/
-│       │   ├── index.js          # Exporta todos los graficos
-│       │   ├── department.js     # Barras horizontales (D3.js)
-│       │   ├── timeline.js       # Area chart temporal (D3.js)
-│       │   ├── age.js            # Piramide poblacional (D3.js)
-│       │   ├── sex.js            # Donut chart (D3.js)
-│       │   └── heatmaps.js       # Mapas Leaflet + leaflet.heat
-│       └── modules/
-│           ├── alerts.js         # UI alertas, notificaciones
-│           ├── filters.js        # Filtros departamento/sexo
-│           ├── config.js         # Constantes frontend
-│           └── utils.js          # Formateo numeros, fechas
-│
-└── templates/
-    └── index.html                # SPA con todas las visualizaciones
+|-- app.py                        # Servidor Flask + SocketIO + Polling
+|-- config.py                     # Configuracion (MongoDB, puertos, coords Peru)
+|
+|-- services/
+|   |-- __init__.py
+|   +-- database.py               # Cliente PyMongo
+|
+|-- routes/
+|   |-- __init__.py
+|   +-- api.py                    # 14 endpoints REST
+|
+|-- handlers/
+|   |-- __init__.py
+|   |-- alerts.py                 # Sistema de alertas por umbral
+|   |-- queries/
+|   |   |-- __init__.py
+|   |   |-- cases.py              # Queries: casos, heatmap, filtros
+|   |   |-- demises.py            # Queries: fallecidos, heatmap
+|   |   |-- hospitalizations.py   # Queries: hospitalizaciones
+|   |   +-- summary.py            # Queries: totales, conteos
+|   +-- websocket/
+|       |-- __init__.py
+|       +-- events.py             # 15+ handlers WebSocket
+|
+|-- static/
+|   |-- css/
+|   |   +-- style.css             # Tema oscuro responsive
+|   +-- js/
+|       |-- main.js               # Entry point, conexion SocketIO
+|       |-- charts/
+|       |   |-- index.js          # Exporta todos los graficos
+|       |   |-- department.js     # Barras horizontales (D3.js)
+|       |   |-- timeline.js       # Area chart temporal (D3.js)
+|       |   |-- age.js            # Piramide poblacional (D3.js)
+|       |   |-- sex.js            # Donut chart (D3.js)
+|       |   +-- heatmaps.js       # Mapas Leaflet + leaflet.heat
+|       +-- modules/
+|           |-- alerts.js         # UI alertas, notificaciones
+|           |-- filters.js        # Filtros departamento/sexo
+|           |-- config.js         # Constantes frontend
+|           +-- utils.js          # Formateo numeros, fechas
+|
++-- templates/
+    +-- index.html                # SPA con todas las visualizaciones
 ```
 
 ## Visualizaciones Incluidas
@@ -363,6 +363,18 @@ Abrir: **http://localhost:5006**
 | `set_alerts_global_date` | Filtrar alertas por fecha |
 | `dismiss_alert` | Descartar alerta |
 | `clear_all_alerts` | Limpiar alertas |
+
+## Conexion con los Pipelines
+
+Este dashboard se conecta a las colecciones MongoDB que son alimentadas por los pipelines de Apache Beam:
+
+| Coleccion | Pipeline Origen | Descripcion |
+|-----------|-----------------|-------------|
+| `cases` | `pipelines/cases/pipeline.py` | Casos individuales COVID-19 |
+| `demises` | `pipelines/demises/pipeline.py` | Datos de fallecimientos |
+| `hospitalizations` | `pipelines/hospitalizations/pipeline.py` | Datos de hospitalizaciones |
+
+Los datos son enriquecidos con coordenadas geograficas (UBIGEO -> lat/lon) por el transform `enrich_geo.py` antes de ser almacenados en MongoDB.
 
 ## Variables de Entorno
 

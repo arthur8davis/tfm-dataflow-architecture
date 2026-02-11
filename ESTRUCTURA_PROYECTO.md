@@ -1,18 +1,19 @@
-# Estructura del Proyecto - Documentación Detallada
+# Estructura del Proyecto - Documentacion Detallada
 
-Este documento describe cada carpeta y archivo del proyecto, explicando su funcionalidad y cómo interactúan entre sí.
+Este documento describe cada carpeta y archivo del proyecto, explicando su funcionalidad y como interactuan entre si.
 
 ---
 
 ## Tabla de Contenidos
 
 1. [Vista General](#vista-general)
-2. [Carpeta Raíz](#carpeta-raíz-tfm)
+2. [Carpeta Raiz](#carpeta-raiz)
 3. [Carpeta pipelines/](#carpeta-pipelines)
 4. [Carpeta src/](#carpeta-src)
 5. [Carpeta datasets/](#carpeta-datasets)
-6. [Diagrama de Dependencias](#diagrama-de-dependencias)
-7. [Resumen de Componentes](#resumen-de-componentes)
+6. [Carpeta visualization/](#carpeta-visualization)
+7. [Diagrama de Dependencias](#diagrama-de-dependencias)
+8. [Resumen de Componentes](#resumen-de-componentes)
 
 ---
 
@@ -21,18 +22,20 @@ Este documento describe cada carpeta y archivo del proyecto, explicando su funci
 ```mermaid
 graph TB
     subgraph "ESTRUCTURA DEL PROYECTO"
-        Root[tfm/]
+        Root[tfm-dataflow-architecture/]
 
         Root --> Pipelines[pipelines/<br/>Pipelines por schema]
-        Root --> Src[src/<br/>Código fuente común]
+        Root --> Src[src/<br/>Codigo fuente comun]
         Root --> Datasets[datasets/<br/>Archivos de datos]
-        Root --> Config[Archivos de<br/>configuración]
-        Root --> Docs[Documentación]
+        Root --> Viz[visualization/<br/>Dashboard tiempo real]
+        Root --> Config[Archivos de<br/>configuracion]
+        Root --> Docs[Documentacion]
     end
 
     subgraph "PIPELINES"
         Pipelines --> Cases[cases/]
         Pipelines --> Demises[demises/]
+        Pipelines --> Hospitals[hospitalizations/]
     end
 
     subgraph "SOURCE CODE"
@@ -43,44 +46,50 @@ graph TB
         Common --> Batching[batching/]
         Common --> Sinks[sinks/]
         Common --> Utils[utils/]
+        Common --> Data[data/]
     end
 
     style Root fill:#e3f2fd
     style Pipelines fill:#fff3e0
     style Src fill:#f3e5f5
     style Datasets fill:#e8f5e9
+    style Viz fill:#e0f7fa
 ```
 
 ---
 
-## Carpeta Raíz (`tfm/`)
+## Carpeta Raiz
 
-### Archivos de Configuración y Ejecución
+### Archivos de Configuracion y Ejecucion
 
-| Archivo | Tipo | Descripción |
+| Archivo | Tipo | Descripcion |
 |---------|------|-------------|
-| `docker-compose.yaml` | Configuración | Define los servicios Docker: Kafka, Zookeeper, MongoDB, Kafka UI, Mongo Express |
-| `requirements.txt` | Dependencias | Lista de paquetes Python necesarios |
-| `orchestrator.py` | Python | **Orquestador central** - Descubre y ejecuta pipelines de múltiples schemas |
+| `docker-compose.yaml` | Configuracion | Servicios Docker: Kafka KRaft, MongoDB 8.0, Kafka UI, Mongo Express |
+| `requirements.txt` | Dependencias | Paquetes Python: apache-beam, confluent-kafka, pymongo, polars, pyyaml |
+| `orchestrator.py` | Python | **Orquestador central** - Descubre y ejecuta pipelines de multiples schemas |
 
-### Scripts de Ejecución
+### Scripts de Ejecucion
 
-| Archivo | Descripción |
+| Archivo | Descripcion |
 |---------|-------------|
 | `run_cases.sh` | Script bash para ejecutar el pipeline de CASES (opciones: ingest/pipeline/both) |
-| `run_deaths.sh` | Script bash para ejecutar el pipeline de DEATHS |
-| `example_run_all.sh` | Ejemplo de ejecución de todos los pipelines en paralelo |
-| `verify_structure.sh` | Verifica que la estructura del proyecto esté correcta |
+| `run_deaths.sh` | Script bash para ejecutar el pipeline de DEMISES |
+| `example_run_all.sh` | Ejemplo de ejecucion de todos los pipelines en paralelo |
+| `verify_structure.sh` | Verifica que la estructura del proyecto este correcta |
 
-### Documentación
+### Documentacion
 
-| Archivo | Descripción |
+| Archivo | Descripcion |
 |---------|-------------|
-| `README.md` | Documentación principal con diagramas Mermaid |
-| `ARCHITECTURE.md` | Documentación de arquitectura técnica |
-| `QUICKSTART.md` | Guía rápida de inicio |
-| `GUIA_NUEVO_SCHEMA.md` | Guía paso a paso para agregar nuevos schemas |
-| `ESTRUCTURA_PROYECTO.md` | Este archivo - Documentación de estructura |
+| `README.md` | Documentacion principal con diagramas Mermaid |
+| `README_NEW.md` | Documentacion multi-schema |
+| `ARCHITECTURE.md` | Documentacion de arquitectura tecnica |
+| `QUICKSTART.md` | Guia rapida de inicio |
+| `GUIA_NUEVO_SCHEMA.md` | Guia paso a paso para agregar nuevos schemas |
+| `ESTRUCTURA_PROYECTO.md` | Este archivo - Documentacion de estructura |
+| `ESTRUCTURA_LIMPIA.md` | Estructura limpia del proyecto |
+| `PROJECT_STRUCTURE.txt` | Estructura en formato texto |
+| `pendientes.md` | Tareas pendientes |
 
 ---
 
@@ -90,17 +99,19 @@ El orquestador es el punto de entrada principal para ejecutar pipelines.
 
 ```mermaid
 graph TD
-    Orch[orchestrator.py] --> Discover[Descubrir schemas<br/>automáticamente]
+    Orch[orchestrator.py] --> Discover[Descubrir schemas<br/>automaticamente]
     Discover --> List[--list<br/>Listar schemas]
     Discover --> Ingest[--ingest X<br/>Ejecutar ingesta]
     Discover --> Pipeline[--pipeline X<br/>Ejecutar pipeline]
-    Discover --> Parallel[--parallel<br/>Ejecución paralela]
+    Discover --> Parallel[--parallel<br/>Ejecucion paralela]
 
     Ingest --> Cases[cases/ingestion.py]
     Ingest --> Demises[demises/ingestion.py]
+    Ingest --> Hospitals[hospitalizations/ingestion.py]
 
     Pipeline --> CasesP[cases/pipeline.py]
     Pipeline --> DemisesP[demises/pipeline.py]
+    Pipeline --> HospP[hospitalizations/pipeline.py]
 ```
 
 **Funcionalidades principales:**
@@ -111,44 +122,37 @@ class PipelineOrchestrator:
     def list_schemas()         # Lista schemas disponibles
     def run_ingest()           # Ejecuta ingesta de un schema
     def run_pipeline()         # Ejecuta pipeline de un schema
-    def run_parallel()         # Ejecuta múltiples schemas en paralelo
+    def run_multiple_pipelines()  # Ejecuta multiples schemas en paralelo
+    def run_multiple_ingestions() # Ejecuta multiples ingestas en paralelo
 ```
 
 **Comandos disponibles:**
 
 ```bash
-# Listar schemas
 python orchestrator.py --list
-
-# Ejecutar ingesta
 python orchestrator.py --ingest cases
 python orchestrator.py --ingest-all --parallel
-
-# Ejecutar pipeline
 python orchestrator.py --pipeline cases
 python orchestrator.py --pipeline-all --parallel
-
-# Ejecutar múltiples schemas
-python orchestrator.py --pipeline cases demises --parallel
+python orchestrator.py --pipeline cases demises hospitalizations --parallel
+python orchestrator.py --ingest cases --file datasets/cases/file_0_cases.csv
 ```
 
 ---
 
 ### Detalle: `docker-compose.yaml`
 
-Define los servicios de infraestructura necesarios.
+Define los servicios de infraestructura. Usa **Kafka KRaft** (sin Zookeeper).
 
 ```mermaid
 graph LR
     subgraph "Docker Compose Services"
-        Zookeeper[Zookeeper<br/>:2181]
-        Kafka[Kafka<br/>:9092]
-        MongoDB[MongoDB<br/>:27017]
-        KafkaUI[Kafka UI<br/>:8080]
+        Kafka[Kafka KRaft<br/>apache/kafka:4.1.1<br/>:9092]
+        MongoDB[MongoDB 8.0<br/>mongo:8.0.0<br/>:27017]
+        KafkaUI[Kafka UI<br/>kafbat/kafka-ui<br/>:8080]
         MongoExpress[Mongo Express<br/>:8083]
     end
 
-    Zookeeper --> Kafka
     Kafka --> KafkaUI
     MongoDB --> MongoExpress
 
@@ -156,19 +160,18 @@ graph LR
     style MongoDB fill:#e8f5e9
 ```
 
-| Servicio | Puerto | Descripción |
-|----------|--------|-------------|
-| Zookeeper | 2181 | Coordinación de Kafka |
-| Kafka | 9092 | Message broker para streaming |
-| MongoDB | 27017 | Base de datos time-series |
-| Kafka UI | 8080 | Interface web para monitorear Kafka |
-| Mongo Express | 8083 | Interface web para MongoDB |
+| Servicio | Puerto | Imagen | Descripcion |
+|----------|--------|--------|-------------|
+| Kafka KRaft | 9092 | apache/kafka:4.1.1 | Message broker (modo KRaft, sin Zookeeper) |
+| MongoDB | 27017 | mongo:8.0.0 | Base de datos time-series (admin/admin123) |
+| Kafka UI | 8080 | kafbat/kafka-ui | Interface web para monitorear Kafka |
+| Mongo Express | 8083 | mongo-express | Interface web para MongoDB |
 
 ---
 
 ## Carpeta `pipelines/`
 
-Contiene los **pipelines específicos por schema**. Cada schema es completamente independiente.
+Contiene los **pipelines especificos por schema**. Cada schema es completamente independiente.
 
 ```mermaid
 graph TB
@@ -176,6 +179,7 @@ graph TB
 
     Pipelines --> Cases[cases/]
     Pipelines --> Demises[demises/]
+    Pipelines --> Hospitals[hospitalizations/]
 
     subgraph "cases/"
         Cases --> CC[config.yaml]
@@ -193,276 +197,89 @@ graph TB
         Demises --> DInit[__init__.py]
     end
 
+    subgraph "hospitalizations/"
+        Hospitals --> HC[config.yaml]
+        Hospitals --> HJ[hospitalizations.json]
+        Hospitals --> HP[pipeline.py]
+        Hospitals --> HI[ingestion.py]
+        Hospitals --> HInit[__init__.py]
+    end
+
     style Cases fill:#fce4ec
     style Demises fill:#e8f5e9
+    style Hospitals fill:#fff3e0
 ```
 
 ---
 
 ### `pipelines/cases/` - Schema de Casos COVID-19
 
-#### Archivos
-
-| Archivo | Tipo | Descripción |
+| Archivo | Tipo | Descripcion |
 |---------|------|-------------|
-| `config.yaml` | Configuración | Configuración completa del pipeline |
-| `cases.json` | Schema | Definición de campos y validación |
+| `config.yaml` | Configuracion | Configuracion completa del pipeline |
+| `cases.json` | Schema | Definicion de campos y validacion |
 | `pipeline.py` | Python | Clase `CasesPipeline` - Pipeline Apache Beam |
 | `ingestion.py` | Python | Clase `CasesIngestion` - Ingesta de datos |
-| `__init__.py` | Python | Hace la carpeta un módulo importable |
+| `__init__.py` | Python | Hace la carpeta un modulo importable |
 
----
+**Campos requeridos:** `fecha_muestra`, `edad`, `sexo`, `resultado`
 
-#### Detalle: `config.yaml`
-
-Configuración completa del pipeline de CASES.
-
-```yaml
-# Identificación del schema
-schema:
-  name: "cases"
-  version: "1.0.0"
-  description: "Pipeline para casos de COVID-19"
-
-# Fuente de datos
-source:
-  type: "storage"  # "kafka" o "storage"
-
-  kafka:
-    bootstrap_servers: "localhost:9092"
-    topic: "cases"
-    consumer_config:
-      group.id: "beam-pipeline-cases"
-      auto.offset.reset: "earliest"
-
-  storage:
-    file_pattern: "datasets/cases/*.csv"
-    file_type: "csv"
-
-# Transformaciones
-transforms:
-  normalize:
-    enabled: true
-
-  validate:
-    enabled: true
-    schema_file: "pipelines/cases/cases.json"
-
-  timestamp:
-    enabled: true
-    field: "fecha_muestra"
-
-  windowing:
-    enabled: true
-    window_size_seconds: 60
-    allowed_lateness_seconds: 300
-
-  metadata:
-    enabled: true
-    pipeline_version: "1.0.0"
-
-# Batching
-batching:
-  strategy: "native"  # "native" o "manual"
-  batch_size: 100
-  batch_timeout_seconds: 30
-
-# Destino
-sink:
-  mongodb:
-    connection_string: "mongodb://admin:admin123@localhost:27017"
-    database: "covid-db"
-    collection:
-      name: "cases"
-      timeseries:
-        timeField: "timestamp"
-        metaField: "metadata"
-        granularity: "hours"
-
-  dlq:
-    collection: "dead_letter_queue"
-
-# Opciones del pipeline
-pipeline:
-  runner: "DirectRunner"
-  streaming: true
-```
-
-```mermaid
-graph TD
-    Config[config.yaml] --> Schema[schema:<br/>name, version]
-    Config --> Source[source:<br/>kafka/storage]
-    Config --> Transforms[transforms:<br/>normalize, validate,<br/>timestamp, windowing,<br/>metadata]
-    Config --> Batching[batching:<br/>strategy, batch_size]
-    Config --> Sink[sink:<br/>mongodb, dlq]
-    Config --> Pipeline[pipeline:<br/>runner, streaming]
-
-    style Config fill:#e3f2fd
-```
-
----
-
-#### Detalle: `cases.json`
-
-Schema de validación de datos para CASES.
-
-```json
-{
-  "schema_name": "cases",
-  "version": "1.0.0",
-  "description": "Schema para casos de COVID-19",
-
-  "required_fields": [
-    "fecha_muestra",
-    "edad",
-    "sexo",
-    "resultado"
-  ],
-
-  "field_types": {
-    "uuid": "integer",
-    "fecha_muestra": "integer",
-    "edad": "integer",
-    "sexo": "string",
-    "institucion": "string",
-    "ubigeo_paciente": "integer",
-    "departamento_paciente": "string",
-    "provincia_paciente": "string",
-    "distrito_paciente": "string",
-    "departamento_muestra": "string",
-    "provincia_muestra": "string",
-    "distrito_muestra": "string",
-    "tipo_muestra": "string",
-    "resultado": "string",
-    "timestamp": "number"
-  },
-
-  "optional_fields": [
-    "uuid",
-    "institucion",
-    "ubigeo_paciente",
-    "departamento_paciente",
-    "provincia_paciente",
-    "distrito_paciente",
-    "departamento_muestra",
-    "provincia_muestra",
-    "distrito_muestra",
-    "tipo_muestra",
-    "timestamp"
-  ]
-}
-```
-
-**Validaciones realizadas:**
-- ✅ Campos requeridos presentes
-- ✅ Tipos de datos correctos
-- ✅ Campos opcionales aceptados
-
----
-
-#### Detalle: `pipeline.py`
-
-Clase principal que construye el pipeline Apache Beam.
-
-```python
-class CasesPipeline:
-    """Pipeline para procesar datos de CASES"""
-
-    def __init__(self, config_path: str = None):
-        # Carga configuración desde config.yaml
-        self.config = self._load_config(config_path)
-        self.schema_name = self.config['schema']['name']
-
-    def build(self) -> beam.Pipeline:
-        # Construye el pipeline completo
-        pass
-
-    def run(self):
-        # Ejecuta el pipeline
-        pipeline = self.build()
-        pipeline.run().wait_until_finish()
-```
-
-```mermaid
-graph TD
-    Pipeline[CasesPipeline] --> Init[__init__<br/>Cargar config.yaml]
-    Pipeline --> Build[build<br/>Construir pipeline]
-    Pipeline --> Run[run<br/>Ejecutar pipeline]
-
-    Build --> Source[1. Create Source<br/>Kafka/Storage]
-    Build --> Parse[2. Parse Messages]
-    Build --> Normalize[3. Normalize]
-    Build --> Validate[4. Validate]
-    Build --> Timestamp[5. Assign Timestamp]
-    Build --> Window[6. Apply Windowing]
-    Build --> Metadata[7. Add Metadata]
-    Build --> Batch[8. Batch Elements]
-    Build --> Sink[9. Write to MongoDB]
-    Build --> DLQ[10. Handle Errors → DLQ]
-```
-
----
-
-#### Detalle: `ingestion.py`
-
-Clase que maneja la ingesta de datos desde archivos a Kafka.
-
-```python
-class CasesIngestion:
-    """Ingesta de datos para el schema CASES"""
-
-    def __init__(self, config_path: str = None):
-        # Carga configuración
-        self.config = self._load_config(config_path)
-
-    def run(self, directory: str = None, file: str = None):
-        # Ejecuta la ingesta
-        # 1. Lee archivos CSV/Parquet
-        # 2. Convierte a JSON
-        # 3. Envía a Kafka
-        pass
-```
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Ingestion as CasesIngestion
-    participant Processor as KafkaProcessor
-    participant Kafka
-
-    User->>Ingestion: run(file="data.csv")
-    Ingestion->>Processor: process_csv()
-    Processor->>Processor: Leer CSV con Polars
-    loop Cada fila
-        Processor->>Processor: Convertir a JSON
-        Processor->>Kafka: Enviar mensaje
-        Kafka-->>Processor: ACK
-    end
-    Processor-->>Ingestion: Completado
-    Ingestion-->>User: N mensajes enviados
-```
+**Timestamp field:** `fecha_muestra`
 
 ---
 
 ### `pipelines/demises/` - Schema de Fallecimientos
 
-Estructura idéntica a `cases/` pero configurado para datos de fallecimientos COVID-19.
+| Archivo | Tipo | Descripcion |
+|---------|------|-------------|
+| `config.yaml` | Configuracion | Configuracion completa del pipeline |
+| `demises.json` | Schema | Definicion de campos y validacion |
+| `pipeline.py` | Python | Clase `DemisesPipeline` - Pipeline Apache Beam |
+| `ingestion.py` | Python | Clase `DemisesIngestion` - Ingesta de datos |
+| `__init__.py` | Python | Hace la carpeta un modulo importable |
 
-**Diferencias principales en configuración:**
+**Campos requeridos:** `fecha_fallecimiento`, `edad_declarada`, `sexo`, `clasificacion_def`
 
-| Parámetro | CASES | DEMISES |
-|-----------|-------|---------|
-| `window_size_seconds` | 60 | 120 |
-| `batch_size` | 100 | 50 |
-| `batching.strategy` | native | manual |
-| `topic` | cases | demises |
-| `collection` | cases | demises |
+**Timestamp field:** `fecha_fallecimiento`
+
+---
+
+### `pipelines/hospitalizations/` - Schema de Hospitalizaciones
+
+| Archivo | Tipo | Descripcion |
+|---------|------|-------------|
+| `config.yaml` | Configuracion | Configuracion completa del pipeline |
+| `hospitalizations.json` | Schema | Definicion de campos y validacion (54 campos) |
+| `pipeline.py` | Python | Clase `HospitalizationsPipeline` - Pipeline Apache Beam |
+| `ingestion.py` | Python | Clase `HospitalizationsIngestion` - Ingesta de datos |
+| `__init__.py` | Python | Hace la carpeta un modulo importable |
+
+**Campos requeridos:** `id_persona`, `sexo`, `fecha_ingreso_hosp`, `edad`
+
+**Timestamp field:** `fecha_ingreso_hosp`
+
+**Campos adicionales:** vacunacion (6 dosis), UCI, ventilacion mecanica, oxigeno, datos de establecimiento de salud
+
+---
+
+### Comparacion de Schemas
+
+| Parametro | CASES | DEMISES | HOSPITALIZATIONS |
+|-----------|-------|---------|------------------|
+| `timestamp field` | fecha_muestra | fecha_fallecimiento | fecha_ingreso_hosp |
+| `required_fields` | 4 | 4 | 4 |
+| `total fields` | ~15 | ~9 | ~54 |
+| `topic` | cases | demises | hospitalizations |
+| `collection` | cases | demises | hospitalizations |
+| `window_size_seconds` | 60 | 60 | 60 |
+| `batch_size` | 100 | 100 | 100 |
+| `batching.strategy` | native | native | native |
 
 ---
 
 ## Carpeta `src/`
 
-Contiene el **código fuente reutilizable** compartido entre todos los schemas.
+Contiene el **codigo fuente reutilizable** compartido entre todos los schemas.
 
 ```mermaid
 graph TB
@@ -476,6 +293,7 @@ graph TB
     Common --> Batching[batching/]
     Common --> Sinks[sinks/]
     Common --> Utils[utils/]
+    Common --> Data[data/]
 
     Ingestion --> Init2[__init__.py]
     Ingestion --> KP[kafka_processor.py]
@@ -487,118 +305,58 @@ graph TB
 
 ---
 
-### `src/ingestion/` - Procesador de Ingesta
+### `src/ingestion/kafka_processor.py`
 
-#### `kafka_processor.py`
-
-Clase que lee archivos CSV/Parquet y envía mensajes a Kafka.
+Clase que lee archivos CSV/Parquet y envia mensajes a Kafka usando **confluent_kafka**.
 
 ```python
 class KafkaProcessor:
-    """Procesa archivos y los envía a Kafka"""
+    """Procesa archivos y los envia a Kafka"""
 
     def __init__(self, bootstrap_servers: str, producer_config: dict):
-        # Inicializa productor de Kafka
         self.producer = Producer(config)
         self.admin_client = AdminClient(config)
 
     def ensure_topic_exists(self, topic_name: str):
         # Crea el topic si no existe
-        pass
 
     def process_csv(self, file_path: str, topic: str, schema_name: str):
-        # Lee CSV con Polars y envía a Kafka
-        pass
+        # Lee CSV con Polars y envia a Kafka
 
     def process_parquet(self, file_path: str, topic: str, schema_name: str):
-        # Lee Parquet y envía a Kafka
-        pass
+        # Lee Parquet y envia a Kafka
 
     def process_directory(self, directory: str, topic: str, schema_name: str):
         # Procesa todos los archivos de un directorio
-        pass
 ```
 
-```mermaid
-graph LR
-    CSV[Archivo CSV] --> Polars[Polars<br/>DataFrame]
-    Polars --> Row[Fila por fila]
-    Row --> JSON[Convertir a JSON]
-    JSON --> Producer[Kafka Producer]
-    Producer --> Topic[Kafka Topic]
+### `src/common/sources/kafka_source_native.py`
 
-    style CSV fill:#e3f2fd
-    style Topic fill:#fff3e0
-```
-
-**Funcionalidades:**
-- ✅ Lee archivos CSV con Polars (eficiente para archivos grandes)
-- ✅ Lee archivos Parquet
-- ✅ Crea topics automáticamente si no existen
-- ✅ Convierte cada fila a JSON
-- ✅ Envía mensajes con key (para particionamiento)
-- ✅ Manejo de errores y reintentos
-
----
-
-### `src/common/sources/` - Fuentes de Datos
-
-#### `kafka_source.py`
-
-Configura la lectura desde Kafka en Apache Beam.
+Consumer nativo de Kafka usando confluent_kafka (no Docker):
 
 ```python
-def create_kafka_source(topic, bootstrap_servers, consumer_config):
-    """Crea un ReadFromKafka configurado"""
-    return ReadFromKafka(
-        consumer_config={
-            'bootstrap.servers': bootstrap_servers,
-            **consumer_config
-        },
-        topics=[topic]
-    )
-
-class ParseKafkaMessage(beam.DoFn):
-    """Parsea mensajes JSON de Kafka"""
-
-    def process(self, element):
-        try:
-            key, value = element
-            data = json.loads(value.decode('utf-8'))
-            yield {
-                'schema': self.schema_name,
-                'data': data,
-                'key': key
-            }
-        except Exception as e:
-            # Error → DLQ
-            yield beam.pvalue.TaggedOutput('dlq', {...})
+class KafkaConsumerDoFn(beam.DoFn):
+    """Lee mensajes de Kafka usando confluent_kafka nativo"""
+    # Consume mensajes del topic configurado
+    # Retorna tagged outputs: 'main' y 'dlq'
 ```
 
----
+### `src/common/sources/storage_source.py`
 
-#### `storage_source.py`
-
-Lee archivos directamente sin pasar por Kafka.
+Lee archivos directamente sin pasar por Kafka:
 
 ```python
-def create_storage_source(file_pattern, file_type, schema_name):
-    """Crea source que lee desde archivos"""
-    # Lee CSV/Parquet directamente
-    # Útil para procesamiento batch
-    pass
+class ReadCSVFiles:  # Lee archivos CSV con Polars
+class ReadParquetFiles:  # Lee archivos Parquet
 ```
 
----
-
-### `src/common/transforms/` - Transformaciones
-
-Contiene todas las transformaciones del pipeline Apache Beam.
+### `src/common/transforms/`
 
 ```mermaid
 graph LR
     subgraph "Transformaciones"
-        N[normalize.py] --> V[validate.py]
+        N[normalize.py] --> EG[enrich_geo.py]
+        EG --> V[validate.py]
         V --> T[timestamp.py]
         T --> W[windowing.py]
         W --> M[metadata.py]
@@ -610,429 +368,93 @@ graph LR
     V -.->|Error| DLQ[DLQ]
     T -.->|Error| DLQ
 
+    style EG fill:#e0f2f1
     style DLQ fill:#ffcdd2
 ```
 
----
-
-#### `normalize.py`
-
-Normaliza datos: maneja nulls, convierte tipos, estandariza formatos.
-
-```python
-class NormalizeRecord(beam.DoFn):
-    """Normaliza registros"""
-
-    def process(self, element):
-        data = element.get('data', {})
-
-        # Manejar nulls y valores vacíos
-        normalized = {}
-        for key, value in data.items():
-            if value is None or value == '' or value == 'null':
-                normalized[key] = None
-            else:
-                normalized[key] = value
-
-        # Convertir tipos si es necesario
-        # ...
-
-        yield {**element, 'data': normalized}
-```
-
-**Operaciones:**
-- ✅ Convertir `null`, `""`, `"null"` → `None`
-- ✅ Strip de espacios en strings
-- ✅ Conversión de tipos (string → int, etc.)
-- ✅ Estandarización de formatos
-
----
-
-#### `validate.py`
-
-Valida registros contra el schema JSON.
-
-```python
-class ValidateSchema(beam.DoFn):
-    """Valida registros contra su schema"""
-
-    def __init__(self, schema_dir: str):
-        self.schema_dir = schema_dir
-        self.schema_loader = None
-
-    def setup(self):
-        self.schema_loader = SchemaLoader(self.schema_dir)
-
-    def process(self, element):
-        schema_name = element.get('schema')
-        data = element.get('data', {})
-
-        is_valid, error = self.schema_loader.validate_record(schema_name, data)
-
-        if is_valid:
-            yield element  # Continúa el pipeline
-        else:
-            # Error → DLQ
-            yield beam.pvalue.TaggedOutput('dlq', {
-                'error': error,
-                'record': element,
-                'error_type': 'validation_error',
-                'schema': schema_name
-            })
-```
-
-**Validaciones:**
-- ✅ Campos requeridos presentes
-- ✅ Tipos de datos correctos
-- ✅ Si falla → envía a DLQ
-
----
-
-#### `timestamp.py`
-
-Asigna timestamps para el procesamiento temporal.
-
-```python
-class AssignTimestamp(beam.DoFn):
-    """Asigna timestamp a los registros"""
-
-    def __init__(self, timestamp_field: str):
-        self.timestamp_field = timestamp_field
-
-    def process(self, element):
-        data = element.get('data', {})
-
-        # Obtener valor del campo timestamp
-        ts_value = data.get(self.timestamp_field)
-
-        # Parsear timestamp (puede ser int YYYYMMDD o Unix timestamp)
-        timestamp = self._parse_timestamp(ts_value)
-
-        # Agregar timestamp al registro
-        data['timestamp'] = timestamp
-
-        yield {**element, 'data': data}
-```
-
-**Formatos soportados:**
-- ✅ Unix timestamp (segundos)
-- ✅ Formato YYYYMMDD (20200724)
-- ✅ ISO 8601 strings
-
----
-
-#### `windowing.py`
-
-Aplica ventanas temporales para agrupar datos.
-
-```python
-def create_windowing_transform(window_size_seconds, allowed_lateness_seconds):
-    """Crea transformación de windowing"""
-    return beam.WindowInto(
-        beam.window.FixedWindows(window_size_seconds),
-        allowed_lateness=Duration(seconds=allowed_lateness_seconds)
-    )
-
-class LogWindow(beam.DoFn):
-    """Log información de la ventana"""
-
-    def process(self, element, window=beam.DoFn.WindowParam):
-        window_start = window.start.to_utc_datetime()
-        window_end = window.end.to_utc_datetime()
-        logger.info(f"Window: {window_start} - {window_end}")
-        yield element
-```
-
-**Características:**
-- ✅ Ventanas fijas (60s para CASES, 120s para DEMISES)
-- ✅ Manejo de datos tardíos (allowed_lateness)
-- ✅ Triggers configurables
-
----
-
-#### `metadata.py`
-
-Agrega metadata del pipeline a cada registro.
-
-```python
-class AddMetadata(beam.DoFn):
-    """Agrega metadata del pipeline"""
-
-    def __init__(self, pipeline_version: str):
-        self.pipeline_version = pipeline_version
-
-    def process(self, element, window=beam.DoFn.WindowParam):
-        data = element.get('data', {})
-
-        metadata = {
-            'pipeline_version': self.pipeline_version,
-            'processed_at': datetime.now().isoformat(),
-            'worker_host': socket.gethostname(),
-            'window_start': window.start.to_utc_datetime().isoformat(),
-            'window_end': window.end.to_utc_datetime().isoformat(),
-            'schema': element.get('schema')
-        }
-
-        data['metadata'] = metadata
-        yield {**element, 'data': data}
-```
-
-**Metadata agregada:**
-- ✅ `pipeline_version`: Versión del pipeline
-- ✅ `processed_at`: Timestamp de procesamiento
-- ✅ `worker_host`: Hostname del worker
-- ✅ `window_start/end`: Límites de la ventana temporal
-- ✅ `schema`: Nombre del schema
-
----
-
-### `src/common/batching/` - Estrategias de Batching
-
-#### `native_batch.py`
-
-Usa el batching nativo de Apache Beam.
-
-```python
-class NativeBatcher:
-    """Batching usando BatchElements de Beam"""
-
-    def __init__(self, min_batch_size: int, max_batch_size: int):
-        self.min_batch_size = min_batch_size
-        self.max_batch_size = max_batch_size
-
-    def get_transform(self):
-        return beam.BatchElements(
-            min_batch_size=self.min_batch_size,
-            max_batch_size=self.max_batch_size
-        )
-```
-
-**Características:**
-- ✅ Automático por Apache Beam
-- ✅ Configurable min/max batch size
-- ✅ Eficiente para la mayoría de casos
-
----
-
-#### `manual_batch.py`
-
-Batching manual con control total.
-
-```python
-class GroupIntoBatches(beam.DoFn):
-    """Agrupa elementos en batches manualmente"""
-
-    def __init__(self, batch_size: int, timeout_seconds: int):
-        self.batch_size = batch_size
-        self.timeout_seconds = timeout_seconds
-        self.buffer = []
-
-    def process(self, element):
-        self.buffer.append(element)
-
-        if len(self.buffer) >= self.batch_size:
-            batch = self.buffer
-            self.buffer = []
-            yield batch
-
-    def finish_bundle(self):
-        # Emitir batch parcial al final
-        if self.buffer:
-            yield beam.pvalue.TaggedOutput('main', self.buffer)
-```
-
-**Características:**
-- ✅ Control total sobre el batching
-- ✅ Timeout configurable
-- ✅ Manejo de batches parciales
-
----
-
-### `src/common/sinks/` - Destinos de Datos
-
-#### `mongo_sink.py`
-
-Escribe datos a MongoDB con soporte time-series.
-
-```python
-class MongoDBSink(beam.DoFn):
-    """Escribe batches a MongoDB"""
-
-    def __init__(self, connection_string: str, database: str, collection_config: dict):
-        self.connection_string = connection_string
-        self.database_name = database
-        self.collection_config = collection_config
-
-    def setup(self):
-        self.client = MongoClient(self.connection_string)
-        self.db = self.client[self.database_name]
-        self._ensure_timeseries_collection()
-
-    def _ensure_timeseries_collection(self):
-        """Crea colección time-series si no existe"""
-        collection_name = self.collection_config.get('name')
-        timeseries_config = self.collection_config.get('timeseries', {})
-
-        self.db.create_collection(
-            collection_name,
-            timeseries={
-                'timeField': timeseries_config.get('timeField', 'timestamp'),
-                'metaField': timeseries_config.get('metaField', 'metadata'),
-                'granularity': timeseries_config.get('granularity', 'hours')
-            }
-        )
-
-    def process(self, batch):
-        collection = self.db[self.collection_config['name']]
-
-        try:
-            # Bulk write
-            result = collection.insert_many(batch)
-            logger.info(f"Inserted {len(result.inserted_ids)} documents")
-        except BulkWriteError as e:
-            # Manejo de errores parciales
-            logger.error(f"Bulk write error: {e}")
-```
-
-**Características:**
-- ✅ Crea colección time-series automáticamente
-- ✅ Bulk write para eficiencia
-- ✅ Manejo de errores parciales (BulkWriteError)
-- ✅ Logging detallado
-
----
-
-#### `dlq_sink.py`
-
-Escribe errores a Dead Letter Queue.
-
-```python
-class DLQSink(beam.DoFn):
-    """Escribe errores a DLQ"""
-
-    def __init__(self, connection_string: str, database: str, collection: str):
-        self.connection_string = connection_string
-        self.database_name = database
-        self.collection_name = collection
-
-    def setup(self):
-        self.client = MongoClient(self.connection_string)
-        self.collection = self.client[self.database_name][self.collection_name]
-
-        # Crear índices
-        self.collection.create_index('error_type')
-        self.collection.create_index('schema')
-        self.collection.create_index('timestamp')
-
-    def process(self, error):
-        doc = {
-            'error': error.get('error'),
-            'error_type': error.get('error_type'),
-            'timestamp': datetime.now(timezone.utc),
-            'schema': error.get('schema'),
-            'record': error.get('record')
-        }
-        self.collection.insert_one(doc)
-
-class CombineDLQErrors(beam.CombineFn):
-    """Combina errores de múltiples fuentes"""
-    pass
-```
-
-**Estructura del documento DLQ:**
-```json
-{
-  "error": "Missing required field: resultado",
-  "error_type": "validation_error",
-  "timestamp": "2024-01-26T10:30:00Z",
-  "schema": "cases",
-  "record": { ... }
-}
-```
-
----
-
-### `src/common/utils/` - Utilidades
-
-#### `config_loader.py`
-
-Carga y valida archivos de configuración YAML.
-
-```python
-class ConfigLoader:
-    """Carga configuración desde YAML"""
-
-    def load(self, config_path: str) -> dict:
-        with open(config_path, 'r') as f:
-            return yaml.safe_load(f)
-
-    def validate(self, config: dict) -> bool:
-        # Validar estructura requerida
-        pass
-```
-
----
-
-#### `schema_loader.py`
-
-Carga schemas JSON y valida registros.
-
-```python
-class SchemaLoader:
-    """Carga y valida schemas"""
-
-    def __init__(self, schema_dir: str):
-        self.schema_dir = schema_dir
-        self.schemas = {}
-
-    def load_schema(self, schema_name: str) -> dict:
-        """Carga un schema desde JSON"""
-        schema_path = Path(self.schema_dir) / f"{schema_name}.json"
-        with open(schema_path, 'r') as f:
-            return json.load(f)
-
-    def validate_record(self, schema_name: str, record: dict) -> tuple:
-        """Valida un registro contra el schema"""
-        schema = self.get_schema(schema_name)
-
-        # Verificar campos requeridos
-        for field in schema.get('required_fields', []):
-            if field not in record or record[field] is None:
-                return False, f"Missing required field: {field}"
-
-        # Verificar tipos de datos
-        for field, expected_type in schema.get('field_types', {}).items():
-            if field in record and record[field] is not None:
-                if not self._check_type(record[field], expected_type):
-                    return False, f"Invalid type for {field}"
-
-        return True, None
-```
+| Transform | Archivo | Descripcion |
+|-----------|---------|-------------|
+| Normalize | `normalize.py` | Maneja nulls, convierte tipos, estandariza formatos |
+| Enrich Geo | `enrich_geo.py` | Convierte UBIGEO a coordenadas lat/lon |
+| Validate | `validate.py` | Valida contra schema JSON |
+| Timestamp | `timestamp.py` | Asigna timestamps (YYYYMMDD o Unix) |
+| Windowing | `windowing.py` | Ventanas temporales fijas con allowed_lateness |
+| Metadata | `metadata.py` | Agrega pipeline_version, source_type, processed_at |
+
+### `src/common/data/ubigeo_coords.py`
+
+Diccionario de coordenadas geograficas para distritos peruanos basado en codigos UBIGEO.
+
+### `src/common/batching/`
+
+| Archivo | Descripcion |
+|---------|-------------|
+| `native_batch.py` | Batching nativo de Apache Beam (BatchElements) |
+| `manual_batch.py` | Batching manual con control total (GroupIntoBatches) |
+
+### `src/common/sinks/`
+
+| Archivo | Descripcion |
+|---------|-------------|
+| `mongo_sink.py` | Escribe a MongoDB (bulk write, time-series, auto-create collection) |
+| `dlq_sink.py` | Escribe errores a Dead Letter Queue con indices |
+
+### `src/common/utils/`
+
+| Archivo | Descripcion |
+|---------|-------------|
+| `config_loader.py` | Carga configuracion YAML |
+| `schema_loader.py` | Carga y valida schemas JSON |
 
 ---
 
 ## Carpeta `datasets/`
 
-Contiene los archivos de datos organizados por schema.
+Contiene los archivos de datos organizados por schema. **39 archivos CSV en total.**
 
 ```
 datasets/
-├── cases/
-│   ├── file_0_cases.csv
-│   ├── file_1_cases.csv
-│   └── ...
-└── demises/
-    ├── file_0_demises.csv
-    └── ...
+|-- cases/
+|   |-- file_0_cases.csv
+|   |-- file_1_cases.csv
+|   |-- ... (13 archivos)
+|   +-- file_12_cases.csv
+|-- demises/
+|   |-- file_0_demises.csv
+|   |-- ... (13 archivos)
+|   +-- file_12_demises.csv
++-- hospitalizations/
+    |-- file_0_hospital.csv
+    |-- ... (13 archivos)
+    +-- file_12_hospital.csv
 ```
 
-### Ejemplo de datos (`cases/file_0_cases.csv`):
+---
 
-```csv
-uuid,fecha_muestra,edad,sexo,institucion,ubigeo_paciente,departamento_paciente,...,resultado
-12978089,20200724,26,FEMENINO,PRIVADO,140137,LIMA,...,NEGATIVO
-19929263,20200901,27,MASCULINO,PRIVADO,250104,UCAYALI,...,NEGATIVO
+## Carpeta `visualization/`
+
+Dashboard interactivo en tiempo real con Flask + Socket.IO + D3.js + Leaflet.
+
 ```
+visualization/
+|-- app.py                    # Servidor Flask + Socket.IO + Polling
+|-- config.py                 # Configuracion (MongoDB, puertos, coords)
+|-- services/database.py      # Cliente PyMongo
+|-- routes/api.py             # 14 endpoints REST
+|-- handlers/
+|   |-- alerts.py             # Sistema de alertas por umbral
+|   |-- queries/              # Queries MongoDB (cases, demises, hospitalizations, summary)
+|   +-- websocket/events.py   # 15+ handlers WebSocket
+|-- static/
+|   |-- css/style.css         # Tema oscuro responsive
+|   +-- js/
+|       |-- main.js           # Entry point, conexion SocketIO
+|       |-- charts/           # D3.js: department, timeline, age, sex, heatmaps
+|       +-- modules/          # alerts, filters, config, utils
++-- templates/index.html      # SPA con todas las visualizaciones
+```
+
+**URL:** http://localhost:5006
 
 ---
 
@@ -1040,7 +462,7 @@ uuid,fecha_muestra,edad,sexo,institucion,ubigeo_paciente,departamento_paciente,.
 
 ```mermaid
 graph TB
-    subgraph "CAPA DE EJECUCIÓN"
+    subgraph "CAPA DE EJECUCION"
         User[Usuario] --> Orch[orchestrator.py]
         User --> Scripts[run_*.sh]
     end
@@ -1050,34 +472,34 @@ graph TB
         Orch --> CasesP[cases/pipeline.py]
         Orch --> DemisesI[demises/ingestion.py]
         Orch --> DemisesP[demises/pipeline.py]
+        Orch --> HospI[hospitalizations/ingestion.py]
+        Orch --> HospP[hospitalizations/pipeline.py]
     end
 
-    subgraph "CAPA DE CONFIGURACIÓN"
+    subgraph "CAPA DE CONFIGURACION"
         CasesP --> CConfig[cases/config.yaml]
         CasesP --> CSchema[cases/cases.json]
-        CasesI --> CConfig
         DemisesP --> DConfig[demises/config.yaml]
         DemisesP --> DSchema[demises/demises.json]
+        HospP --> HConfig[hospitalizations/config.yaml]
+        HospP --> HSchema[hospitalizations/hospitalizations.json]
     end
 
     subgraph "CAPA DE INGESTA"
         CasesI --> KProc[kafka_processor.py]
         DemisesI --> KProc
+        HospI --> KProc
         KProc --> Data[datasets/*.csv]
     end
 
     subgraph "CAPA DE TRANSFORMACIONES"
-        CasesP --> KSource[kafka_source.py]
+        CasesP --> KSource[kafka_source_native.py]
         CasesP --> Norm[normalize.py]
+        CasesP --> EGeo[enrich_geo.py]
         CasesP --> Val[validate.py]
         CasesP --> TS[timestamp.py]
         CasesP --> Win[windowing.py]
         CasesP --> Meta[metadata.py]
-    end
-
-    subgraph "CAPA DE BATCHING"
-        CasesP --> NBatch[native_batch.py]
-        DemisesP --> MBatch[manual_batch.py]
     end
 
     subgraph "CAPA DE SINKS"
@@ -1085,16 +507,19 @@ graph TB
         CasesP --> DLQSink[dlq_sink.py]
     end
 
-    subgraph "CAPA DE UTILIDADES"
-        Val --> SLoader[schema_loader.py]
-        CasesP --> CLoader[config_loader.py]
+    subgraph "CAPA DE DATOS"
+        EGeo --> UCoords[ubigeo_coords.py]
     end
 
     subgraph "INFRAESTRUCTURA"
-        KProc --> Kafka[Kafka]
+        KProc --> Kafka[Kafka KRaft]
         KSource --> Kafka
-        MSink --> MongoDB[MongoDB]
+        MSink --> MongoDB[MongoDB 8.0]
         DLQSink --> MongoDB
+    end
+
+    subgraph "VISUALIZACION"
+        MongoDB --> Viz[visualization/app.py]
     end
 
     style Orch fill:#e3f2fd
@@ -1102,6 +527,7 @@ graph TB
     style MSink fill:#e8f5e9
     style Kafka fill:#fff3e0
     style MongoDB fill:#c8e6c9
+    style Viz fill:#e0f7fa
 ```
 
 ---
@@ -1111,64 +537,29 @@ graph TB
 | Componente | Archivo | Responsabilidad |
 |------------|---------|-----------------|
 | **Orquestador** | `orchestrator.py` | Descubre schemas, ejecuta ingestas y pipelines |
-| **Ingesta Schema** | `pipelines/X/ingestion.py` | Lee CSV → envía a Kafka |
-| **Pipeline Schema** | `pipelines/X/pipeline.py` | Lee Kafka → transforma → escribe MongoDB |
-| **Config Schema** | `pipelines/X/config.yaml` | Configuración completa del pipeline |
-| **Schema JSON** | `pipelines/X/X.json` | Definición de campos y validación |
-| **Kafka Processor** | `src/ingestion/kafka_processor.py` | Lee archivos y produce a Kafka |
-| **Kafka Source** | `src/common/sources/kafka_source.py` | Consume de Kafka en Beam |
-| **Storage Source** | `src/common/sources/storage_source.py` | Lee archivos directamente |
+| **Ingesta Schema** | `pipelines/X/ingestion.py` | Lee CSV -> envia a Kafka |
+| **Pipeline Schema** | `pipelines/X/pipeline.py` | Lee Kafka -> transforma -> escribe MongoDB |
+| **Config Schema** | `pipelines/X/config.yaml` | Configuracion completa del pipeline |
+| **Schema JSON** | `pipelines/X/{X}.json` | Definicion de campos y validacion |
+| **Kafka Processor** | `src/ingestion/kafka_processor.py` | Lee archivos y produce a Kafka (confluent_kafka) |
+| **Kafka Source** | `src/common/sources/kafka_source_native.py` | Consume de Kafka en Beam (confluent_kafka nativo) |
+| **Storage Source** | `src/common/sources/storage_source.py` | Lee archivos directamente (Polars) |
 | **Normalize** | `src/common/transforms/normalize.py` | Normaliza datos |
+| **Enrich Geo** | `src/common/transforms/enrich_geo.py` | Enriquece con coordenadas lat/lon desde UBIGEO |
 | **Validate** | `src/common/transforms/validate.py` | Valida contra schema |
 | **Timestamp** | `src/common/transforms/timestamp.py` | Asigna timestamps |
 | **Windowing** | `src/common/transforms/windowing.py` | Aplica ventanas temporales |
 | **Metadata** | `src/common/transforms/metadata.py` | Agrega metadata |
-| **Native Batch** | `src/common/batching/native_batch.py` | Batching automático |
+| **Native Batch** | `src/common/batching/native_batch.py` | Batching automatico |
 | **Manual Batch** | `src/common/batching/manual_batch.py` | Batching manual |
 | **MongoDB Sink** | `src/common/sinks/mongo_sink.py` | Escribe a MongoDB |
 | **DLQ Sink** | `src/common/sinks/dlq_sink.py` | Escribe errores a DLQ |
-| **Config Loader** | `src/common/utils/config_loader.py` | Carga configuración YAML |
+| **Config Loader** | `src/common/utils/config_loader.py` | Carga configuracion YAML |
 | **Schema Loader** | `src/common/utils/schema_loader.py` | Carga y valida schemas |
+| **UBIGEO Coords** | `src/common/data/ubigeo_coords.py` | Coordenadas geograficas Peru |
+| **Dashboard** | `visualization/app.py` | Visualizacion en tiempo real (D3.js + Leaflet) |
 
 ---
 
-## Flujo de Ejecución Completo
-
-```mermaid
-sequenceDiagram
-    participant User as Usuario
-    participant Orch as orchestrator.py
-    participant Ing as ingestion.py
-    participant KProc as kafka_processor.py
-    participant Kafka as Kafka
-    participant Pipe as pipeline.py
-    participant Transforms as Transformaciones
-    participant Mongo as MongoDB
-
-    User->>Orch: python orchestrator.py --ingest cases
-    Orch->>Ing: CasesIngestion.run()
-    Ing->>KProc: process_csv()
-    KProc->>KProc: Leer CSV con Polars
-    loop Cada fila
-        KProc->>Kafka: Enviar mensaje JSON
-    end
-    KProc-->>Ing: Completado
-    Ing-->>Orch: N mensajes enviados
-    Orch-->>User: ✓ Ingesta completada
-
-    User->>Orch: python orchestrator.py --pipeline cases
-    Orch->>Pipe: CasesPipeline.run()
-    Pipe->>Kafka: ReadFromKafka
-    Kafka-->>Pipe: Mensajes
-    Pipe->>Transforms: Normalize → Validate → Timestamp → Window → Metadata → Batch
-    Transforms-->>Pipe: Datos procesados
-    Pipe->>Mongo: insert_many()
-    Mongo-->>Pipe: Success
-    Pipe-->>Orch: Pipeline completado
-    Orch-->>User: ✓ Datos en MongoDB
-```
-
----
-
-**Última actualización:** 2026-01-26
-**Versión:** 1.0.0
+**Ultima actualizacion:** 2026-02-10
+**Version:** 2.0.0

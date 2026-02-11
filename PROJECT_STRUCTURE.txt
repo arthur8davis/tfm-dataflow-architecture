@@ -1,140 +1,199 @@
-ESTRUCTURA FINAL DEL PROYECTO - MULTI-SCHEMA INDEPENDIENTE
-==========================================================
+ESTRUCTURA DEL PROYECTO - MULTI-SCHEMA INDEPENDIENTE
+=====================================================
 
-tfm/
-│
-├── 📂 pipelines/                           # PIPELINES POR SCHEMA (INDEPENDIENTES)
-│   │
-│   ├── 📂 cases/                           # Schema: CASES
-│   │   ├── config.yaml                    # ⚙️  Configuración exclusiva
-│   │   ├── schema.json                    # 📋 Validación de datos
-│   │   ├── pipeline.py                    # 🔄 Pipeline Apache Beam
-│   │   └── ingestion.py                   # 📥 Ingesta a Kafka
-│   │
-│   └── 📂 deaths/                          # Schema: DEATHS  
-│       ├── config.yaml                    # ⚙️  Configuración exclusiva (diferente!)
-│       ├── schema.json                    # 📋 Validación de datos
-│       ├── pipeline.py                    # 🔄 Pipeline Apache Beam
-│       └── ingestion.py                   # 📥 Ingesta a Kafka
-│
-├── 📂 src/
-│   ├── 📂 common/                          # COMPONENTES COMPARTIDOS
-│   │   ├── 📂 sources/                    # Lectura de datos
-│   │   │   ├── kafka_source.py           # Source: Kafka
-│   │   │   └── storage_source.py         # Source: CSV/Parquet
-│   │   │
-│   │   ├── 📂 transforms/                 # Transformaciones
-│   │   │   ├── normalize.py              # Normalización
-│   │   │   ├── validate.py               # Validación
-│   │   │   ├── timestamp.py              # Timestamps
-│   │   │   ├── windowing.py              # Ventanas temporales
-│   │   │   └── metadata.py               # Metadata
-│   │   │
-│   │   ├── 📂 batching/                   # Estrategias de batching
-│   │   │   ├── manual_batch.py           # Batching manual
-│   │   │   └── native_batch.py           # Batching nativo
-│   │   │
-│   │   ├── 📂 sinks/                      # Escritura de datos
-│   │   │   ├── mongo_sink.py             # Sink: MongoDB
-│   │   │   └── dlq_sink.py               # Sink: Dead Letter Queue
-│   │   │
-│   │   └── 📂 utils/                      # Utilidades
-│   │       ├── config_loader.py          # Carga de configuración
-│   │       └── schema_loader.py          # Carga de schemas
-│   │
-│   └── 📂 ingestion/                       # Ingesta común
-│       └── kafka_processor.py             # Procesador Kafka (Polars)
-│
-├── 📂 datasets/                            # DATOS POR SCHEMA
-│   ├── 📂 cases/
-│   │   └── sample_data.csv                # Datos de ejemplo CASES
-│   └── 📂 deaths/
-│       └── sample_data.csv                # Datos de ejemplo DEATHS
-│
-├── 📂 config/                              # Configuraciones globales (legacy)
-│   ├── kafka_config.yaml
-│   ├── mongo_config.yaml
-│   └── beam_config.yaml
-│
-├── 📂 schemas/                             # Schemas centralizados (legacy)
-│   └── cases.json
-│
-├── 🚀 orchestrator.py                      # ORQUESTADOR MULTI-SCHEMA
-├── 🎬 example_run_all.sh                   # Demo completa
-├── ▶️  run_cases.sh                         # Script rápido CASES
-├── ▶️  run_deaths.sh                        # Script rápido DEATHS
-│
-├── 📄 run_ingestion.py                     # Scripts legacy
-├── 📄 run_pipeline.py                      # Scripts legacy
-├── 📄 create_schema.py                     # Utilidad para crear schemas
-│
-├── 📖 README_NEW.md                        # Documentación principal
-├── 🏗️  ARCHITECTURE.md                     # Arquitectura detallada
-├── ⚡ QUICKSTART.md                        # Inicio rápido
-├── 📊 mongo_queries.js                     # Consultas MongoDB
-│
-├── 🐳 docker-compose.yaml                  # Servicios (Kafka, MongoDB, etc)
-├── 📦 requirements.txt                     # Dependencias Python
-└── 🙈 .gitignore
+tfm-dataflow-architecture/
+|
+|-- pipelines/                              # PIPELINES POR SCHEMA (INDEPENDIENTES)
+|   |
+|   |-- cases/                              # Schema: CASES (Pacientes)
+|   |   |-- config.yaml                     # Configuracion exclusiva
+|   |   |-- cases.json                      # Validacion de datos
+|   |   |-- pipeline.py                     # Pipeline Apache Beam (CasesPipeline)
+|   |   |-- ingestion.py                    # Ingesta a Kafka (CasesIngestion)
+|   |   +-- __init__.py
+|   |
+|   |-- demises/                            # Schema: DEMISES (Fallecimientos)
+|   |   |-- config.yaml                     # Configuracion exclusiva
+|   |   |-- demises.json                    # Validacion de datos
+|   |   |-- pipeline.py                     # Pipeline Apache Beam (DemisesPipeline)
+|   |   |-- ingestion.py                    # Ingesta a Kafka (DemisesIngestion)
+|   |   +-- __init__.py
+|   |
+|   |-- hospitalizations/                   # Schema: HOSPITALIZATIONS
+|   |   |-- config.yaml                     # Configuracion exclusiva
+|   |   |-- hospitalizations.json           # Validacion de datos (54 campos)
+|   |   |-- pipeline.py                     # Pipeline Apache Beam (HospitalizationsPipeline)
+|   |   |-- ingestion.py                    # Ingesta a Kafka (HospitalizationsIngestion)
+|   |   +-- __init__.py
+|   |
+|   +-- __init__.py
+|
+|-- src/
+|   |-- common/                             # COMPONENTES COMPARTIDOS
+|   |   |-- sources/                        # Lectura de datos
+|   |   |   |-- kafka_source_native.py      # Source: Kafka (confluent_kafka nativo)
+|   |   |   |-- storage_source.py           # Source: CSV/Parquet (Polars)
+|   |   |   +-- __init__.py
+|   |   |
+|   |   |-- transforms/                     # Transformaciones Apache Beam
+|   |   |   |-- normalize.py                # Normalizacion (nulls, tipos)
+|   |   |   |-- validate.py                 # Validacion contra schema JSON
+|   |   |   |-- timestamp.py                # Asignacion de timestamps
+|   |   |   |-- windowing.py                # Ventanas temporales
+|   |   |   |-- metadata.py                 # Metadata del pipeline
+|   |   |   |-- enrich_geo.py               # Enriquecimiento geografico (UBIGEO -> lat/lon)
+|   |   |   +-- __init__.py
+|   |   |
+|   |   |-- batching/                       # Estrategias de batching
+|   |   |   |-- manual_batch.py             # Batching manual
+|   |   |   |-- native_batch.py             # Batching nativo Apache Beam
+|   |   |   +-- __init__.py
+|   |   |
+|   |   |-- sinks/                          # Escritura de datos
+|   |   |   |-- mongo_sink.py               # Sink: MongoDB (time-series)
+|   |   |   |-- dlq_sink.py                 # Sink: Dead Letter Queue
+|   |   |   +-- __init__.py
+|   |   |
+|   |   |-- utils/                          # Utilidades
+|   |   |   |-- config_loader.py            # Carga de configuracion YAML
+|   |   |   |-- schema_loader.py            # Carga y validacion de schemas JSON
+|   |   |   +-- __init__.py
+|   |   |
+|   |   |-- data/                           # Datos de referencia
+|   |   |   +-- ubigeo_coords.py            # Coordenadas UBIGEO Peru (lat/lon)
+|   |   |
+|   |   +-- __init__.py
+|   |
+|   |-- ingestion/                          # Ingesta comun
+|   |   |-- kafka_processor.py              # Procesador Kafka (confluent_kafka + Polars)
+|   |   +-- __init__.py
+|   |
+|   +-- __init__.py
+|
+|-- datasets/                               # DATOS POR SCHEMA (39 archivos CSV total)
+|   |-- cases/
+|   |   |-- file_0_cases.csv
+|   |   |-- file_1_cases.csv
+|   |   |-- ... (13 archivos)
+|   |   +-- file_12_cases.csv
+|   |-- demises/
+|   |   |-- file_0_demises.csv
+|   |   |-- ... (13 archivos)
+|   |   +-- file_12_demises.csv
+|   +-- hospitalizations/
+|       |-- file_0_hospital.csv
+|       |-- ... (13 archivos)
+|       +-- file_12_hospital.csv
+|
+|-- visualization/                          # DASHBOARD EN TIEMPO REAL
+|   |-- app.py                              # Servidor Flask + Socket.IO + Polling
+|   |-- config.py                           # Configuracion (MongoDB, puertos, coords)
+|   |-- services/
+|   |   +-- database.py                     # Cliente PyMongo
+|   |-- routes/
+|   |   +-- api.py                          # 14 endpoints REST
+|   |-- handlers/
+|   |   |-- alerts.py                       # Sistema de alertas por umbral
+|   |   |-- queries/
+|   |   |   |-- cases.py                    # Queries: casos, heatmap, filtros
+|   |   |   |-- demises.py                  # Queries: fallecidos, heatmap
+|   |   |   |-- hospitalizations.py         # Queries: hospitalizaciones
+|   |   |   +-- summary.py                  # Queries: totales, conteos
+|   |   +-- websocket/
+|   |       +-- events.py                   # 15+ handlers WebSocket
+|   |-- static/
+|   |   |-- css/
+|   |   |   +-- style.css                   # Tema oscuro responsive
+|   |   +-- js/
+|   |       |-- main.js                     # Entry point, conexion SocketIO
+|   |       |-- charts/
+|   |       |   |-- department.js           # Barras horizontales (D3.js)
+|   |       |   |-- timeline.js             # Area chart temporal (D3.js)
+|   |       |   |-- age.js                  # Piramide poblacional (D3.js)
+|   |       |   |-- sex.js                  # Donut chart (D3.js)
+|   |       |   +-- heatmaps.js             # Mapas Leaflet + leaflet.heat
+|   |       +-- modules/
+|   |           |-- alerts.js               # UI alertas, notificaciones
+|   |           |-- filters.js              # Filtros departamento/sexo
+|   |           |-- config.js               # Constantes frontend
+|   |           +-- utils.js                # Formateo numeros, fechas
+|   +-- templates/
+|       +-- index.html                      # SPA con todas las visualizaciones
+|
+|-- orchestrator.py                         # ORQUESTADOR MULTI-SCHEMA
+|-- example_run_all.sh                      # Demo completa
+|-- run_cases.sh                            # Script rapido CASES
+|-- run_deaths.sh                           # Script rapido DEMISES
+|-- verify_structure.sh                     # Verificar estructura del proyecto
+|
+|-- docker-compose.yaml                     # Servicios Docker (Kafka KRaft, MongoDB, UIs)
+|-- requirements.txt                        # Dependencias Python
+|
+|-- README.md                               # Documentacion principal
+|-- README_NEW.md                           # Documentacion multi-schema
+|-- ARCHITECTURE.md                         # Arquitectura detallada
+|-- ESTRUCTURA_PROYECTO.md                  # Documentacion de estructura
+|-- ESTRUCTURA_LIMPIA.md                    # Estructura limpia del proyecto
+|-- GUIA_NUEVO_SCHEMA.md                    # Guia para agregar schemas
+|-- QUICKSTART.md                           # Inicio rapido
++-- pendientes.md                           # Tareas pendientes
 
 
 FLUJO DE DATOS POR SCHEMA
-=========================
+==========================
 
 SCHEMA: CASES
 -------------
-datasets/cases/*.csv
-    ↓
-pipelines/cases/ingestion.py
-    ↓
+datasets/cases/file_*_cases.csv (13 archivos)
+    |
+pipelines/cases/ingestion.py (CasesIngestion)
+    |
 Kafka Topic: "cases"
-    ↓
-pipelines/cases/pipeline.py
-    ↓  (consumer group: beam-pipeline-cases)
-    ↓  (ventana: 60s, batch: 100 native)
-    ↓
-MongoDB Collection: "cases"
+    |
+pipelines/cases/pipeline.py (CasesPipeline)
+    |  (consumer group: beam-pipeline-cases)
+    |  (transforms: normalize -> enrich_geo -> validate -> timestamp -> window -> metadata -> batch)
+    |
+MongoDB Collection: "cases" (time-series)
 
 
-SCHEMA: DEATHS (en paralelo)
+SCHEMA: DEMISES (en paralelo)
 -----------------------------
-datasets/deaths/*.csv
-    ↓
-pipelines/deaths/ingestion.py
-    ↓
-Kafka Topic: "deaths"
-    ↓
-pipelines/deaths/pipeline.py
-    ↓  (consumer group: beam-pipeline-deaths)
-    ↓  (ventana: 120s, batch: 50 manual)  ← DIFERENTE!
-    ↓
-MongoDB Collection: "deaths"
+datasets/demises/file_*_demises.csv (13 archivos)
+    |
+pipelines/demises/ingestion.py (DemisesIngestion)
+    |
+Kafka Topic: "demises"
+    |
+pipelines/demises/pipeline.py (DemisesPipeline)
+    |  (consumer group: beam-pipeline-demises)
+    |  (transforms: normalize -> enrich_geo -> validate -> timestamp -> window -> metadata -> batch)
+    |
+MongoDB Collection: "demises" (time-series)
 
 
-CARACTERÍSTICAS CLAVE
-=====================
+SCHEMA: HOSPITALIZATIONS (en paralelo)
+---------------------------------------
+datasets/hospitalizations/file_*_hospital.csv (13 archivos)
+    |
+pipelines/hospitalizations/ingestion.py (HospitalizationsIngestion)
+    |
+Kafka Topic: "hospitalizations"
+    |
+pipelines/hospitalizations/pipeline.py (HospitalizationsPipeline)
+    |  (consumer group: beam-pipeline-hospitalizations)
+    |  (transforms: normalize -> enrich_geo -> validate -> timestamp -> window -> metadata -> batch)
+    |
+MongoDB Collection: "hospitalizations" (time-series)
 
-✅ INDEPENDENCIA TOTAL
-   - Cada schema tiene su propia configuración
-   - Cada schema tiene su propio pipeline
-   - Cada schema tiene su propio topic de Kafka
-   - Cada schema tiene su propia colección MongoDB
 
-✅ EJECUCIÓN PARALELA
-   - Múltiples schemas pueden ejecutarse simultáneamente
-   - Sin interferencia entre schemas
-   - Escalamiento horizontal por schema
+SERVICIOS DOCKER (docker-compose.yaml)
+=======================================
 
-✅ CONFIGURACIÓN FLEXIBLE
-   - Cada schema puede tener ventanas diferentes
-   - Cada schema puede usar diferentes estrategias de batching
-   - Cada schema puede tener diferentes validaciones
-
-✅ FÁCIL AGREGAR SCHEMAS
-   1. Crear directorio: pipelines/nuevo_schema/
-   2. Copiar archivos desde casos/
-   3. Editar configuración
-   4. ¡Listo! El orquestador lo descubre automáticamente
+Kafka KRaft:       apache/kafka:4.1.1  (puerto: 9092) - SIN Zookeeper
+MongoDB:           mongo:8.0.0         (puerto: 27017) - admin/admin123
+Kafka UI:          kafbat/kafka-ui      (puerto: 8080)
+Mongo Express:     mongo-express        (puerto: 8083)
 
 
 COMANDOS PRINCIPALES
@@ -145,42 +204,44 @@ python orchestrator.py --list
 
 # Ejecutar schema individual
 python orchestrator.py --pipeline cases
-python orchestrator.py --pipeline deaths
+python orchestrator.py --pipeline demises
+python orchestrator.py --pipeline hospitalizations
 
-# Ejecutar múltiples schemas en paralelo
-python orchestrator.py --pipeline cases deaths --parallel
+# Ejecutar multiples schemas en paralelo
+python orchestrator.py --pipeline cases demises hospitalizations --parallel
 
 # Ingestar datos
 python orchestrator.py --ingest cases
-python orchestrator.py --ingest deaths --parallel
+python orchestrator.py --ingest-all --parallel
 
-# Scripts rápidos
+# Scripts rapidos
 ./run_cases.sh both
 ./run_deaths.sh both
 
 # Demo completa
 ./example_run_all.sh
 
-
-SERVICIOS DE MONITOREO
-======================
-
-🌐 Kafka UI:       http://localhost:8080
-🌐 Mongo Express:  http://localhost:8083
-   User: admin
-   Pass: pass
+# Dashboard de visualizacion
+cd visualization && python app.py
+# Abrir http://localhost:5006
 
 
-PRÓXIMO SCHEMA
-==============
+MONITOREO
+=========
 
-Para agregar "recovered":
+Kafka UI:          http://localhost:8080
+Mongo Express:     http://localhost:8083
+Dashboard D3.js:   http://localhost:5006
 
-mkdir -p pipelines/recovered datasets/recovered
-cp -r pipelines/cases/* pipelines/recovered/
-# Editar archivos (cambiar "cases" → "recovered")
-python orchestrator.py --ingest recovered
-python orchestrator.py --pipeline recovered
 
-¡Ya está! El orquestador lo detecta automáticamente.
+AGREGAR NUEVO SCHEMA
+=====================
 
+mkdir -p pipelines/nuevo datasets/nuevo
+cp pipelines/cases/* pipelines/nuevo/
+# Editar archivos (cambiar "cases" -> "nuevo")
+python orchestrator.py --ingest nuevo
+python orchestrator.py --pipeline nuevo
+# El orquestador lo detecta automaticamente
+
+Ultima actualizacion: 2026-02-10

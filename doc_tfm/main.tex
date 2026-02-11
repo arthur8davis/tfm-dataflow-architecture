@@ -3418,25 +3418,25 @@ Definí seis tipos de alertas que me parecieron los más relevantes para vigilan
     \small
     \begin{tabularx}{\textwidth}{@{}lrX@{}}
         \toprule
-        \textbf{Identificador} & \textbf{Umbral} & \textbf{Descripción} \\
+        \textbf{Identificador}           & \textbf{Umbral} & \textbf{Descripción}                                                                                    \\
         \midrule
-        \texttt{cases\_total} & 1,000,000 & 
+        \texttt{cases\_total}            & 1,000,000       &
         Se activa cuando el número acumulado de casos registrados en el sistema supera el umbral definido. Permite monitorear el crecimiento general de la pandemia. \\
         \addlinespace
-        \texttt{cases\_positive} & 1,000 & 
-        Detecta incrementos significativos en el número de casos con resultado positivo confirmado por prueba de laboratorio. \\
+        \texttt{cases\_positive}         & 1,000           &
+        Detecta incrementos significativos en el número de casos con resultado positivo confirmado por prueba de laboratorio.                                        \\
         \addlinespace
-        \texttt{demises\_total} & 1,000 & 
-        Alerta cuando el número acumulado de fallecimientos supera el umbral, indicando una situación de alta mortalidad. \\
+        \texttt{demises\_total}          & 1,000           &
+        Alerta cuando el número acumulado de fallecimientos supera el umbral, indicando una situación de alta mortalidad.                                            \\
         \addlinespace
-        \texttt{hospitalizations\_total} & 500 & 
-        Monitorea la capacidad hospitalaria alertando cuando el número de pacientes hospitalizados excede el límite configurado. \\
+        \texttt{hospitalizations\_total} & 500             &
+        Monitorea la capacidad hospitalaria alertando cuando el número de pacientes hospitalizados excede el límite configurado.                                     \\
         \addlinespace
-        \texttt{cases\_by\_dept} & 2,000 & 
-        Genera alertas específicas para cada departamento cuando los casos positivos en esa región superan el umbral. \\
+        \texttt{cases\_by\_dept}         & 2,000           &
+        Genera alertas específicas para cada departamento cuando los casos positivos en esa región superan el umbral.                                                \\
         \addlinespace
-        \texttt{demises\_by\_dept} & 1,000 & 
-        Similar al anterior, pero enfocado en la mortalidad por región geográfica. \\
+        \texttt{demises\_by\_dept}       & 1,000           &
+        Similar al anterior, pero enfocado en la mortalidad por región geográfica.                                                                                   \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -4270,11 +4270,499 @@ Por último, futuras investigaciones podrían integrar de forma completa aspecto
 \addcontentsline{toc}{section}{Referencias bibliograficas}
 \printbibliography[heading=none]
 
+% ============================================================================
+% ANEXOS
+% ============================================================================
+
 \newpage
 \section*{Anexo A. Privacidad y protección de datos}
 \addcontentsline{toc}{section}{Anexo A. Privacidad y protección de datos}
-El presente anexo establece las directrices a seguir por el alumno en la
-elaboración de su memoria, cuando requiera cumplir con la normativa de
-privacidad y protección de datos personales. (\textbf{ver
-    instrucciones})
+
+El presente anexo recoge las consideraciones relativas a la privacidad y la protección de datos personales aplicables al desarrollo de este Trabajo Fin de Máster, en cumplimiento de la normativa vigente y de las directrices establecidas por la institución académica.
+
+\subsection*{A.1. Normativa aplicable}
+
+El tratamiento de datos en el marco de este trabajo se rige por las siguientes normas:
+
+\begin{itemize}
+    \tightlist
+    \item \textbf{Reglamento (UE) 2016/679} (RGPD): Reglamento General de Protección de Datos del Parlamento Europeo y del Consejo, de 27 de abril de 2016.
+    \item \textbf{Ley Orgánica 3/2018} (LOPDGDD): Ley de Protección de Datos Personales y garantía de los derechos digitales, de 5 de diciembre de 2018.
+    \item \textbf{Ley N° 29733} (Perú): Ley de Protección de Datos Personales del Perú, que regula la recopilación, el uso y el almacenamiento de datos personales por parte de entidades públicas y privadas.
+\end{itemize}
+
+\subsection*{A.2. Naturaleza de los datos utilizados}
+
+Los datos empleados en este TFM provienen exclusivamente de \textbf{fuentes públicas y abiertas}, publicadas por organismos oficiales del Gobierno del Perú a través del portal de datos abiertos (\url{https://www.datosabiertos.gob.pe}). En concreto, se han utilizado los siguientes conjuntos de datos:
+
+\begin{itemize}
+    \tightlist
+    \item Datos de casos positivos de COVID-19 (casos confirmados por pruebas de laboratorio).
+    \item Datos de fallecidos registrados en el Sistema Informático Nacional de Defunciones (SINADEF).
+    \item Datos de hospitalizados y vacunados por COVID-19.
+\end{itemize}
+
+Estos datasets son de acceso libre y no contienen información que permita la identificación directa o indirecta de personas físicas. Los campos disponibles se limitan a variables epidemiológicas agregadas como departamento, provincia, distrito, sexo, rango de edad, tipo de muestra y resultado, sin incluir nombres, documentos de identidad ni otros datos identificativos.
+
+\subsection*{A.3. Medidas de protección adoptadas}
+
+Pese a que los datos utilizados no constituyen datos personales conforme al artículo 4 del RGPD, se han adoptado las siguientes medidas de protección como buenas prácticas:
+
+\begin{enumerate}
+    \tightlist
+    \item \textbf{Entorno aislado}: todo el procesamiento se ha realizado en un entorno local controlado, mediante contenedores Docker (Apache Kafka, MongoDB, Apache Beam), sin exponer datos a servicios externos ni a Internet.
+    \item \textbf{Eliminación de identificadores}: el campo \texttt{UUID} presente en algunos datasets ha sido eliminado durante el proceso de normalización del pipeline, asegurando la imposibilidad de trazabilidad individual.
+    \item \textbf{Acceso restringido}: el uso de los datos se ha limitado exclusivamente a los autores del TFM, en el contexto de la investigación académica.
+    \item \textbf{Minimización de datos}: se han procesado únicamente los campos estrictamente necesarios para cumplir los objetivos del trabajo, descartando variables innecesarias durante la fase de transformación.
+    \item \textbf{Sin transmisión a terceros}: en ningún momento se han transferido datos a servicios en la nube, plataformas de terceros ni repositorios públicos que expongan información sensible.
+\end{enumerate}
+
+\subsection*{A.4. Evaluación de impacto}
+
+Dado que los datos utilizados son de naturaleza pública, anonimizados y no permiten la identificación de personas físicas, no resulta necesario llevar a cabo una Evaluación de Impacto en la Protección de Datos (EIPD) conforme al artículo 35 del RGPD. No se genera riesgo alguno para los derechos y libertades de las personas.
+
+\subsection*{A.5. Conclusión}
+
+El presente Trabajo Fin de Máster se ajusta plenamente a la legislación vigente en materia de protección de datos, tanto europea (RGPD, LOPDGDD) como peruana (Ley N° 29733). En ninguno de los procesos realizados se manejan datos personales, y las medidas adoptadas garantizan la inexistencia de riesgos para la privacidad de los ciudadanos.
+
+% ============================================================================
+\newpage
+\section*{Anexo B. Manual de instalación y despliegue}
+\addcontentsline{toc}{section}{Anexo B. Manual de instalación y despliegue}
+
+El presente anexo describe los pasos necesarios para instalar, configurar y ejecutar el sistema desarrollado en este Trabajo Fin de Máster. El objetivo es facilitar la reproducibilidad del entorno y de los experimentos presentados.
+
+\subsection*{B.1. Requisitos previos}
+
+Para desplegar el sistema es necesario disponer de los siguientes componentes de software y recursos mínimos de hardware:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Componente} & \textbf{Versión / Requisito}               \\ \hline
+        Sistema operativo   & Linux, macOS o Windows (con WSL2)          \\ \hline
+        Python              & 3.8 o superior                             \\ \hline
+        Docker              & 20.10 o superior                           \\ \hline
+        Docker Compose      & 2.0 o superior                             \\ \hline
+        Git                 & 2.30 o superior (opcional)                 \\ \hline
+        RAM mínima          & 4 GB                                       \\ \hline
+        Espacio en disco    & 10 GB                                      \\ \hline
+        Conexión a Internet & Requerida para descarga de imágenes Docker \\ \hline
+    \end{tabular}
+    \caption{Requisitos previos del sistema.}
+\end{table}
+
+\subsection*{B.2. Obtención del código fuente}
+
+El código fuente del proyecto se encuentra alojado en un repositorio Git de acceso público. Para obtenerlo:
+
+\begin{verbatim}
+git clone https://github.com/arthur8davis/tfm-dataflow-architecture.git
+cd tfm-dataflow-architecture
+\end{verbatim}
+
+\subsection*{B.3. Creación del entorno virtual e instalación de dependencias}
+
+Se recomienda utilizar un entorno virtual de Python para aislar las dependencias del proyecto:
+
+\begin{verbatim}
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+\end{verbatim}
+
+Las dependencias principales del proyecto son las siguientes:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Paquete}          & \textbf{Versión} & \textbf{Función}                          \\ \hline
+        \texttt{apache-beam[gcp]} & 2.52.0           & Framework de procesamiento distribuido    \\ \hline
+        \texttt{confluent-kafka}  & 2.3.0            & Cliente nativo de Apache Kafka            \\ \hline
+        \texttt{pymongo}          & 4.6.1            & Cliente de MongoDB para Python            \\ \hline
+        \texttt{polars}           & 0.20.3           & Procesamiento eficiente de archivos CSV   \\ \hline
+        \texttt{pyyaml}           & 6.0.1            & Lectura de archivos de configuración YAML \\ \hline
+        \texttt{python-dateutil}  & 2.8.2            & Utilidades de manejo de fechas            \\ \hline
+    \end{tabular}
+    \caption{Dependencias principales del proyecto.}
+\end{table}
+
+\subsection*{B.4. Inicio de los servicios de infraestructura}
+
+Los servicios de infraestructura se gestionan mediante Docker Compose. El archivo \texttt{docker-compose.yaml} define cuatro servicios:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        \textbf{Servicio}    & \textbf{Imagen Docker}      & \textbf{Puerto} & \textbf{Descripción}                        \\ \hline
+        Apache Kafka (KRaft) & \texttt{apache/kafka:4.1.1} & 9092            & Broker de mensajería (sin Zookeeper)        \\ \hline
+        MongoDB              & \texttt{mongo:8.0.0}        & 27017           & Base de datos con colecciones time-series   \\ \hline
+        Kafka UI             & \texttt{kafbat/kafka-ui}    & 8080            & Interfaz web para monitoreo de Kafka        \\ \hline
+        Mongo Express        & \texttt{mongo-express}      & 8083            & Interfaz web para administración de MongoDB \\ \hline
+    \end{tabular}
+    \caption{Servicios Docker del sistema.}
+\end{table}
+
+Para iniciar los servicios:
+
+\begin{verbatim}
+docker-compose up -d
+docker-compose ps    # Verificar que los servicios están activos
+\end{verbatim}
+
+\subsection*{B.5. Configuración de MongoDB}
+
+Una vez iniciados los servicios, es necesario crear las colecciones time-series en MongoDB:
+
+\begin{verbatim}
+docker exec -it mongodb mongosh -u admin -p admin123
+
+use covid-db
+
+db.createCollection("cases", {
+  timeseries: { timeField: "timestamp",
+                metaField: "metadata",
+                granularity: "hours" }
+})
+
+db.createCollection("demises", {
+  timeseries: { timeField: "timestamp",
+                metaField: "metadata",
+                granularity: "hours" }
+})
+
+db.createCollection("hospitalizations", {
+  timeseries: { timeField: "timestamp",
+                metaField: "metadata",
+                granularity: "hours" }
+})
+
+db.createCollection("dead_letter_queue")
+db.dead_letter_queue.createIndex({"error_type": 1})
+db.dead_letter_queue.createIndex({"schema": 1})
+db.dead_letter_queue.createIndex({"timestamp": 1})
+\end{verbatim}
+
+\subsection*{B.6. Ejecución de los pipelines}
+
+El sistema ofrece tres métodos de ejecución:
+
+\paragraph{Método 1: Demo automática (recomendado)}
+
+\begin{verbatim}
+./example_run_all.sh
+\end{verbatim}
+
+Este script verifica los servicios, lista los schemas disponibles, ejecuta la ingesta de datos y lanza los pipelines de procesamiento.
+
+\paragraph{Método 2: Ejecución mediante el orquestador}
+
+\begin{verbatim}
+# Listar schemas disponibles
+python orchestrator.py --list
+
+# Ingestar datos de un schema
+python orchestrator.py --ingest cases
+
+# Ejecutar el pipeline de procesamiento
+python orchestrator.py --pipeline cases
+
+# Ejecutar todos los pipelines en paralelo
+python orchestrator.py --pipeline-all --parallel
+\end{verbatim}
+
+\paragraph{Método 3: Ejecución directa por schema}
+
+\begin{verbatim}
+# Ingesta
+python pipelines/cases/ingestion.py
+
+# Pipeline en modo streaming
+python pipelines/cases/pipeline.py --mode streaming
+
+# Pipeline en modo batch
+python pipelines/cases/pipeline.py --mode batch
+\end{verbatim}
+
+\subsection*{B.7. Ejecución del dashboard de visualización}
+
+Para iniciar el dashboard interactivo:
+
+\begin{verbatim}
+cd visualization
+pip install flask flask-socketio flask-cors pymongo
+python app.py
+\end{verbatim}
+
+El dashboard estará disponible en \texttt{http://localhost:5006} y se actualizará en tiempo real mediante WebSocket.
+
+\subsection*{B.8. Verificación del sistema}
+
+Una vez ejecutados los pipelines, se puede verificar el correcto funcionamiento del sistema a través de las siguientes interfaces:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Herramienta} & \textbf{URL}                   & \textbf{Uso}                    \\ \hline
+        Kafka UI             & \texttt{http://localhost:8080} & Topics, mensajes y consumer lag \\ \hline
+        Mongo Express        & \texttt{http://localhost:8083} & Colecciones, consultas y DLQ    \\ \hline
+        Dashboard D3.js      & \texttt{http://localhost:5006} & Visualización en tiempo real    \\ \hline
+    \end{tabular}
+    \caption{Herramientas de verificación y monitoreo.}
+\end{table}
+
+También es posible verificar los datos directamente por línea de comandos:
+
+\begin{verbatim}
+docker exec -it mongodb mongosh -u admin -p admin123
+use covid-db
+db.cases.countDocuments()
+db.demises.countDocuments()
+db.hospitalizations.countDocuments()
+\end{verbatim}
+
+\subsection*{B.9. Detención y limpieza del entorno}
+
+\begin{verbatim}
+# Detener los servicios (preservando datos)
+docker-compose down
+
+# Detener y eliminar todos los datos almacenados
+docker-compose down -v
+\end{verbatim}
+
+% ============================================================================
+\newpage
+\section*{Anexo C. Estructura del código fuente}
+\addcontentsline{toc}{section}{Anexo C. Estructura del código fuente}
+
+El presente anexo documenta la estructura de directorios y archivos del proyecto, describiendo la función de cada componente dentro de la arquitectura del sistema.
+
+\subsection*{C.1. Vista general del repositorio}
+
+El repositorio se organiza en cuatro directorios principales, cada uno con una responsabilidad claramente definida:
+
+\begin{verbatim}
+tfm-dataflow-architecture/
+|-- pipelines/              # Pipelines específicos por schema
+|-- src/                    # Código fuente reutilizable
+|-- datasets/               # Archivos de datos CSV
+|-- visualization/          # Dashboard de visualización
+|-- orchestrator.py         # Orquestador central
+|-- docker-compose.yaml     # Servicios de infraestructura
+|-- requirements.txt        # Dependencias Python
+|-- run_cases.sh            # Script de ejecución (cases)
+|-- run_deaths.sh           # Script de ejecución (demises)
++-- example_run_all.sh      # Demo completa automatizada
+\end{verbatim}
+
+\subsection*{C.2. Directorio \texttt{pipelines/}}
+
+Contiene los pipelines específicos para cada schema de datos. Cada schema es completamente independiente y cuenta con su propia configuración, definición de esquema, lógica de ingesta y pipeline de procesamiento.
+
+\begin{verbatim}
+pipelines/
+|-- __init__.py
+|-- cases/                      # Schema: casos COVID-19
+|   |-- config.yaml             # Configuración del pipeline
+|   |-- cases.json              # Esquema de validación de datos
+|   |-- pipeline.py             # Pipeline Apache Beam (CasesPipeline)
+|   |-- ingestion.py            # Ingesta a Kafka (CasesIngestion)
+|   +-- __init__.py
+|-- demises/                    # Schema: fallecimientos
+|   |-- config.yaml
+|   |-- demises.json
+|   |-- pipeline.py             # DemisesPipeline
+|   |-- ingestion.py            # DemisesIngestion
+|   +-- __init__.py
++-- hospitalizations/           # Schema: hospitalizaciones
+    |-- config.yaml
+    |-- hospitalizations.json   # 54 campos definidos
+    |-- pipeline.py             # HospitalizationsPipeline
+    |-- ingestion.py            # HospitalizationsIngestion
+    +-- __init__.py
+\end{verbatim}
+
+Cada archivo \texttt{config.yaml} define la configuración completa del pipeline, incluyendo la conexión a Kafka (topic, grupo de consumidores), las transformaciones habilitadas, el tamaño de ventana temporal (60 segundos), la estrategia de batching (100 elementos) y la conexión a MongoDB (colección time-series).
+
+La siguiente tabla resume los parámetros principales de cada schema:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Parámetro} & \textbf{Cases}          & \textbf{Demises}              & \textbf{Hospitalizations}     \\ \hline
+        Campo timestamp    & \texttt{fecha\_muestra} & \texttt{fecha\_fallecimiento} & \texttt{fecha\_ingreso\_hosp} \\ \hline
+        Campos requeridos  & 4                       & 4                             & 4                             \\ \hline
+        Total de campos    & $\sim$15                & $\sim$9                       & $\sim$54                      \\ \hline
+        Topic Kafka        & \texttt{cases}          & \texttt{demises}              & \texttt{hospitalizations}     \\ \hline
+        Ventana temporal   & 60 s                    & 60 s                          & 60 s                          \\ \hline
+        Tamaño de batch    & 100                     & 100                           & 100                           \\ \hline
+    \end{tabular}
+    \caption{Comparación de parámetros por schema.}
+\end{table}
+
+\subsection*{C.3. Directorio \texttt{src/}}
+
+Contiene el código fuente reutilizable compartido entre todos los schemas. Se organiza en submódulos funcionales:
+
+\begin{verbatim}
+src/
+|-- __init__.py
+|-- common/                         # Componentes compartidos
+|   |-- __init__.py
+|   |-- sources/                    # Lectura de datos
+|   |   |-- kafka_source_native.py  # Consumer Kafka (confluent_kafka)
+|   |   |-- storage_source.py       # Lectura CSV/Parquet (Polars)
+|   |   +-- __init__.py
+|   |-- transforms/                 # Transformaciones Apache Beam
+|   |   |-- normalize.py            # Normalización de datos
+|   |   |-- enrich_geo.py           # Enriquecimiento geográfico
+|   |   |-- validate.py             # Validación contra esquema JSON
+|   |   |-- timestamp.py            # Asignación de timestamps
+|   |   |-- windowing.py            # Ventanas temporales fijas
+|   |   |-- metadata.py             # Metadatos del pipeline
+|   |   +-- __init__.py
+|   |-- batching/                   # Estrategias de agrupamiento
+|   |   |-- native_batch.py         # Batching nativo (BatchElements)
+|   |   |-- manual_batch.py         # Batching manual (GroupIntoBatches)
+|   |   +-- __init__.py
+|   |-- sinks/                      # Escritura de datos
+|   |   |-- mongo_sink.py           # Escritura a MongoDB (bulk write)
+|   |   |-- dlq_sink.py             # Dead Letter Queue
+|   |   +-- __init__.py
+|   |-- utils/                      # Utilidades
+|   |   |-- config_loader.py        # Carga de configuración YAML
+|   |   |-- schema_loader.py        # Carga y validación de esquemas
+|   |   +-- __init__.py
+|   +-- data/                       # Datos de referencia
+|       +-- ubigeo_coords.py        # Coordenadas geográficas (UBIGEO)
++-- ingestion/                      # Módulo de ingesta
+    |-- kafka_processor.py          # Procesador Kafka + Polars
+    +-- __init__.py
+\end{verbatim}
+
+La siguiente tabla describe la función de cada módulo de transformación en el pipeline:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Orden} & \textbf{Módulo}         & \textbf{Función}                                                           \\ \hline
+        1              & \texttt{normalize.py}   & Manejo de valores nulos, conversión de tipos y estandarización de formatos \\ \hline
+        2              & \texttt{enrich\_geo.py} & Conversión de códigos UBIGEO a coordenadas geográficas (latitud/longitud)  \\ \hline
+        3              & \texttt{validate.py}    & Validación de campos requeridos y tipos de dato contra el esquema JSON     \\ \hline
+        4              & \texttt{timestamp.py}   & Extracción y asignación de timestamps a partir del campo fecha configurado \\ \hline
+        5              & \texttt{windowing.py}   & Aplicación de ventanas temporales fijas con tolerancia a datos tardíos     \\ \hline
+        6              & \texttt{metadata.py}    & Incorporación de metadatos: versión del pipeline, tipo de fuente y fecha   \\ \hline
+    \end{tabular}
+    \caption{Cadena de transformaciones del pipeline de procesamiento.}
+\end{table}
+
+\subsection*{C.4. Directorio \texttt{datasets/}}
+
+Contiene los archivos de datos organizados por schema. En total se dispone de 39 archivos CSV distribuidos en tres subdirectorios:
+
+\begin{verbatim}
+datasets/
+|-- cases/                  # 13 archivos CSV
+|   |-- file_0_cases.csv
+|   |-- file_1_cases.csv
+|   |-- ...
+|   +-- file_12_cases.csv
+|-- demises/                # 13 archivos CSV
+|   |-- file_0_demises.csv
+|   |-- ...
+|   +-- file_12_demises.csv
++-- hospitalizations/       # 13 archivos CSV
+    |-- file_0_hospital.csv
+    |-- ...
+    +-- file_12_hospital.csv
+\end{verbatim}
+
+Los datos provienen de fuentes públicas del portal de datos abiertos del Gobierno del Perú y abarcan registros epidemiológicos de COVID-19 correspondientes a casos confirmados, fallecimientos y hospitalizaciones.
+
+\subsection*{C.5. Directorio \texttt{visualization/}}
+
+Contiene el dashboard interactivo de visualización en tiempo real, desarrollado con Flask, Socket.IO, D3.js y Leaflet:
+
+\begin{verbatim}
+visualization/
+|-- app.py                      # Servidor Flask + Socket.IO + Polling
+|-- config.py                   # Configuración (MongoDB, puertos)
+|-- services/
+|   +-- database.py             # Cliente PyMongo
+|-- routes/
+|   +-- api.py                  # 14 endpoints REST
+|-- handlers/
+|   |-- alerts.py               # Sistema de alertas por umbral
+|   |-- queries/
+|   |   |-- cases.py            # Consultas: casos y heatmap
+|   |   |-- demises.py          # Consultas: fallecidos y heatmap
+|   |   |-- hospitalizations.py # Consultas: hospitalizaciones
+|   |   +-- summary.py          # Consultas: totales y conteos
+|   +-- websocket/
+|       +-- events.py           # 15+ handlers WebSocket
+|-- static/
+|   |-- css/
+|   |   +-- style.css           # Tema oscuro responsive
+|   +-- js/
+|       |-- main.js             # Punto de entrada y conexión SocketIO
+|       |-- charts/
+|       |   |-- department.js   # Gráfico de barras por departamento
+|       |   |-- timeline.js     # Gráfico de área temporal
+|       |   |-- age.js          # Pirámide poblacional por edad
+|       |   |-- sex.js          # Gráfico de donut por sexo
+|       |   +-- heatmaps.js     # Mapas de calor (Leaflet)
+|       +-- modules/
+|           |-- alerts.js       # Interfaz de alertas
+|           |-- filters.js      # Filtros por departamento y sexo
+|           |-- config.js       # Constantes del frontend
+|           +-- utils.js        # Funciones de formato
++-- templates/
+    +-- index.html              # Aplicación SPA
+\end{verbatim}
+
+\subsection*{C.6. Archivos de configuración y ejecución en la raíz}
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Archivo}              & \textbf{Descripción}                                                \\ \hline
+        \texttt{orchestrator.py}      & Orquestador central: descubre schemas, ejecuta ingestas y pipelines \\ \hline
+        \texttt{docker-compose.yaml}  & Define los servicios Docker (Kafka KRaft, MongoDB, interfaces web)  \\ \hline
+        \texttt{requirements.txt}     & Dependencias Python del proyecto                                    \\ \hline
+        \texttt{run\_cases.sh}        & Script para ejecutar el pipeline de casos (ingesta/pipeline/ambos)  \\ \hline
+        \texttt{run\_deaths.sh}       & Script para ejecutar el pipeline de fallecimientos                  \\ \hline
+        \texttt{example\_run\_all.sh} & Demo completa automatizada de todos los pipelines                   \\ \hline
+        \texttt{verify\_structure.sh} & Verificación de la estructura del proyecto                          \\ \hline
+    \end{tabular}
+    \caption{Archivos de configuración y ejecución.}
+\end{table}
+
+\subsection*{C.7. Resumen de componentes del sistema}
+
+\begin{table}[h!]
+    \centering
+    \small
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Componente} & \textbf{Archivo}                                     & \textbf{Responsabilidad}              \\ \hline
+        Orquestador         & \texttt{orchestrator.py}                             & Descubrimiento y ejecución de schemas \\ \hline
+        Ingesta schema      & \texttt{pipelines/X/ingestion.py}                    & Lectura CSV y envío a Kafka           \\ \hline
+        Pipeline schema     & \texttt{pipelines/X/pipeline.py}                     & Procesamiento con Apache Beam         \\ \hline
+        Kafka Processor     & \texttt{src/ingestion/kafka\_processor.py}           & Producción de mensajes a Kafka        \\ \hline
+        Kafka Source        & \texttt{src/common/sources/kafka\_source\_native.py} & Consumo de mensajes de Kafka          \\ \hline
+        MongoDB Sink        & \texttt{src/common/sinks/mongo\_sink.py}             & Escritura a MongoDB (bulk write)      \\ \hline
+        DLQ Sink            & \texttt{src/common/sinks/dlq\_sink.py}               & Registro de errores en DLQ            \\ \hline
+        Dashboard           & \texttt{visualization/app.py}                        & Visualización en tiempo real          \\ \hline
+    \end{tabular}
+    \caption{Resumen de componentes principales del sistema.}
+\end{table}
+
 \end{document}

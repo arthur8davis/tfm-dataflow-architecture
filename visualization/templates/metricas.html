@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis y Modelos - COVID-19 Perú</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body class="metricas-page">
+    <div class="metricas-layout">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <div>
+                        <h1>Modelos Analíticos y Predictivos</h1>
+                        <p class="subtitle">Secciones 5.10 – 5.13.2</p>
+                    </div>
+                    <div class="header-right">
+                        <a href="/" class="nav-link">Dashboard Principal</a>
+                        <div class="connection-indicator">
+                            <span id="connection-status" class="status-disconnected" title="Estado de conexión"></span>
+                            <span class="connection-label">Live</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Notificaciones -->
+            <div id="notifications"></div>
+
+            <!-- ============== Tabs de navegación ============== -->
+            <nav class="tabs-nav">
+                <button class="tab-btn active" data-tab="tab-descriptive">
+                    <span class="tab-section">5.11.1</span>
+                    Métricas Descriptivas
+                </button>
+                <button class="tab-btn" data-tab="tab-anomalies">
+                    <span class="tab-section">5.11.2</span>
+                    Detección de Anomalías
+                </button>
+                <button class="tab-btn" data-tab="tab-predictions">
+                    <span class="tab-section">5.12.3</span>
+                    Predicciones
+                </button>
+                <button class="tab-btn" data-tab="tab-scenarios">
+                    <span class="tab-section">5.13</span>
+                    Escenarios Futuros
+                </button>
+            </nav>
+
+            <!-- ============== Tab 1: Métricas Descriptivas (5.11.1) ============== -->
+            <div id="tab-descriptive" class="tab-content active">
+
+                <section class="metrics-section">
+                    <h2>Resumen General</h2>
+                    <p class="section-desc">Métricas descriptivas calculadas por ventana temporal (60s) usando CombineFn de Apache Beam.</p>
+                    <div id="metrics-summary-cards" class="metrics-cards-grid">
+                        <p class="no-data">Esperando métricas del pipeline...</p>
+                    </div>
+                </section>
+
+                <section class="charts-grid">
+                    <div class="chart-container wide">
+                        <h3>Tasa de Positividad y Edad Promedio por Ventana</h3>
+                        <div id="chart-positivity"></div>
+                    </div>
+
+                    <div class="chart-container wide">
+                        <h3>Registros Procesados por Ventana Temporal</h3>
+                        <div id="chart-window-counts"></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3>Distribución por Institución</h3>
+                        <div id="chart-institutions"></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3>Distribución por Sexo (última ventana)</h3>
+                        <div id="chart-metrics-sex"></div>
+                    </div>
+
+                    <div class="chart-container wide">
+                        <h3>Top Departamentos por Ventana</h3>
+                        <div id="chart-metrics-departments"></div>
+                    </div>
+                </section>
+
+                <section class="metrics-section">
+                    <h2>Detalle por Ventana Temporal</h2>
+                    <div class="table-container">
+                        <table id="metrics-table" class="metrics-table">
+                            <thead>
+                                <tr>
+                                    <th>Ventana</th>
+                                    <th>Total</th>
+                                    <th>Positividad</th>
+                                    <th>Edad Prom.</th>
+                                    <th>Masculino</th>
+                                    <th>Femenino</th>
+                                    <th>Top Depto.</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metrics-table-body">
+                                <tr><td colspan="7" class="no-data">Sin datos</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ============== Tab 2: Detección de Anomalías (5.11.2) ============== -->
+            <div id="tab-anomalies" class="tab-content">
+
+                <section class="metrics-section">
+                    <h2>Resumen de Anomalías</h2>
+                    <p class="section-desc">Tres métodos complementarios: Z-Score (picos aislados), IQR (robusto a distribución), CUSUM (cambios graduales de tendencia).</p>
+                    <div id="anomalies-summary-cards" class="metrics-cards-grid">
+                        <p class="no-data">Sin anomalías detectadas</p>
+                    </div>
+                </section>
+
+                <section class="charts-grid">
+                    <div class="chart-container wide">
+                        <h3>Anomalías por Ventana Temporal</h3>
+                        <p class="chart-desc">Cada punto es una anomalía. Color = severidad (rojo HIGH, naranja MEDIUM). Tamaño = magnitud.</p>
+                        <div id="chart-anomalies-timeline"></div>
+                    </div>
+                </section>
+
+                <section class="metrics-section">
+                    <h2>Detalle de Anomalías Detectadas</h2>
+                    <div class="table-container">
+                        <table id="anomalies-table" class="metrics-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Método</th>
+                                    <th>Severidad</th>
+                                    <th>Valor</th>
+                                    <th>Detalles</th>
+                                </tr>
+                            </thead>
+                            <tbody id="anomalies-table-body">
+                                <tr><td colspan="5" class="no-data">Sin datos</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="metrics-section algo-explanation">
+                    <h2>Algoritmos Implementados</h2>
+                    <div class="algo-cards-grid">
+                        <div class="algo-card">
+                            <h4>Z-Score</h4>
+                            <div class="algo-formula">z = (x - &mu;) / &sigma;</div>
+                            <p>Mide cuántas desviaciones estándar se aleja un valor de la media. Anomalía si |z| > 2.</p>
+                            <span class="algo-badge">Picos aislados</span>
+                        </div>
+                        <div class="algo-card">
+                            <h4>IQR (Rango Intercuartílico)</h4>
+                            <div class="algo-formula">Outlier si x &lt; Q1 - 1.5&times;IQR &oacute; x &gt; Q3 + 1.5&times;IQR</div>
+                            <p>No asume distribución normal. Robusto ante outliers previos en el historial.</p>
+                            <span class="algo-badge">Robusto</span>
+                        </div>
+                        <div class="algo-card">
+                            <h4>CUSUM (Suma Acumulativa)</h4>
+                            <div class="algo-formula">S&#8314;&#8348; = max(0, S&#8314;&#8348;&#8331;&#8321; + (x&#8348; - &mu;) - k)</div>
+                            <p>Acumula evidencia de cambio sostenido en la media. Detecta inicio de nuevas olas.</p>
+                            <span class="algo-badge">Cambios de tendencia</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ============== Tab 3: Predicciones (5.12.3) ============== -->
+            <div id="tab-predictions" class="tab-content">
+
+                <section class="metrics-section">
+                    <h2>Estado Actual de la Predicción</h2>
+                    <p class="section-desc">Rt (número reproductivo efectivo), tendencia y proyección a 7 días basada en el historial de ventanas.</p>
+                    <div id="predictions-summary-cards" class="metrics-cards-grid">
+                        <p class="no-data">Sin predicciones disponibles</p>
+                    </div>
+                </section>
+
+                <section class="charts-grid">
+                    <div class="chart-container wide">
+                        <h3>Evolución del Rt (Número Reproductivo Efectivo)</h3>
+                        <p class="chart-desc">Rt &gt; 1.0 = epidemia crece. Rt &lt; 1.0 = epidemia declina. Línea punteada = referencia Rt=1.</p>
+                        <div id="chart-predictions-rt"></div>
+                    </div>
+
+                    <div class="chart-container wide">
+                        <h3>Proyección de Casos - Forecast 7 días</h3>
+                        <p class="chart-desc">Barras = proyección diaria. Línea punteada = promedio actual de 7 días como referencia.</p>
+                        <div id="chart-predictions-forecast"></div>
+                    </div>
+                </section>
+
+                <section class="metrics-section algo-explanation">
+                    <h2>Modelos Disponibles (5.12.1)</h2>
+                    <div class="algo-cards-grid">
+                        <div class="algo-card">
+                            <h4>ARIMA/SARIMA</h4>
+                            <div class="algo-formula">ARIMA(5,1,0) &times; Seasonal(1,1,0,7)</div>
+                            <p>Series de tiempo con componente estacional semanal. Predicción 7-14 días.</p>
+                            <span class="algo-badge">Serie temporal</span>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Prophet</h4>
+                            <div class="algo-formula">y(t) = g(t) + s(t) + &epsilon;</div>
+                            <p>Modelo bayesiano aditivo de Facebook. Descompone tendencia + estacionalidad.</p>
+                            <span class="algo-badge">Escenarios</span>
+                        </div>
+                        <div class="algo-card">
+                            <h4>XGBoost</h4>
+                            <div class="algo-formula">100 árboles, depth=6, lr=0.1</div>
+                            <p>Gradient boosting para clasificación positivo/negativo por variables demográficas.</p>
+                            <span class="algo-badge">Clasificación</span>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Random Forest</h4>
+                            <div class="algo-formula">100 árboles independientes, depth=10</div>
+                            <p>Ensamble paralelo de árboles. Clasificación de riesgo por zona geográfica.</p>
+                            <span class="algo-badge">Clasificación</span>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Regresión Logística</h4>
+                            <div class="algo-formula">P = 1 / (1 + e<sup>-z</sup>)</div>
+                            <p>Probabilidad continua de positividad. Coeficientes interpretables.</p>
+                            <span class="algo-badge">Probabilidad</span>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Isolation Forest</h4>
+                            <div class="algo-formula">contamination = 5%</div>
+                            <p>Detecta anomalías multivariantes que no son evidentes en una sola variable.</p>
+                            <span class="algo-badge">Anomalía ML</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ============== Tab 4: Escenarios Futuros (5.13) ============== -->
+            <div id="tab-scenarios" class="tab-content">
+
+                <section class="metrics-section">
+                    <h2>Escenarios de Simulación</h2>
+                    <p class="section-desc">Tres escenarios basados en Prophet: optimista (Rt&lt;1), base (Rt&asymp;1), pesimista (Rt&gt;1.5). Horizontes: 14, 30 o 60 días.</p>
+                    <div class="algo-cards-grid">
+                        <div class="algo-card scenario-optimista">
+                            <h4>Optimista</h4>
+                            <div class="algo-formula">Rt &lt; 1.0 &rarr; Prophet yhat_lower</div>
+                            <p>Medidas de control efectivas. Tendencia a la baja sostenida. Casos en declive.</p>
+                            <span class="algo-badge badge-green">Declive</span>
+                        </div>
+                        <div class="algo-card scenario-base">
+                            <h4>Base</h4>
+                            <div class="algo-formula">Rt &asymp; 1.0 &rarr; Prophet yhat</div>
+                            <p>La tendencia actual se mantiene sin cambios significativos. Estabilidad.</p>
+                            <span class="algo-badge badge-yellow">Estable</span>
+                        </div>
+                        <div class="algo-card scenario-pesimista">
+                            <h4>Pesimista</h4>
+                            <div class="algo-formula">Rt &gt; 1.5 &rarr; Prophet yhat_upper</div>
+                            <p>Relajación de medidas o nueva variante. Crecimiento acelerado de casos.</p>
+                            <span class="algo-badge badge-red">Aumento</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="metrics-section">
+                    <h2>Estimación de Rt (5.13.1)</h2>
+                    <p class="section-desc">Rt = Σcasos[t-7:t] / Σcasos[t-SI-7:t-SI], donde SI=5 días (intervalo serial COVID-19).</p>
+                    <div class="algo-cards-grid">
+                        <div class="algo-card">
+                            <h4>Rt &lt; 1.0</h4>
+                            <p>Cada infectado genera menos de 1 caso nuevo. Epidemia en declive.</p>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Rt = 1.0</h4>
+                            <p>Cada infectado genera exactamente 1 caso nuevo. Epidemia estable.</p>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Rt &gt; 1.0</h4>
+                            <p>Cada infectado genera más de 1 caso nuevo. Epidemia en crecimiento.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="metrics-section">
+                    <h2>Indicadores Derivados (5.13.2)</h2>
+                    <p class="section-desc">Indicadores calculados a partir de los escenarios para toma de decisiones sanitarias.</p>
+                    <div class="algo-cards-grid">
+                        <div class="algo-card">
+                            <h4>Pico Estimado</h4>
+                            <div class="algo-formula">pico = max(escenario)</div>
+                            <p>Fecha y magnitud del máximo de casos por escenario. Permite preparar capacidad hospitalaria antes.</p>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Tiempo de Duplicación</h4>
+                            <div class="algo-formula">T = ln(2) / ln(1 + r)</div>
+                            <p>Cuántos días tardan los casos en duplicarse. Ej: si r=50% semanal, T &asymp; 12 días.</p>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Demanda Hospitalaria</h4>
+                            <div class="algo-formula">demanda = pico &times; 0.05</div>
+                            <p>Camas necesarias estimadas. Tasa de hospitalización 5% (promedio COVID-19 Perú).</p>
+                        </div>
+                        <div class="algo-card">
+                            <h4>Punto de Inflexión</h4>
+                            <div class="algo-formula">d²y/dt² cambia de signo</div>
+                            <p>Momento donde la curva pasa de acelerarse a desacelerarse. Las medidas empiezan a hacer efecto.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <footer>
+                <p>Pipeline: Apache Beam + Kafka + MongoDB | Métricas: ComputeWindowMetrics | Anomalías: Z-Score/IQR/CUSUM | Predicciones: Rt + Forecast | Viz: D3.js</p>
+            </footer>
+        </div>
+    </div>
+
+    <script type="module" src="../static/js/metricas.js"></script>
+</body>
+
+</html>

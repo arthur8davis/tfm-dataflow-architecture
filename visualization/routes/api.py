@@ -23,6 +23,13 @@ from handlers.queries.demises import (
     get_demises_heatmap_data,
 )
 from handlers.queries.hospitalizations import get_hospitalizations_heatmap_data
+from handlers.queries.metrics import (
+    get_metrics_cases,
+    get_metrics_demises,
+    get_metrics_summary,
+)
+from handlers.queries.anomalies import get_anomalies, get_anomalies_summary
+from handlers.queries.predictions import get_predictions, get_predictions_summary
 from handlers.alerts import (
     get_alerts_config,
     get_active_alerts,
@@ -37,6 +44,11 @@ api_bp = Blueprint('api', __name__)
 @api_bp.route("/")
 def index():
     return render_template("index.html")
+
+
+@api_bp.route("/metricas")
+def metricas():
+    return render_template("metricas.html")
 
 
 @api_bp.route("/api/summary")
@@ -87,6 +99,52 @@ def api_heatmap_demises():
 @api_bp.route("/api/heatmap/hospitalizations")
 def api_heatmap_hospitalizations():
     return jsonify(get_hospitalizations_heatmap_data())
+
+
+@api_bp.route("/api/metrics/cases")
+def api_metrics_cases():
+    """Métricas descriptivas por ventana del schema cases."""
+    return jsonify(get_metrics_cases())
+
+
+@api_bp.route("/api/metrics/demises")
+def api_metrics_demises():
+    """Métricas descriptivas por ventana del schema demises."""
+    return jsonify(get_metrics_demises())
+
+
+@api_bp.route("/api/metrics/summary")
+def api_metrics_summary():
+    """Resumen agregado de métricas (última ventana + promedios)."""
+    return jsonify(get_metrics_summary())
+
+
+@api_bp.route("/api/anomalies/<schema>")
+def api_anomalies(schema):
+    """Anomalías detectadas por schema (cases/demises)."""
+    if schema not in ('cases', 'demises'):
+        return jsonify({"error": "Schema inválido"}), 400
+    return jsonify(get_anomalies(schema))
+
+
+@api_bp.route("/api/anomalies/summary")
+def api_anomalies_summary():
+    """Resumen de anomalías por método y severidad."""
+    return jsonify(get_anomalies_summary())
+
+
+@api_bp.route("/api/predictions/<schema>")
+def api_predictions(schema):
+    """Predicciones por schema (cases/demises)."""
+    if schema not in ('cases', 'demises'):
+        return jsonify({"error": "Schema inválido"}), 400
+    return jsonify(get_predictions(schema))
+
+
+@api_bp.route("/api/predictions/summary")
+def api_predictions_summary():
+    """Resumen de predicciones: Rt actual y tendencia."""
+    return jsonify(get_predictions_summary())
 
 
 @api_bp.route("/api/alerts/config", methods=["GET"])

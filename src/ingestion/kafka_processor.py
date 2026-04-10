@@ -62,8 +62,14 @@ class KafkaProcessor:
         logger.info(f"Loaded {len(df)} records from {file_path}")
 
         # Enviar cada registro a Kafka
-        for row in df.iter_rows(named=True):
-            self._send_record(topic, schema_name, row)
+        for i, row in enumerate(df.iter_rows(named=True)):
+            try:
+                self._send_record(topic, schema_name, row)
+            except BufferError:
+                self.producer.flush()
+                self._send_record(topic, schema_name, row)
+            if i % 10000 == 0 and i > 0:
+                self.producer.flush()
 
         # Flush para asegurar que todos los mensajes se envíen
         self.producer.flush()

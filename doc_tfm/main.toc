@@ -1,0 +1,154 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{Resumen}{2}{Doc-Start}%
+\contentsline {section}{Abstract}{3}{Doc-Start}%
+\contentsline {section}{\numberline {1}Introducción}{13}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Motivación}{13}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Planteamiento del trabajo}{14}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Estructura del trabajo}{15}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Contexto y estado del arte}{16}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Contexto del problema}{16}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Estado del arte}{16}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Procesamiento de datos}{16}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Arquitecturas Big Data (Lambda, Kappa y Dataflow)}{18}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Comparativa técnica entre Lambda, Kappa y Dataflow}{21}{subsubsection.2.2.3}%
+\contentsline {subsubsection}{\numberline {2.2.4}Procesamiento de datos}{22}{subsubsection.2.2.4}%
+\contentsline {subsubsection}{\numberline {2.2.5}Almacenamiento distribuido y Series Temporales}{23}{subsubsection.2.2.5}%
+\contentsline {subsubsection}{\numberline {2.2.6}Visualización y alertas de datos en entornos analíticos}{23}{subsubsection.2.2.6}%
+\contentsline {subsubsection}{\numberline {2.2.7}Vacíos identificados}{24}{subsubsection.2.2.7}%
+\contentsline {subsection}{\numberline {2.3}Trabajos Relevantes en Salud Pública y Big Data}{24}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Propuesta}{25}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Conclusiones}{26}{subsection.2.5}%
+\contentsline {section}{\numberline {3}Objetivos concretos y metodología de trabajo}{27}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Objetivo general}{27}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Objetivos específicos}{27}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Metodología del trabajo}{27}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Aplicación del modelo CRISP-DM}{28}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Comprensión de los datos}{28}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Preparación de los datos}{29}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Modelado}{29}{subsubsection.3.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.5}Evaluación}{29}{subsubsection.3.3.5}%
+\contentsline {subsubsection}{\numberline {3.3.6}Despliegue}{30}{subsubsection.3.3.6}%
+\contentsline {subsection}{\numberline {3.4}Gestión del trabajo mediante Kanban}{30}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Marco normativo}{31}{section.4}%
+\contentsline {section}{\numberline {5}Desarrollo específico de la contribución}{33}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Visión general de la contribución}{33}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Análisis de requisitos del sistema}{34}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Requisitos funcionales}{34}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Requisitos no funcionales}{36}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Requisitos epidemiológicos}{38}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Diseño de la arquitectura basada en el modelo Dataflow}{40}{subsection.5.6}%
+\contentsline {subsubsection}{\numberline {5.6.1}Principios del modelo Dataflow aplicados}{40}{subsubsection.5.6.1}%
+\contentsline {subsubsection}{\numberline {5.6.2}Arquitectura general del sistema}{41}{subsubsection.5.6.2}%
+\contentsline {subsubsection}{\numberline {5.6.3}Flujo de datos streaming y batch}{43}{subsubsection.5.6.3}%
+\contentsline {subsection}{\numberline {5.7}Implementación del pipeline de procesamiento}{46}{subsection.5.7}%
+\contentsline {subsubsection}{\numberline {5.7.1}Ingesta de datos basada en eventos}{46}{subsubsection.5.7.1}%
+\contentsline {subsubsection}{\numberline {5.7.2}Definición del pipeline en Apache Beam}{47}{subsubsection.5.7.2}%
+\contentsline {subsubsection}{\numberline {5.7.3}Procesamiento en streaming}{49}{subsubsection.5.7.3}%
+\contentsline {subsubsection}{\numberline {5.7.4}Ventanas temporales}{50}{subsubsection.5.7.4}%
+\contentsline {subsubsection}{\numberline {5.7.5}Triggers y manejo de eventos tardíos}{51}{subsubsection.5.7.5}%
+\contentsline {subsubsection}{\numberline {5.7.6}Procesamiento en batch}{53}{subsubsection.5.7.6}%
+\contentsline {subsection}{\numberline {5.8}Transformaciones y cálculos analíticos}{54}{subsection.5.8}%
+\contentsline {subsection}{\numberline {5.9}Consideraciones de escalabilidad y tolerancia a fallos}{56}{subsection.5.9}%
+\contentsline {subsection}{\numberline {5.10}Modelos analíticos y predictivos}{59}{subsection.5.10}%
+\contentsline {subsubsection}{\numberline {5.10.1}Objetivos de los modelos analíticos y predictivos}{60}{subsubsection.5.10.1}%
+\contentsline {subsubsection}{\numberline {5.10.2}Integración de los modelos en la arquitectura Dataflow}{61}{subsubsection.5.10.2}%
+\contentsline {subsection}{\numberline {5.11}Análisis exploratorio en tiempo real}{62}{subsection.5.11}%
+\contentsline {subsubsection}{\numberline {5.11.1}Métricas descriptivas en tiempo real}{62}{subsubsection.5.11.1}%
+\contentsline {subsubsection}{\numberline {5.11.2}Detección de anomalías simples}{64}{subsubsection.5.11.2}%
+\contentsline {subsubsection}{\numberline {5.11.3}Soporte a la visualización y toma de decisiones}{66}{subsubsection.5.11.3}%
+\contentsline {subsection}{\numberline {5.12}Modelos predictivos}{67}{subsection.5.12}%
+\contentsline {subsubsection}{\numberline {5.12.1}Algoritmos utilizados}{67}{subsubsection.5.12.1}%
+\contentsline {subsubsection}{\numberline {5.12.2}Variables de entrada}{68}{subsubsection.5.12.2}%
+\contentsline {subsubsection}{\numberline {5.12.3}Integración con el pipeline}{69}{subsubsection.5.12.3}%
+\contentsline {subsection}{\numberline {5.13}Generación de escenarios futuros}{70}{subsection.5.13}%
+\contentsline {subsubsection}{\numberline {5.13.1}Simulación de tendencias}{70}{subsubsection.5.13.1}%
+\contentsline {subsubsection}{\numberline {5.13.2}Uso en la toma de decisiones}{72}{subsubsection.5.13.2}%
+\contentsline {subsection}{\numberline {5.14}Visualización interactiva y monitorización}{73}{subsection.5.14}%
+\contentsline {subsection}{\numberline {5.15}Arquitectura del sistema de visualización}{73}{subsection.5.15}%
+\contentsline {subsubsection}{\numberline {5.15.1}Stack tecnológico del backend}{75}{subsubsection.5.15.1}%
+\contentsline {subsubsection}{\numberline {5.15.2}Stack tecnológico del frontend}{75}{subsubsection.5.15.2}%
+\contentsline {subsection}{\numberline {5.16}Diseño de dashboards}{76}{subsection.5.16}%
+\contentsline {subsubsection}{\numberline {5.16.1}Panel de indicadores clave (KPIs)}{77}{subsubsection.5.16.1}%
+\contentsline {subsubsection}{\numberline {5.16.2}Panel de filtros interactivos}{77}{subsubsection.5.16.2}%
+\contentsline {subsection}{\numberline {5.17}Reportes y visualizaciones implementadas}{78}{subsection.5.17}%
+\contentsline {subsubsection}{\numberline {5.17.1}Catálogo de reportes}{79}{subsubsection.5.17.1}%
+\contentsline {subsubsection}{\numberline {5.17.2}Modelo de datos y colecciones}{79}{subsubsection.5.17.2}%
+\contentsline {subsubsection}{\numberline {5.17.3}Casos por Departamento}{79}{subsubsection.5.17.3}%
+\contentsline {subsubsection}{\numberline {5.17.4}Distribución por Sexo}{82}{subsubsection.5.17.4}%
+\contentsline {subsubsection}{\numberline {5.17.5}Evolución Temporal de Casos}{83}{subsubsection.5.17.5}%
+\contentsline {subsubsection}{\numberline {5.17.6}Casos por Grupo de Edad}{84}{subsubsection.5.17.6}%
+\contentsline {subsubsection}{\numberline {5.17.7}Reportes de Fallecidos}{86}{subsubsection.5.17.7}%
+\contentsline {paragraph}{Fallecidos por Departamento}{86}{paragraph*.1}%
+\contentsline {paragraph}{Fallecidos por Fecha}{86}{paragraph*.2}%
+\contentsline {paragraph}{Fallecidos por Sexo}{86}{paragraph*.3}%
+\contentsline {subsubsection}{\numberline {5.17.8}Mapas de Calor Georreferenciados}{87}{subsubsection.5.17.8}%
+\contentsline {paragraph}{Mapa de Calor de Fallecidos}{87}{paragraph*.4}%
+\contentsline {paragraph}{Mapa de Calor de Hospitalizaciones}{89}{paragraph*.5}%
+\contentsline {paragraph}{Consulta del Mapa de Calor de Casos}{91}{paragraph*.6}%
+\contentsline {subsubsection}{\numberline {5.17.9}Sistema de coordenadas geográficas}{93}{subsubsection.5.17.9}%
+\contentsline {subsection}{\numberline {5.18}Comunicación en tiempo real}{94}{subsection.5.18}%
+\contentsline {subsubsection}{\numberline {5.18.1}Flujo de actualización de datos}{94}{subsubsection.5.18.1}%
+\contentsline {subsubsection}{\numberline {5.18.2}Eventos WebSocket implementados}{96}{subsubsection.5.18.2}%
+\contentsline {subsection}{\numberline {5.19}Sistema de alertas}{96}{subsection.5.19}%
+\contentsline {subsubsection}{\numberline {5.19.1}Arquitectura del sistema de alertas}{96}{subsubsection.5.19.1}%
+\contentsline {subsubsection}{\numberline {5.19.2}Tipos de alertas implementadas}{97}{subsubsection.5.19.2}%
+\contentsline {subsubsection}{\numberline {5.19.3}Niveles de severidad}{99}{subsubsection.5.19.3}%
+\contentsline {subsubsection}{\numberline {5.19.4}Gestión thread-safe de alertas}{100}{subsubsection.5.19.4}%
+\contentsline {subsubsection}{\numberline {5.19.5}Filtrado temporal de alertas}{100}{subsubsection.5.19.5}%
+\contentsline {subsubsection}{\numberline {5.19.6}Configuración dinámica de umbrales}{101}{subsubsection.5.19.6}%
+\contentsline {subsubsection}{\numberline {5.19.7}Historial de alertas}{102}{subsubsection.5.19.7}%
+\contentsline {subsubsection}{\numberline {5.19.8}Visualización de alertas}{103}{subsubsection.5.19.8}%
+\contentsline {subsubsection}{\numberline {5.19.9}Notificaciones en tiempo real}{103}{subsubsection.5.19.9}%
+\contentsline {subsubsection}{\numberline {5.19.10}Gestión de alertas activas}{104}{subsubsection.5.19.10}%
+\contentsline {subsection}{\numberline {5.20}Stack tecnológico del sistema de visualización}{105}{subsection.5.20}%
+\contentsline {subsubsection}{\numberline {5.20.1}Justificación de las tecnologías seleccionadas}{105}{subsubsection.5.20.1}%
+\contentsline {paragraph}{Flask como framework web}{105}{paragraph*.7}%
+\contentsline {paragraph}{WebSockets para comunicación en tiempo real}{106}{paragraph*.8}%
+\contentsline {paragraph}{D3.js para visualización}{106}{paragraph*.9}%
+\contentsline {paragraph}{MongoDB como base de datos}{106}{paragraph*.10}%
+\contentsline {subsection}{\numberline {5.21}Arquitectura de módulos del sistema}{107}{subsection.5.21}%
+\contentsline {subsubsection}{\numberline {5.21.1}Módulos del backend}{107}{subsubsection.5.21.1}%
+\contentsline {paragraph}{Módulo de Servicios (\texttt {services/})}{107}{paragraph*.11}%
+\contentsline {paragraph}{Módulo de Consultas (\texttt {handlers/queries/})}{108}{paragraph*.12}%
+\contentsline {paragraph}{Módulo de Alertas (\texttt {handlers/alerts.py})}{108}{paragraph*.13}%
+\contentsline {paragraph}{Módulo de WebSocket (\texttt {handlers/websocket/})}{109}{paragraph*.14}%
+\contentsline {paragraph}{Módulo de Rutas (\texttt {routes/})}{109}{paragraph*.15}%
+\contentsline {subsubsection}{\numberline {5.21.2}Módulos del frontend}{109}{subsubsection.5.21.2}%
+\contentsline {paragraph}{Módulo de Configuración (\texttt {modules/config.js})}{109}{paragraph*.16}%
+\contentsline {paragraph}{Módulo de Utilidades (\texttt {modules/utils.js})}{110}{paragraph*.17}%
+\contentsline {paragraph}{Módulo de Filtros (\texttt {modules/filters.js})}{110}{paragraph*.18}%
+\contentsline {paragraph}{Módulo de Alertas (\texttt {modules/alerts.js})}{110}{paragraph*.19}%
+\contentsline {paragraph}{Módulos de Gráficos (\texttt {charts/})}{110}{paragraph*.20}%
+\contentsline {subsection}{\numberline {5.22}Resumen de funcionalidades implementadas}{111}{subsection.5.22}%
+\contentsline {subsection}{\numberline {5.23}Evaluación del sistema y resultados}{111}{subsection.5.23}%
+\contentsline {subsection}{\numberline {5.24}Criterios y métricas de evaluación}{111}{subsection.5.24}%
+\contentsline {subsubsection}{\numberline {5.24.1}Métricas de rendimiento}{112}{subsubsection.5.24.1}%
+\contentsline {subsubsection}{\numberline {5.24.2}Métricas de calidad analítica}{112}{subsubsection.5.24.2}%
+\contentsline {subsubsection}{\numberline {5.24.3}Métricas de robustez}{112}{subsubsection.5.24.3}%
+\contentsline {subsubsection}{\numberline {5.24.4}Métricas de utilidad práctica}{112}{subsubsection.5.24.4}%
+\contentsline {subsection}{\numberline {5.25}Escenarios de evaluación}{112}{subsection.5.25}%
+\contentsline {subsection}{\numberline {5.26}Resultados obtenidos}{113}{subsection.5.26}%
+\contentsline {subsection}{\numberline {5.27}Análisis comparativo}{113}{subsection.5.27}%
+\contentsline {subsection}{\numberline {5.28}Discusión de resultados}{113}{subsection.5.28}%
+\contentsline {subsection}{\numberline {5.29}Validación de los objetivos específicos}{113}{subsection.5.29}%
+\contentsline {subsection}{\numberline {5.30}Síntesis del impacto del sistema}{114}{subsection.5.30}%
+\contentsline {subsection}{\numberline {5.31}Aporte y contribución del trabajo}{114}{subsection.5.31}%
+\contentsline {subsection}{\numberline {5.32}Resumen de la contribución técnica}{114}{subsection.5.32}%
+\contentsline {subsection}{\numberline {5.33}Valor añadido frente a soluciones existentes}{115}{subsection.5.33}%
+\contentsline {subsection}{\numberline {5.34}Aplicabilidad en contextos reales (Perú)}{115}{subsection.5.34}%
+\contentsline {subsection}{\numberline {5.35}Cierre del capítulo}{116}{subsection.5.35}%
+\contentsline {section}{\numberline {6}Código fuente y datos analizados}{117}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Código fuente}{117}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Datos analizados}{117}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Consideraciones sobre confidencialidad}{117}{subsubsection.6.1.2}%
+\contentsline {section}{\numberline {7}Conclusiones}{119}{section.7}%
+\contentsline {section}{\numberline {8}Limitaciones y prospectiva}{121}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Limitaciones}{121}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Trabajo Futuro}{121}{subsection.8.2}%
+\contentsline {section}{Referencias bibliograficas}{123}{subsection.8.2}%
+\contentsline {section}{Anexo A. Privacidad y protección de datos}{125}{subsection.8.2}%
+\contentsline {section}{Anexo B. Manual de instalación y despliegue}{127}{Item.47}%
+\contentsline {paragraph}{Método 1: Demo automática (recomendado)}{129}{paragraph*.21}%
+\contentsline {paragraph}{Método 2: Ejecución mediante el orquestador}{129}{paragraph*.22}%
+\contentsline {paragraph}{Método 3: Ejecución directa por schema}{130}{paragraph*.23}%
+\contentsline {section}{Anexo C. Estructura del código fuente}{132}{lstnumber.53.5}%

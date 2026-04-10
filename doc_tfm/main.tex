@@ -4357,20 +4357,20 @@ Para desplegar el sistema es necesario disponer de los siguientes componentes de
 
 El código fuente del proyecto se encuentra alojado en un repositorio Git de acceso público. Para obtenerlo:
 
-\begin{verbatim}
+\begin{lstlisting}[language=Python, caption=git-clone]
 git clone https://github.com/arthur8davis/tfm-dataflow-architecture.git
 cd tfm-dataflow-architecture
-\end{verbatim}
+\end{lstlisting}
 
 \subsection*{B.3. Creación del entorno virtual e instalación de dependencias}
 
 Se recomienda utilizar un entorno virtual de Python para aislar las dependencias del proyecto:
 
-\begin{verbatim}
+\begin{lstlisting}[language=Python, caption=virtualenv]
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-\end{verbatim}
+\end{lstlisting}
 
 Las dependencias principales del proyecto son las siguientes:
 
@@ -4395,29 +4395,52 @@ Los servicios de infraestructura se gestionan mediante Docker Compose. El archiv
 
 \begin{table}[h!]
     \centering
-    \begin{tabular}{|l|l|l|l|}
+    \small
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{|l|p{4.5cm}|c|p{6cm}|}
         \hline
-        \textbf{Servicio}    & \textbf{Imagen Docker}      & \textbf{Puerto} & \textbf{Descripción}                        \\ \hline
-        Apache Kafka (KRaft) & \texttt{apache/kafka:4.1.1} & 9092            & Broker de mensajería (sin Zookeeper)        \\ \hline
-        MongoDB              & \texttt{mongo:8.0.0}        & 27017           & Base de datos con colecciones time-series   \\ \hline
-        Kafka UI             & \texttt{kafbat/kafka-ui}    & 8080            & Interfaz web para monitoreo de Kafka        \\ \hline
-        Mongo Express        & \texttt{mongo-express}      & 8083            & Interfaz web para administración de MongoDB \\ \hline
+        \textbf{Servicio} 
+        & \textbf{Imagen Docker} 
+        & \textbf{Puerto} 
+        & \textbf{Descripción} \\ \hline
+
+        Apache Kafka (KRaft)
+        & \texttt{apache/kafka:4.1.1}
+        & 9092
+        & Broker de mensajería distribuida (modo KRaft, sin Zookeeper). \\ \hline
+
+        MongoDB
+        & \texttt{mongo:8.0.0}
+        & 27017
+        & Base de datos NoSQL con soporte para colecciones tipo time-series. \\ \hline
+
+        Kafka UI
+        & \texttt{kafbat/kafka-ui}
+        & 8080
+        & Interfaz web para monitoreo y administración de clústeres Kafka. \\ \hline
+
+        Mongo Express
+        & \texttt{mongo-express}
+        & 8083
+        & Interfaz web para la gestión y exploración de bases de datos MongoDB. \\ \hline
     \end{tabular}
-    \caption{Servicios Docker del sistema.}
+    \caption{Servicios Docker desplegados en el sistema.}
+    \label{tab:servicios_docker}
 \end{table}
+
 
 Para iniciar los servicios:
 
-\begin{verbatim}
+\begin{lstlisting}[language=Python, caption=docker-compose]
 docker-compose up -d
 docker-compose ps    # Verificar que los servicios están activos
-\end{verbatim}
+\end{lstlisting}
 
 \subsection*{B.5. Configuración de MongoDB}
 
 Una vez iniciados los servicios, es necesario crear las colecciones time-series en MongoDB:
 
-\begin{verbatim}
+\begin{lstlisting}[language=Python, caption=mongo-db-collections]
 docker exec -it mongodb mongosh -u admin -p admin123
 
 use covid-db
@@ -4444,7 +4467,7 @@ db.createCollection("dead_letter_queue")
 db.dead_letter_queue.createIndex({"error_type": 1})
 db.dead_letter_queue.createIndex({"schema": 1})
 db.dead_letter_queue.createIndex({"timestamp": 1})
-\end{verbatim}
+\end{lstlisting}
 
 \subsection*{B.6. Ejecución de los pipelines}
 
@@ -4456,11 +4479,13 @@ El sistema ofrece tres métodos de ejecución:
 ./example_run_all.sh
 \end{verbatim}
 
-Este script verifica los servicios, lista los schemas disponibles, ejecuta la ingesta de datos y lanza los pipelines de procesamiento.
+Este script verifica los servicios, lista los schemas disponibles, ejecuta la ingesta de datos y lanza los pipelines de procesamiento.\\
 
 \paragraph{Método 2: Ejecución mediante el orquestador}
 
-\begin{verbatim}
+Ejecución:\\
+
+\begin{lstlisting}[language=Python, caption=ejecuciones]
 # Listar schemas disponibles
 python orchestrator.py --list
 
@@ -4472,11 +4497,15 @@ python orchestrator.py --pipeline cases
 
 # Ejecutar todos los pipelines en paralelo
 python orchestrator.py --pipeline-all --parallel
-\end{verbatim}
+\end{lstlisting}
+
+\par
 
 \paragraph{Método 3: Ejecución directa por schema}
 
-\begin{verbatim}
+Ejecución:\\
+
+\begin{lstlisting}[language=Python, caption=Ejecucion-paso-paso]
 # Ingesta
 python pipelines/cases/ingestion.py
 
@@ -4485,17 +4514,17 @@ python pipelines/cases/pipeline.py --mode streaming
 
 # Pipeline en modo batch
 python pipelines/cases/pipeline.py --mode batch
-\end{verbatim}
+\end{lstlisting}
 
 \subsection*{B.7. Ejecución del dashboard de visualización}
 
 Para iniciar el dashboard interactivo:
 
-\begin{verbatim}
+\begin{lstlisting}[language=Python, caption=visualizacion]
 cd visualization
 pip install flask flask-socketio flask-cors pymongo
 python app.py
-\end{verbatim}
+\end{lstlisting}
 
 El dashboard estará disponible en \texttt{http://localhost:5006} y se actualizará en tiempo real mediante WebSocket.
 
@@ -4515,25 +4544,25 @@ Una vez ejecutados los pipelines, se puede verificar el correcto funcionamiento 
     \caption{Herramientas de verificación y monitoreo.}
 \end{table}
 
-También es posible verificar los datos directamente por línea de comandos:
+También es posible verificar los datos directamente por línea de comandos:\\
 
-\begin{verbatim}
+\begin{lstlisting}[language=Python, caption=verificacion-mongo]
 docker exec -it mongodb mongosh -u admin -p admin123
 use covid-db
 db.cases.countDocuments()
 db.demises.countDocuments()
 db.hospitalizations.countDocuments()
-\end{verbatim}
+\end{lstlisting}
 
 \subsection*{B.9. Detención y limpieza del entorno}
 
-\begin{verbatim}
+\begin{lstlisting}[language=Python, caption=docker-compose-up]
 # Detener los servicios (preservando datos)
 docker-compose down
 
 # Detener y eliminar todos los datos almacenados
 docker-compose down -v
-\end{verbatim}
+\end{lstlisting}
 
 % ============================================================================
 \newpage
@@ -4650,18 +4679,21 @@ La siguiente tabla describe la función de cada módulo de transformación en el
 
 \begin{table}[h!]
     \centering
-    \begin{tabular}{|l|l|l|}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{|c|l|p{9cm}|}
         \hline
-        \textbf{Orden} & \textbf{Módulo}         & \textbf{Función}                                                           \\ \hline
-        1              & \texttt{normalize.py}   & Manejo de valores nulos, conversión de tipos y estandarización de formatos \\ \hline
-        2              & \texttt{enrich\_geo.py} & Conversión de códigos UBIGEO a coordenadas geográficas (latitud/longitud)  \\ \hline
-        3              & \texttt{validate.py}    & Validación de campos requeridos y tipos de dato contra el esquema JSON     \\ \hline
-        4              & \texttt{timestamp.py}   & Extracción y asignación de timestamps a partir del campo fecha configurado \\ \hline
-        5              & \texttt{windowing.py}   & Aplicación de ventanas temporales fijas con tolerancia a datos tardíos     \\ \hline
-        6              & \texttt{metadata.py}    & Incorporación de metadatos: versión del pipeline, tipo de fuente y fecha   \\ \hline
+        \textbf{Orden} & \textbf{Módulo}         & \textbf{Función} \\ \hline
+        1 & \texttt{normalize.py}   & Manejo de valores nulos, conversión de tipos y estandarización de formatos. \\ \hline
+        2 & \texttt{enrich\_geo.py} & Conversión de códigos UBIGEO a coordenadas geográficas (latitud/longitud).  \\ \hline
+        3 & \texttt{validate.py}    & Validación de campos requeridos y tipos de dato contra el esquema JSON.     \\ \hline
+        4 & \texttt{timestamp.py}   & Extracción y asignación de timestamps a partir del campo fecha configurado. \\ \hline
+        5 & \texttt{windowing.py}   & Aplicación de ventanas temporales fijas con tolerancia a datos tardíos.     \\ \hline
+        6 & \texttt{metadata.py}    & Incorporación de metadatos: versión del pipeline, tipo de fuente y fecha.   \\ \hline
     \end{tabular}
     \caption{Cadena de transformaciones del pipeline de procesamiento.}
+    \label{tab:transformaciones_pipeline}
 \end{table}
+
 
 \subsection*{C.4. Directorio \texttt{datasets/}}
 
@@ -4750,19 +4782,45 @@ visualization/
 \begin{table}[h!]
     \centering
     \small
-    \begin{tabular}{|l|l|l|}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{|l|p{5.5cm}|p{6cm}|}
         \hline
-        \textbf{Componente} & \textbf{Archivo}                                     & \textbf{Responsabilidad}              \\ \hline
-        Orquestador         & \texttt{orchestrator.py}                             & Descubrimiento y ejecución de schemas \\ \hline
-        Ingesta schema      & \texttt{pipelines/X/ingestion.py}                    & Lectura CSV y envío a Kafka           \\ \hline
-        Pipeline schema     & \texttt{pipelines/X/pipeline.py}                     & Procesamiento con Apache Beam         \\ \hline
-        Kafka Processor     & \texttt{src/ingestion/kafka\_processor.py}           & Producción de mensajes a Kafka        \\ \hline
-        Kafka Source        & \texttt{src/common/sources/kafka\_source\_native.py} & Consumo de mensajes de Kafka          \\ \hline
-        MongoDB Sink        & \texttt{src/common/sinks/mongo\_sink.py}             & Escritura a MongoDB (bulk write)      \\ \hline
-        DLQ Sink            & \texttt{src/common/sinks/dlq\_sink.py}               & Registro de errores en DLQ            \\ \hline
-        Dashboard           & \texttt{visualization/app.py}                        & Visualización en tiempo real          \\ \hline
+        \textbf{Componente} & \textbf{Archivo} & \textbf{Responsabilidad} \\ \hline
+        Orquestador
+        & \texttt{orchestrator.py}
+        & Descubrimiento y ejecución de schemas. \\ \hline
+
+        Ingesta schema
+        & \texttt{pipelines/X/ingestion.py}
+        & Lectura de archivos CSV y envío de datos a Kafka. \\ \hline
+
+        Pipeline schema
+        & \texttt{pipelines/X/pipeline.py}
+        & Procesamiento de datos mediante Apache Beam. \\ \hline
+
+        Kafka Processor
+        & \texttt{src/ingestion/ kafka\_processor.py}
+        & Producción de mensajes hacia Kafka. \\ \hline
+
+        Kafka Source
+        & \texttt{src/common/sources/ kafka\_source\_native.py}
+        & Consumo de mensajes desde Kafka. \\ \hline
+
+        MongoDB Sink
+        & \texttt{src/common/sinks/ mongo\_sink.py}
+        & Escritura eficiente en MongoDB mediante operaciones bulk. \\ \hline
+
+        DLQ Sink
+        & \texttt{src/common/sinks/dlq\_sink.py}
+        & Registro y persistencia de errores en la Dead Letter Queue. \\ \hline
+
+        Dashboard
+        & \texttt{visualization/app.py}
+        & Visualización de métricas y flujos en tiempo real. \\ \hline
     \end{tabular}
-    \caption{Resumen de componentes principales del sistema.}
+    \caption{Resumen de los componentes principales del sistema.}
+    \label{tab:componentes_sistema}
 \end{table}
+
 
 \end{document}

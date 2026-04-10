@@ -40,6 +40,9 @@ from handlers.queries.demises import (
     get_demises_heatmap_data,
 )
 from handlers.alerts import check_all_thresholds, get_active_alerts, alerts_lock
+from handlers.queries.metrics import get_metrics_cases, get_metrics_demises, get_metrics_summary
+from handlers.queries.anomalies import get_anomalies, get_anomalies_summary
+from handlers.queries.predictions import get_predictions, get_predictions_summary
 
 # -----------------------------------------------------------------------------
 # Configuración Socket.IO (eventlet opcional)
@@ -94,6 +97,10 @@ register_websocket_handlers(socketio, _interval_lock, get_refresh_interval, set_
 # -----------------------------------------------------------------------------
 _last_cases_count = 0
 _last_demises_count = 0
+_last_metrics_cases_count = 0
+_last_metrics_demises_count = 0
+_last_anomalies_count = 0
+_last_predictions_count = 0
 
 # -----------------------------------------------------------------------------
 # Refresh / cache
@@ -176,9 +183,45 @@ def refresh_demises():
         print(f"[Refresh Demises] Error: {e}")
 
 
+def refresh_metrics():
+    """Refresca métricas descriptivas y emite a clientes."""
+    try:
+        metrics_cases = get_metrics_cases()
+        metrics_demises = get_metrics_demises()
+        metrics_summary = get_metrics_summary()
+
+        socketio.emit('update_metrics_cases', metrics_cases)
+        socketio.emit('update_metrics_demises', metrics_demises)
+        socketio.emit('update_metrics_summary', metrics_summary)
+        print(f"[Refresh Metrics] Cases: {len(metrics_cases)} ventanas, Demises: {len(metrics_demises)} ventanas")
+    except Exception as e:
+        print(f"[Refresh Metrics] Error: {e}")
+
+
+def refresh_analytics():
+    """Refresca anomalías y predicciones y emite a clientes."""
+    try:
+        anomalies_cases = get_anomalies('cases')
+        anomalies_demises = get_anomalies('demises')
+        anomalies_summary = get_anomalies_summary()
+        predictions_cases = get_predictions('cases')
+        predictions_demises = get_predictions('demises')
+        predictions_summary = get_predictions_summary()
+
+        socketio.emit('update_anomalies_cases', anomalies_cases)
+        socketio.emit('update_anomalies_demises', anomalies_demises)
+        socketio.emit('update_anomalies_summary', anomalies_summary)
+        socketio.emit('update_predictions_cases', predictions_cases)
+        socketio.emit('update_predictions_demises', predictions_demises)
+        socketio.emit('update_predictions_summary', predictions_summary)
+        print(f"[Refresh Analytics] Anomalies: {len(anomalies_cases)}+{len(anomalies_demises)}, Predictions: {len(predictions_cases)}+{len(predictions_demises)}")
+    except Exception as e:
+        print(f"[Refresh Analytics] Error: {e}")
+
+
 def refresh_loop():
     """Loop de polling para detectar cambios en colecciones time-series."""
-    global _last_cases_count, _last_demises_count
+    global _last_cases_count, _last_demises_count, _last_metrics_cases_count, _last_metrics_demises_count, _last_anomalies_count, _last_predictions_count
 
     print(f"[Polling] Iniciado con intervalo {_refresh_interval}s")
 
@@ -186,7 +229,9 @@ def refresh_loop():
         try:
             _last_cases_count = db.cases.estimated_document_count()
             _last_demises_count = db.demises.estimated_document_count()
-            print(f"[Polling] Conteo inicial - Cases: {_last_cases_count}, Demises: {_last_demises_count}")
+            _last_metrics_cases_count = db.metrics_cases.count_documents({})
+            _last_metrics_demises_count = db.metrics_demises.count_documents({})
+            print(f"[Polling] Conteo inicial - Cases: {_last_cases_count}, Demises: {_last_demises_count}, Metrics Cases: {_last_metrics_cases_count}, Metrics Demises: {_last_metrics_demises_count}")
         except Exception as e:
             print(f"[Polling] Error obteniendo conteo inicial: {e}")
 
@@ -227,6 +272,38 @@ def refresh_loop():
                     'count': current_demises
                 })
                 refresh_demises()
+
+            # Detectar cambios en métricas
+            try:
+                current_metrics_cases = db.metrics_cases.count_documents({})
+                current_metrics_demises = db.metrics_demises.count_documents({})
+
+                if current_metrics_cases != _last_metrics_cases_count or current_metrics_demises != _last_metrics_demises_count:
+                    print(f"[Polling] Métricas actualizadas - Cases: {current_metrics_cases}, Demises: {current_metrics_demises}")
+                    _last_metrics_cases_count = current_metrics_cases
+                    _last_metrics_demises_count = current_metrics_demises
+                    refresh_metrics()
+            except Exception as e:
+                print(f"[Polling] Error verificando métricas: {e}")
+
+            # Detectar cambios en anomalías y predicciones
+            try:
+                current_anomalies = (
+                    db.anomalies_cases.count_documents({}) +
+                    db.anomalies_demises.count_documents({})
+                )
+                current_predictions = (
+                    db.predictions_cases.count_documents({}) +
+                    db.predictions_demises.count_documents({})
+                )
+
+                if current_anomalies != _last_anomalies_count or current_predictions != _last_predictions_count:
+                    print(f"[Polling] Analytics actualizados - Anomalies: {current_anomalies}, Predictions: {current_predictions}")
+                    _last_anomalies_count = current_anomalies
+                    _last_predictions_count = current_predictions
+                    refresh_analytics()
+            except Exception as e:
+                print(f"[Polling] Error verificando analytics: {e}")
 
         except Exception as e:
             print(f"[Polling] Error: {e}")

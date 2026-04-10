@@ -26,6 +26,11 @@ from src.common.batching.native_batch import NativeBatcher
 from src.common.sinks.mongo_sink import MongoDBSink
 from src.common.sinks.dlq_sink import DLQSink, CombineDLQErrors
 from src.common.transforms.enrich_geo import EnrichGeoFromUbigeo
+from src.common.transforms.compute_metrics import create_compute_metrics_branch
+from src.common.transforms.predictive_model import create_analytics_branch
+from src.common.sinks.metrics_sink import MetricsSink
+from src.common.sinks.anomalies_sink import AnomaliesSink
+from src.common.sinks.predictions_sink import PredictionsSink
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -87,6 +92,49 @@ class DemisesPipeline:
             processed_data, dlq_list = self._build_storage_pipeline(pipeline)
         else:
             raise ValueError(f"Unknown source type: {source_type}")
+
+        # Rama analítica: Métricas descriptivas por ventana
+        if hasattr(self, '_windowed_data') and self._windowed_data is not None:
+            metrics = create_compute_metrics_branch(
+                self._windowed_data, schema_name='demises'
+            )
+            _ = (
+                metrics
+                | "Write Metrics" >> beam.ParDo(
+                    MetricsSink(
+                        connection_string=self.config['sink']['mongodb']['connection_string'],
+                        database=self.config['sink']['mongodb']['database'],
+                        collection='metrics_demises'
+                    )
+                )
+            )
+
+            # Rama analítica: Anomalías + Predicciones (5.11.2 + 5.12.3)
+            anomalies, predictions = create_analytics_branch(
+                metrics, schema_name='demises', label_prefix="Demises"
+            )
+
+            _ = (
+                anomalies
+                | "Write Anomalies" >> beam.ParDo(
+                    AnomaliesSink(
+                        connection_string=self.config['sink']['mongodb']['connection_string'],
+                        database=self.config['sink']['mongodb']['database'],
+                        collection='anomalies_demises'
+                    )
+                )
+            )
+
+            _ = (
+                predictions
+                | "Write Predictions" >> beam.ParDo(
+                    PredictionsSink(
+                        connection_string=self.config['sink']['mongodb']['connection_string'],
+                        database=self.config['sink']['mongodb']['database'],
+                        collection='predictions_demises'
+                    )
+                )
+            )
 
         # Sink: Escribir a MongoDB
         write_results = (
@@ -220,6 +268,8 @@ class DemisesPipeline:
                 )
                 | "Log Window" >> beam.ParDo(LogWindow())
             )
+            # Guardar referencia para rama analítica (métricas por ventana)
+            self._windowed_data = main_data
 
         # Metadata
         if transforms_config['metadata']['enabled']:

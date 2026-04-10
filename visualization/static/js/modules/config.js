@@ -32,7 +32,11 @@ export const state = {
     allSexData: [],
     allDemisesSexData: [],
     allHospitalizationsDeptData: [],
-    allHospitalizationsHeatmapData: []
+    allHospitalizationsHeatmapData: [],
+    // Métricas descriptivas
+    metricsCase: [],
+    metricsDemises: [],
+    metricsSummary: {}
 };
 
 // Mapas Leaflet (referencias globales)

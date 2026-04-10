@@ -1198,3 +1198,317 @@ footer {
         transform: rotate(360deg);
     }
 }
+
+/* ============== Métricas Descriptivas ============== */
+
+.metrics-section {
+    margin-bottom: 2rem;
+}
+
+.metrics-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: #e4e4e4;
+    border-bottom: 2px solid #4a90d9;
+    padding-bottom: 0.5rem;
+}
+
+.metrics-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.metric-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.2rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(74, 144, 217, 0.2);
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+
+.metric-sub {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* ============== Navegación entre vistas ============== */
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.nav-link {
+    color: #4a90d9;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border: 1px solid #4a90d9;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    background: #4a90d9;
+    color: #fff;
+}
+
+/* ============== Vista Métricas (sin sidebar) ============== */
+
+.metricas-page {
+    display: block;
+}
+
+.metricas-layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.metricas-layout .container {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+/* ============== Tabla de métricas ============== */
+
+.table-container {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.metrics-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.metrics-table th,
+.metrics-table td {
+    padding: 0.7rem 1rem;
+    text-align: right;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.metrics-table th {
+    background: rgba(74, 144, 217, 0.15);
+    color: #a0c4e8;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+}
+
+.metrics-table th:first-child,
+.metrics-table td:first-child {
+    text-align: left;
+}
+
+.metrics-table td:last-child {
+    text-align: left;
+}
+
+.metrics-table tbody tr:hover {
+    background: rgba(74, 144, 217, 0.08);
+}
+
+.metrics-table .no-data {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+}
+
+/* ============== Tabs de navegación ============== */
+
+.tabs-nav {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.9rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-btn:hover {
+    color: #ccc;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+    color: #4a90d9;
+    border-bottom-color: #4a90d9;
+    background: rgba(74, 144, 217, 0.06);
+}
+
+.tab-section {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #666;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+}
+
+.tab-btn.active .tab-section {
+    color: #4a90d9;
+    background: rgba(74, 144, 217, 0.15);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: tabFadeIn 0.3s ease;
+}
+
+@keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============== Descripción de secciones ============== */
+
+.section-desc {
+    font-size: 0.85rem;
+    color: #999;
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+}
+
+.chart-desc {
+    font-size: 0.78rem;
+    color: #777;
+    margin-bottom: 0.8rem;
+}
+
+/* ============== Cards de algoritmos ============== */
+
+.algo-explanation {
+    margin-top: 2rem;
+}
+
+.algo-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.algo-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 1.3rem;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.algo-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(74, 144, 217, 0.3);
+}
+
+.algo-card h4 {
+    font-size: 1rem;
+    color: #e4e4e4;
+    margin-bottom: 0.6rem;
+}
+
+.algo-card p {
+    font-size: 0.82rem;
+    color: #999;
+    line-height: 1.5;
+    margin-bottom: 0.6rem;
+}
+
+.algo-formula {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #4a90d9;
+    background: rgba(74, 144, 217, 0.08);
+    padding: 0.4rem 0.7rem;
+    border-radius: 5px;
+    margin-bottom: 0.7rem;
+    display: inline-block;
+}
+
+.algo-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #4a90d9;
+    background: rgba(74, 144, 217, 0.12);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+}
+
+.algo-badge.badge-green {
+    color: #44cc44;
+    background: rgba(68, 204, 68, 0.12);
+}
+
+.algo-badge.badge-yellow {
+    color: #ffaa00;
+    background: rgba(255, 170, 0, 0.12);
+}
+
+.algo-badge.badge-red {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.12);
+}
+
+/* Escenarios con borde de color */
+.scenario-optimista {
+    border-left: 3px solid #44cc44;
+}
+
+.scenario-base {
+    border-left: 3px solid #ffaa00;
+}
+
+.scenario-pesimista {
+    border-left: 3px solid #ff4444;
+}
